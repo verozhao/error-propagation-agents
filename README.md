@@ -20,3 +20,10 @@ python run.py --mode analyze --results-file results/experiment_YYYYMMDD_HHMMSS.j
 - `results/error_propagation.png`: Error propagation curves
 - `results/pattern_comparison.png`: Pattern fitting visualization
 - `results/pattern_summary.csv`: Summary of propagation patterns
+
+## TODO: possible figures for our reports include:
+Figure 1: Error propagation curves (line plot)
+Figure 2: Heatmap (model × step)
+Figure 3: Pattern fitting comparison
+Table 1: Critical steps by model
+Table 2: Pattern classification results
