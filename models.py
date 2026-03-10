@@ -12,7 +12,6 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 OPEN_SOURCE_MODELS = {
     "llama-3.1-8b": "meta-llama/Llama-3.1-8B-Instruct",
     "llama-3.1-70b": "meta-llama/Llama-3.1-70B-Instruct",
-    "unsloth-llama-ungated": "unsloth/Meta-Llama-3.1-8B-Instruct",
     "qwen-2.5-7b": "Qwen/Qwen2.5-7B-Instruct",
     "qwen-2.5-72b": "Qwen/Qwen2.5-72B-Instruct",
     "mistral-7b": "mistralai/Mistral-7B-Instruct-v0.3",
