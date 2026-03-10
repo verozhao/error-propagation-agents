@@ -6,7 +6,7 @@ import seaborn as sns
 from scipy.optimize import curve_fit
 from scipy import stats
 from config import OUTPUT_DIR, WORKFLOW_STEPS
-
+import glob
 
 def load_results(filepath: str) -> pd.DataFrame:
     with open(filepath) as f:
@@ -170,9 +170,34 @@ def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None
         plt.savefig(output_path, dpi=150)
     plt.show()
 
+def load_single_result(filepath):
+    with open(filepath) as f:
+        data = json.load(f)
+    all_data = [d for d in data if "error" not in d]
+    return pd.DataFrame(all_data)
 
-def generate_report(results_file: str):
-    df = load_results(results_file)
+def load_all_results(results_dir="results"):
+    all_data = []
+    for f in glob.glob(f"{results_dir}/*.json"):
+        model_name = f.split("/")[-1].split("_")[0]
+        with open(f) as file:
+            data = json.load(file)
+            for d in data:
+                if "error" not in d:
+                    if "model" not in d:
+                        d["model"] = model_name
+                    all_data.append(d)
+    return pd.DataFrame(all_data)
+
+def generate_report(results_path=None):
+    import os
+    os.makedirs("figures", exist_ok=True)
+
+    if results_path and os.path.isfile(results_path):
+        df = load_single_result(results_path)
+    else:
+        df = load_all_results(results_path or "results")
+    df["combined_score"] = df["evaluation"].apply(lambda x: x["combined"])
     failure_df = compute_failure_rates(df)
     
     print("=" * 60)

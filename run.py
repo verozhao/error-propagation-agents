@@ -32,9 +32,9 @@ def main():
         print(f"Results saved to: {output_file}")
     
     elif args.mode == "analyze":
-        if not args.results_file:
-            print("Error: --results-file required for analyze mode")
-            return
+        # if not args.results_file:
+        #     print("Error: --results-file required for analyze mode")
+        #     return
         generate_report(args.results_file)
 
 
