@@ -117,6 +117,18 @@ def identify_critical_steps(df: pd.DataFrame) -> pd.DataFrame:
     return critical[["model", "error_step", "step_name", "failure_rate"]]
 
 
+def plot_heatmap(df: pd.DataFrame, output_path: str = None):
+    pivot = df.pivot(index="model", columns="step_name", values="failure_rate")
+    pivot = pivot[WORKFLOW_STEPS]
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(pivot, annot=True, fmt=".3f", cmap="Reds", cbar_kws={"label": "Failure Rate"})
+    plt.title("Error Impact Heatmap by Model and Step")
+    plt.tight_layout()
+    if output_path:
+        plt.savefig(output_path, dpi=150)
+    plt.show()
+
+
 def plot_error_propagation(df: pd.DataFrame, output_path: str = None):
     fig, ax = plt.subplots(figsize=(10, 6))
     
@@ -184,7 +196,7 @@ def load_single_result(filepath):
 
 def load_all_results(results_dir="results"):
     all_data = []
-    for f in glob.glob(f"{results_dir}/*.json"):
+    for f in glob.glob(f"{results_dir}/**/*.json", recursive=True):
         model_name = f.split("/")[-1].split("_")[0]
         with open(f) as file:
             data = json.load(file)
@@ -232,6 +244,7 @@ def generate_report(results_path=None):
         print(f"{model}: {result['best_pattern']} (RMSE={result['fits'][result['best_pattern']]['rmse']:.4f})")
     
     plot_error_propagation(failure_df, f"{OUTPUT_DIR}/error_propagation.png")
+    plot_heatmap(failure_df, f"{OUTPUT_DIR}/heatmap.png")
     plot_pattern_comparison(patterns, f"{OUTPUT_DIR}/pattern_comparison.png")
     
     summary_df = pd.DataFrame([{

@@ -37,7 +37,8 @@ def run_single_experiment(model_name: str, task: dict, error_step: int | None, e
 
 
 def run_full_experiment(models: list[str], num_trials: int = NUM_TRIALS, error_type: str = "semantic"):
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    output_dir = os.path.join(OUTPUT_DIR, error_type)
+    os.makedirs(output_dir, exist_ok=True)
     
     all_results = []
     total_runs = len(models) * len(TASK_TEMPLATES) * (len(WORKFLOW_STEPS) + 1) * num_trials
@@ -63,7 +64,7 @@ def run_full_experiment(models: list[str], num_trials: int = NUM_TRIALS, error_t
                         pbar.update(1)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(OUTPUT_DIR, f"experiment_{timestamp}.json")
+    output_file = os.path.join(output_dir, f"experiment_{timestamp}.json")
     with open(output_file, "w") as f:
         json.dump(all_results, f, indent=2)
     
