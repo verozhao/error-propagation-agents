@@ -39,15 +39,18 @@ def inject_factual_error(text: str, step_name: str) -> str:
         "Note: This product was recalled in 2023.",
         "Warning: Multiple reports indicate quality issues.",
     ]
-    return text + "\n\n" + random.choice(fake_facts)
+    sentences = text.split(". ")
+    insert_pos = len(sentences) // 2
+    sentences.insert(insert_pos, random.choice(fake_facts))
+    return ". ".join(sentences)
 
 
 def inject_omission_error(text: str, step_name: str) -> str:
-    lines = text.split("\n")
-    if len(lines) > 2:
-        remove_idx = random.randint(0, len(lines) - 1)
-        lines.pop(remove_idx)
-    return "\n".join(lines)
+    sentences = [s.strip() for s in text.split(". ") if s.strip()]
+    if len(sentences) > 2:
+        remove_idx = random.randint(1, len(sentences) - 1)  # keep first sentence
+        sentences.pop(remove_idx)
+    return ". ".join(sentences)
 
 
 ERROR_TYPES = {
