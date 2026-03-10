@@ -1,0 +1,7 @@
+model,pattern,rmse
+qwen-2.5-7b,linear,0.01969244477906938
+claude-haiku,exponential,0.013373907430461742
+mistral-7b,linear,0.008291805903164732
+llama-3.1-8b,linear,0.020615327684448605
+deepseek-r1-7b,linear,0.008484740605806299
+gpt-4o-mini,exponential,0.018064806817784888

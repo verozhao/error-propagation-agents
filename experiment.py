@@ -37,7 +37,7 @@ def run_single_experiment(model_name: str, task: dict, error_step: int | None, e
 
 
 def run_full_experiment(models: list[str], num_trials: int = NUM_TRIALS, error_type: str = "semantic"):
-    output_dir = os.path.join(OUTPUT_DIR, error_type)
+    output_dir = os.path.join(OUTPUT_DIR, f"{error_type}_error")
     os.makedirs(output_dir, exist_ok=True)
     
     all_results = []

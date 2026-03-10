@@ -8,28 +8,6 @@ from scipy import stats
 from config import OUTPUT_DIR, WORKFLOW_STEPS
 import glob
 
-def load_results(filepath: str) -> pd.DataFrame:
-    with open(filepath) as f:
-        data = json.load(f)
-    
-    rows = []
-    for r in data:
-        if "error" in r:
-            continue
-        rows.append({
-            "model": r["model"],
-            "task_query": r["task_query"],
-            "error_step": r["error_step"] if r["error_step"] is not None else -1,
-            "error_type": r["error_type"],
-            "trial": r["trial"],
-            "is_valid": r["evaluation"]["is_valid"],
-            "keyword_score": r["evaluation"]["keyword_score"],
-            "quality_score": r["evaluation"]["quality_score"],
-            "combined_score": r["evaluation"]["combined_score"],
-        })
-    
-    return pd.DataFrame(rows)
-
 
 def compute_failure_rates(df: pd.DataFrame) -> pd.DataFrame:
     baseline = df[df["error_step"] == -1].groupby("model")["combined_score"].mean()
@@ -189,9 +167,19 @@ def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None
     plt.show()
 
 def load_single_result(filepath):
+    import os
+    model_name = os.path.basename(filepath).split("_")[0]
     with open(filepath) as f:
         data = json.load(f)
-    all_data = [d for d in data if "error" not in d]
+    all_data = []
+    for d in data:
+        if "error" in d:
+            continue
+        if "model" not in d:
+            d["model"] = model_name
+        if d.get("error_step") is None:
+            d["error_step"] = -1
+        all_data.append(d)
     return pd.DataFrame(all_data)
 
 def load_all_results(results_dir="results"):
@@ -209,32 +197,38 @@ def load_all_results(results_dir="results"):
                     all_data.append(d)
     return pd.DataFrame(all_data)
 
-def generate_report(results_path=None):
+def generate_report(results_path=None, error_type=None):
     import os
     os.makedirs("figures", exist_ok=True)
 
     if results_path and os.path.isfile(results_path):
         df = load_single_result(results_path)
     else:
-        df = load_all_results(results_path or "results")
+        default_dir = os.path.join(OUTPUT_DIR, f"{error_type}_error") if error_type else OUTPUT_DIR
+        df = load_all_results(results_path or default_dir)
     df["combined_score"] = df["evaluation"].apply(lambda x: x.get("combined") or x.get("combined_score", 0))
     df["error_step"] = df["error_step"].fillna(-1).astype(int)
     failure_df = compute_failure_rates(df)
-    
+
+    prefix = f"{error_type}_" if error_type else ""
+    figures_dir = "figures"
+    csv_dir = os.path.join(OUTPUT_DIR, f"{error_type}_error") if error_type else OUTPUT_DIR
+    os.makedirs(csv_dir, exist_ok=True)
+
     print("=" * 60)
     print("ERROR PROPAGATION ANALYSIS REPORT")
     print("=" * 60)
-    
+
     print("\n1. FAILURE RATES BY MODEL AND STEP")
     print("-" * 40)
     pivot = failure_df.pivot(index="step_name", columns="model", values="failure_rate")
     print(pivot.round(3))
-    
+
     print("\n2. CRITICAL STEPS (HIGHEST IMPACT)")
     print("-" * 40)
     critical = identify_critical_steps(failure_df)
     print(critical.to_string(index=False))
-    
+
     print("\n3. PROPAGATION PATTERNS")
     print("-" * 40)
     patterns = []
@@ -242,16 +236,16 @@ def generate_report(results_path=None):
         result = fit_propagation_pattern(failure_df, model)
         patterns.append(result)
         print(f"{model}: {result['best_pattern']} (RMSE={result['fits'][result['best_pattern']]['rmse']:.4f})")
-    
-    plot_error_propagation(failure_df, f"{OUTPUT_DIR}/error_propagation.png")
-    plot_heatmap(failure_df, f"{OUTPUT_DIR}/heatmap.png")
-    plot_pattern_comparison(patterns, f"{OUTPUT_DIR}/pattern_comparison.png")
-    
+
+    plot_error_propagation(failure_df, f"{figures_dir}/{prefix}error_propagation.png")
+    plot_heatmap(failure_df, f"{figures_dir}/{prefix}heatmap.png")
+    plot_pattern_comparison(patterns, f"{figures_dir}/{prefix}pattern_comparison.png")
+
     summary_df = pd.DataFrame([{
         "model": p["model"],
         "pattern": p["best_pattern"],
         "rmse": p["fits"][p["best_pattern"]]["rmse"]
     } for p in patterns])
-    summary_df.to_csv(f"{OUTPUT_DIR}/pattern_summary.csv", index=False)
-    
+    summary_df.to_csv(f"{csv_dir}/pattern_summary.csv", index=False)
+
     return failure_df, patterns
