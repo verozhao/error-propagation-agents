@@ -139,10 +139,13 @@ def plot_error_propagation(df: pd.DataFrame, output_path: str = None):
 
 
 def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None):
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-    axes = axes.flatten()
+    n = len(pattern_results)
+    cols = 3
+    rows = (n + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 5 * rows))
+    axes = np.atleast_1d(axes).flatten()
     
-    for idx, result in enumerate(pattern_results[:6]):
+    for idx, result in enumerate(pattern_results):
         ax = axes[idx]
         x = np.array(result["x"])
         y = np.array(result["y"])
@@ -164,6 +167,9 @@ def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None
         ax.set_ylabel("Failure Rate")
         ax.legend(fontsize=8)
         ax.grid(True, alpha=0.3)
+        
+    for idx in range(len(pattern_results), len(axes)):
+        axes[idx].set_visible(False)
     
     plt.tight_layout()
     if output_path:
@@ -186,6 +192,8 @@ def load_all_results(results_dir="results"):
                 if "error" not in d:
                     if "model" not in d:
                         d["model"] = model_name
+                    if d.get("error_step") is None:
+                        d["error_step"] = -1
                     all_data.append(d)
     return pd.DataFrame(all_data)
 
@@ -197,7 +205,8 @@ def generate_report(results_path=None):
         df = load_single_result(results_path)
     else:
         df = load_all_results(results_path or "results")
-    df["combined_score"] = df["evaluation"].apply(lambda x: x["combined"])
+    df["combined_score"] = df["evaluation"].apply(lambda x: x.get("combined") or x.get("combined_score", 0))
+    df["error_step"] = df["error_step"].fillna(-1).astype(int)
     failure_df = compute_failure_rates(df)
     
     print("=" * 60)
