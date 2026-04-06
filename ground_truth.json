@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "status": "DRAFT — needs human review before publication use",
+    "drafted_by": "Claude, 2026-04-06",
+    "schema": {
+      "assertions": "facts a correct answer should preserve. `keywords` are the minimal set of tokens that must co-occur (case-insensitive) for the assertion to count as 'present' via lexical match. `aliases` are alternative surface forms.",
+      "contradictions": "claims that, if present in the output, indicate the model has been led astray (e.g. by an injected error)."
+    }
+  },
+  "queries": [
+    {
+      "query": "best noise-canceling headphones 2025",
+      "assertions": [
+        {"text": "Sony WH-1000XM5 is a top noise-canceling headphone", "keywords": ["sony", "wh-1000xm5"], "aliases": ["Sony WH-1000XM5", "Sony 1000XM5"]},
+        {"text": "Bose QuietComfort Ultra is a leading ANC headphone", "keywords": ["bose", "quietcomfort"], "aliases": ["Bose QC Ultra", "Bose QuietComfort"]},
+        {"text": "Apple AirPods Max offers active noise cancellation", "keywords": ["airpods", "max"], "aliases": ["AirPods Max", "Apple AirPods Max"]},
+        {"text": "Active noise cancellation works by emitting anti-phase sound", "keywords": ["noise", "cancel"], "aliases": ["ANC", "active noise cancellation"]},
+        {"text": "Over-ear closed-back design improves passive isolation", "keywords": ["over-ear"], "aliases": ["over ear", "around-ear"]},
+        {"text": "Battery life is a key buying consideration for wireless ANC headphones", "keywords": ["battery"], "aliases": ["battery life"]}
+      ],
+      "contradictions": [
+        "Sony WH-1000XM5 was recalled",
+        "Bose QuietComfort was discontinued",
+        "AirPods Max does not have noise cancellation",
+        "noise-canceling headphones are unpopular",
+        "WH-1000XM5 is low-quality"
+      ]
+    },
+    {
+      "query": "top programming languages 2025",
+      "assertions": [
+        {"text": "Python is among the most widely used programming languages", "keywords": ["python"], "aliases": ["Python"]},
+        {"text": "JavaScript dominates web development", "keywords": ["javascript"], "aliases": ["JS", "JavaScript", "ECMAScript"]},
+        {"text": "TypeScript is widely adopted for typed JavaScript development", "keywords": ["typescript"], "aliases": ["TS", "TypeScript"]},
+        {"text": "Rust is popular for systems programming with memory safety", "keywords": ["rust"], "aliases": ["Rust"]},
+        {"text": "Go is used for backend services and concurrent systems", "keywords": ["go"], "aliases": ["Golang", "Go language"]},
+        {"text": "Java remains widely used in enterprise software", "keywords": ["java"], "aliases": ["Java"]},
+        {"text": "Python is heavily used in data science and machine learning", "keywords": ["python", "data"], "aliases": ["Python for ML", "Python for data science"]}
+      ],
+      "contradictions": [
+        "Python is outdated",
+        "JavaScript is unpopular",
+        "Rust is not recommended",
+        "Python was discontinued",
+        "TypeScript is low-quality"
+      ]
+    },
+    {
+      "query": "healthy breakfast recipes quick",
+      "assertions": [
+        {"text": "Oatmeal is a quick healthy breakfast option", "keywords": ["oatmeal"], "aliases": ["oats", "porridge", "overnight oats"]},
+        {"text": "Eggs are a high-protein breakfast staple", "keywords": ["eggs"], "aliases": ["egg", "scrambled eggs", "boiled eggs"]},
+        {"text": "Smoothies can be made quickly with fruit and yogurt", "keywords": ["smoothie"], "aliases": ["smoothies", "fruit smoothie"]},
+        {"text": "Greek yogurt with fruit is a high-protein quick breakfast", "keywords": ["yogurt"], "aliases": ["greek yogurt", "yoghurt"]},
+        {"text": "Avocado toast is a popular quick breakfast", "keywords": ["avocado"], "aliases": ["avocado toast"]},
+        {"text": "Whole grains and fiber support a healthy breakfast", "keywords": ["whole"], "aliases": ["whole grain", "whole grains", "fiber"]}
+      ],
+      "contradictions": [
+        "oatmeal is unhealthy",
+        "eggs are not recommended",
+        "this recipe was recalled",
+        "smoothies are ineffective"
+      ]
+    }
+  ]
+}
