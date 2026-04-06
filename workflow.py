@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Callable
+from dataclasses import dataclass, field
+from typing import Callable, Optional
 
 TASK_TEMPLATES = [
     {
@@ -23,6 +23,8 @@ class StepResult:
     input_text: str
     output_text: str
     error_injected: bool
+    injected_content: Optional[str] = None  # delta text added by the injector
+    pre_injection_output: Optional[str] = None  # output before injector ran
 
 
 def step_search(query: str, model_fn: Callable) -> str:
@@ -59,25 +61,60 @@ STEP_FUNCTIONS = {
 }
 
 
-def run_workflow(query: str, model_fn: Callable, error_injection_fn: Callable = None, error_step: int = None) -> list[StepResult]:
+def run_workflow(
+    query: str,
+    model_fn: Callable,
+    error_injection_fn: Callable = None,
+    error_step: int = None,
+    error_kwargs: dict | None = None,
+) -> list[StepResult]:
+    """Run the 5-step pipeline.
+
+    error_injection_fn signature is one of:
+        fn(text, step_name) -> str   (legacy — returns modified text)
+        fn(text, step_name, **kw) -> (modified_text, injected_delta)
+
+    The second form lets injectors report exactly what was added/changed
+    so the trace logger and factual accuracy evaluator can use it. The
+    first form is still supported for backward compatibility — when used,
+    `injected_content` on the StepResult will be None.
+    """
     results = []
     current_input = query
     steps = ["search", "filter", "summarize", "compose", "verify"]
-    
+    error_kwargs = error_kwargs or {}
+
     for i, step_name in enumerate(steps):
-        if step_name == "search":
-            output = STEP_FUNCTIONS[step_name](current_input, model_fn)
-        elif step_name == "verify":
+        if step_name == "verify":
             output = STEP_FUNCTIONS[step_name](current_input, query, model_fn)
         else:
             output = STEP_FUNCTIONS[step_name](current_input, model_fn)
-        
+
         error_injected = False
+        injected_content = None
+        pre_injection_output = None
         if error_injection_fn and error_step == i:
-            output = error_injection_fn(output, step_name)
+            pre_injection_output = output
+            try:
+                injection_result = error_injection_fn(output, step_name, **error_kwargs)
+            except TypeError:
+                injection_result = error_injection_fn(output, step_name)
+            if isinstance(injection_result, tuple):
+                output, injected_content = injection_result
+            else:
+                output = injection_result
             error_injected = True
-        
-        results.append(StepResult(step_name, current_input, output, error_injected))
+
+        results.append(
+            StepResult(
+                step_name=step_name,
+                input_text=current_input,
+                output_text=output,
+                error_injected=error_injected,
+                injected_content=injected_content,
+                pre_injection_output=pre_injection_output,
+            )
+        )
         current_input = output
-    
+
     return results
