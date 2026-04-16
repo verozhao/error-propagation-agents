@@ -27,6 +27,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
+from scipy.stats import gaussian_kde
 from config import WORKFLOW_STEPS
 
 import spacy
@@ -676,6 +677,136 @@ def new_metrics_summary(df: pd.DataFrame):
 
 
 
+def distributional_analysis(df: pd.DataFrame):
+    """Distributional reporting: PDFs, CDFs, percentiles, and P(degradation > X)."""
+    print(f"\n{'='*60}")
+    print("DISTRIBUTIONAL ANALYSIS")
+    print(f"{'='*60}")
+
+    etypes = sorted(df["error_type"].dropna().unique())
+    severities = sorted(df["severity"].unique())
+
+    # --- Percentile table ---
+    print(f"\n  Percentile table (failure_rate):")
+    pcts = [50, 75, 90, 95]
+    header = f"  {'condition':35s}" + "".join(f"  P{p:02d}" for p in pcts) + "   mean    n"
+    print(header)
+    print("  " + "-" * len(header))
+
+    for etype in etypes:
+        for sev in severities:
+            mask = (df["error_type"] == etype) & (df["severity"] == sev)
+            vals = df.loc[mask, "failure_rate"].dropna()
+            if len(vals) < 5:
+                continue
+            pct_vals = np.percentile(vals, pcts)
+            label = f"{etype} sev={sev}"
+            row = f"  {label:35s}"
+            for v in pct_vals:
+                row += f"  {v:.3f}"
+            row += f"  {vals.mean():.3f}  {len(vals):4d}"
+            print(row)
+
+    # --- P(degradation > X%) table ---
+    thresholds = [0.05, 0.10, 0.20, 0.30, 0.50]
+    print(f"\n  P(failure_rate > threshold):")
+    header = f"  {'condition':35s}" + "".join(f"  >{int(t*100):02d}%" for t in thresholds)
+    print(header)
+    print("  " + "-" * len(header))
+
+    for etype in etypes:
+        for sev in severities:
+            mask = (df["error_type"] == etype) & (df["severity"] == sev)
+            vals = df.loc[mask, "failure_rate"].dropna()
+            if len(vals) < 5:
+                continue
+            label = f"{etype} sev={sev}"
+            row = f"  {label:35s}"
+            for t in thresholds:
+                prob = (vals > t).mean()
+                row += f"  {prob:.2f} "
+            print(row)
+
+    # --- KDE density plots per error type ---
+    fig, axes = plt.subplots(1, len(etypes), figsize=(5 * len(etypes), 4),
+                              sharey=True, sharex=True, squeeze=False)
+    x_grid = np.linspace(0, df["failure_rate"].quantile(0.99) + 0.05, 200)
+
+    for i, etype in enumerate(etypes):
+        ax = axes[0][i]
+        edf = df[df["error_type"] == etype]
+        for sev in severities:
+            vals = edf.loc[edf["severity"] == sev, "failure_rate"].dropna()
+            if len(vals) < 5:
+                continue
+            kde = gaussian_kde(vals, bw_method=0.3)
+            ax.plot(x_grid, kde(x_grid), label=f"sev={sev}")
+            ax.fill_between(x_grid, kde(x_grid), alpha=0.15)
+        ax.set_xlabel("Failure Rate")
+        if i == 0:
+            ax.set_ylabel("Density")
+        ax.set_title(f"{etype.title()}")
+        ax.legend(fontsize=8)
+        ax.grid(True, alpha=0.3)
+
+    plt.suptitle("Degradation Distribution by Severity", fontsize=13)
+    plt.tight_layout()
+    os.makedirs("figures", exist_ok=True)
+    plt.savefig("figures/posthoc_degradation_pdf.png", dpi=150)
+    print(f"\n  Saved: figures/posthoc_degradation_pdf.png")
+    plt.close()
+
+    # --- CDF plots per error type ---
+    fig, axes = plt.subplots(1, len(etypes), figsize=(5 * len(etypes), 4),
+                              sharey=True, sharex=True, squeeze=False)
+
+    for i, etype in enumerate(etypes):
+        ax = axes[0][i]
+        edf = df[df["error_type"] == etype]
+        for sev in severities:
+            vals = edf.loc[edf["severity"] == sev, "failure_rate"].dropna().sort_values()
+            if len(vals) < 5:
+                continue
+            cdf_y = np.arange(1, len(vals) + 1) / len(vals)
+            ax.plot(vals, cdf_y, label=f"sev={sev}")
+        ax.set_xlabel("Failure Rate")
+        if i == 0:
+            ax.set_ylabel("Cumulative Probability")
+        ax.set_title(f"{etype.title()}")
+        ax.legend(fontsize=8)
+        ax.grid(True, alpha=0.3)
+
+    plt.suptitle("Degradation CDF by Severity", fontsize=13)
+    plt.tight_layout()
+    plt.savefig("figures/posthoc_degradation_cdf.png", dpi=150)
+    print(f"  Saved: figures/posthoc_degradation_cdf.png")
+    plt.close()
+
+    # --- Per-step distributional breakdown ---
+    print(f"\n  Per-step percentiles (P50 / P90):")
+    print(f"  {'error_type':12s} {'sev':>3s}  ", end="")
+    for s in WORKFLOW_STEPS:
+        print(f"  {s:>14s}", end="")
+    print()
+
+    for etype in etypes:
+        for sev in severities:
+            mask = (df["error_type"] == etype) & (df["severity"] == sev)
+            sub = df[mask]
+            if len(sub) < 5:
+                continue
+            print(f"  {etype:12s} {sev:3d}  ", end="")
+            for step in WORKFLOW_STEPS:
+                vals = sub.loc[sub["step_name"] == step, "failure_rate"].dropna()
+                if len(vals) < 3:
+                    print(f"  {'--':>14s}", end="")
+                else:
+                    p50 = np.percentile(vals, 50)
+                    p90 = np.percentile(vals, 90)
+                    print(f"  {p50:.2f}/{p90:.2f}    ", end="")
+            print()
+
+
 # Main
 def main():
     parser = argparse.ArgumentParser()
@@ -728,6 +859,7 @@ def main():
     universal_formula(df)
     attenuation_analysis(df)
     severity_degradation_plot(df)
+    distributional_analysis(df)
 
     # save formulas
     if formulas:
