@@ -29,6 +29,14 @@ import seaborn as sns
 from collections import Counter
 from config import WORKFLOW_STEPS
 
+import spacy
+_NLP = None
+def _get_nlp():
+    global _NLP
+    if _NLP is None:
+        _NLP = spacy.load("en_core_web_sm")
+    return _NLP
+
 
 def load_ground_truth(path="ground_truth.json"):
     with open(path) as f:
@@ -53,31 +61,26 @@ def _tokenize(text: str) -> list[str]:
 def _sentences(text: str) -> list[str]:
     return [s.strip() for s in re.split(r'(?<=[.!?])\s+', (text or "").strip()) if s.strip()]
 
-# POS keyword lists
-_NOUNS = {"product", "headphones", "language", "python", "recipe", "battery", "sony",
-          "bose", "apple", "javascript", "oatmeal", "eggs", "model", "performance",
-          "quality", "price", "review", "rating", "feature", "option", "report",
-          "study", "benchmark", "manufacturer", "lawsuit", "support", "firmware",
-          "vulnerability", "specification", "component", "warranty", "coverage"}
-_ADJS = {"best", "worst", "top", "good", "bad", "great", "popular", "reliable",
-         "quick", "healthy", "fast", "slow", "cheap", "expensive", "premium",
-         "outdated", "advanced", "effective", "recommended", "excellent", "terrible",
-         "inferior", "obsolete", "primitive", "weak", "unreliable", "low-quality",
-         "high-quality", "innovative", "powerful", "leading", "lagging", "budget"}
-_VERBS = {"recommend", "use", "buy", "avoid", "compare", "test", "review",
-          "improve", "degrade", "cancel", "discontinue", "recall", "ban",
-          "found", "revealed", "confirmed", "disclosed", "announced", "filed",
-          "scored", "performs", "contains", "bricked", "exposed", "inflated"}
-_NEGATIONS = {"not", "no", "never", "neither", "nor", "without", "hardly", "isn't", "don't", "doesn't"}
+# POS tagging via spaCy
+_POS_MAP = {
+    "NOUN": "n_nouns", "PROPN": "n_nouns",
+    "ADJ": "n_adjs",
+    "VERB": "n_verbs", "AUX": "n_verbs",
+    "ADV": "n_advs",
+}
 
 def _count_pos(text: str) -> dict:
-    words = set(_tokenize(text))
-    return {
-        "n_nouns": len(words & _NOUNS),
-        "n_adjs": len(words & _ADJS),
-        "n_verbs": len(words & _VERBS),
-        "n_negations": len(words & _NEGATIONS),
-    }
+    counts = {"n_nouns": 0, "n_adjs": 0, "n_verbs": 0, "n_advs": 0, "n_entities": 0}
+    if not text or not text.strip():
+        return counts
+    nlp = _get_nlp()
+    doc = nlp(text)
+    for token in doc:
+        key = _POS_MAP.get(token.pos_)
+        if key:
+            counts[key] += 1
+    counts["n_entities"] = len(doc.ents)
+    return counts
 
 
 # TF-IDF similarity
@@ -172,7 +175,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     model = record.get("model", "")
 
     # injection features from delta text
-    pos = _count_pos(injected) if injected else {"n_nouns": 0, "n_adjs": 0, "n_verbs": 0, "n_negations": 0}
+    pos = _count_pos(injected) if injected else {"n_nouns": 0, "n_adjs": 0, "n_verbs": 0, "n_advs": 0, "n_entities": 0}
     delta_words = len(injected.split()) if injected else 0
 
     # features from traces
@@ -188,10 +191,16 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
             if so.get("error_injected"):
                 pre_inj_text = so.get("pre_injection_output", "") or ""
                 post_inj_text = so.get("output_text", "")
-                # estimate injection position
-                if pre_inj_text and injected:
-                    idx = post_inj_text.find(injected[:30]) if injected else -1
-                    injection_position = idx / max(len(post_inj_text), 1) if idx >= 0 else 0.5
+                # estimate injection position via first divergence point
+                if pre_inj_text and post_inj_text:
+                    # find where pre and post first differ
+                    min_len = min(len(pre_inj_text), len(post_inj_text))
+                    diverge_idx = min_len  # default: end
+                    for ci in range(min_len):
+                        if pre_inj_text[ci] != post_inj_text[ci]:
+                            diverge_idx = ci
+                            break
+                    injection_position = diverge_idx / max(len(post_inj_text), 1)
                 # sentences affected
                 pre_sents = len(_sentences(pre_inj_text))
                 post_sents = len(_sentences(post_inj_text))
@@ -230,6 +239,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
         "step_name": WORKFLOW_STEPS[es] if es < len(WORKFLOW_STEPS) else "?",
         "severity": record.get("severity", 1),
         "task_query": query,
+        "has_traces": has_traces,
         # injection features (what the professor wants)
         "delta_word_count": delta_words,
         "injection_position": round(injection_position, 3),
@@ -332,7 +342,7 @@ def correlation_analysis(df: pd.DataFrame, target: str = "failure_rate"):
     injection_features = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "length_change_ratio", "text_length_before",
-        "n_nouns", "n_adjs", "n_verbs", "n_negations",
+        "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
         "severity", "error_step",
     ]
     eval_metrics = [
@@ -384,14 +394,14 @@ def per_error_type_regression(df: pd.DataFrame):
     try:
         from sklearn.linear_model import LinearRegression, Ridge
         from sklearn.preprocessing import StandardScaler, PolynomialFeatures
-        from sklearn.metrics import r2_score
+        from sklearn.model_selection import cross_val_score
     except ImportError:
         print("pip install scikit-learn")
         return {}
 
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
-        "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_negations",
+        "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
         "severity", "error_step",
     ]
 
@@ -414,21 +424,25 @@ def per_error_type_regression(df: pd.DataFrame):
         scaler = StandardScaler()
         X_s = scaler.fit_transform(X)
 
-        # linear fit
-        lin = LinearRegression().fit(X_s, y)
-        r2_lin = lin.score(X_s, y)
+        # linear fit with 5-fold CV
+        lin = LinearRegression()
+        cv_scores_lin = cross_val_score(lin, X_s, y, cv=5, scoring="r2")
+        lin.fit(X_s, y)
+        r2_lin_train = lin.score(X_s, y)
 
-        # polynomial (degree 2) fit for nonlinearity
+        # polynomial (degree 2) fit with 5-fold CV
         poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
         X_poly = poly.fit_transform(X_s)
-        ridge = Ridge(alpha=1.0).fit(X_poly, y)
-        r2_poly = ridge.score(X_poly, y)
+        ridge = Ridge(alpha=1.0)
+        cv_scores_poly = cross_val_score(ridge, X_poly, y, cv=5, scoring="r2")
+        ridge.fit(X_poly, y)
+        r2_poly_train = ridge.score(X_poly, y)
 
         print(f"\n--- {etype} (n={len(subset)}) ---")
-        print(f"  Linear R² = {r2_lin:.3f}")
-        print(f"  Poly+interactions R² = {r2_poly:.3f}")
+        print(f"  Linear   R²_train={r2_lin_train:.3f}  R²_cv={cv_scores_lin.mean():.3f} ± {cv_scores_lin.std():.3f}")
+        print(f"  Poly+int R²_train={r2_poly_train:.3f}  R²_cv={cv_scores_poly.mean():.3f} ± {cv_scores_poly.std():.3f}")
 
-        # print linear formula
+        # print linear formula with significance via bootstrap
         coeffs = sorted(zip(available, lin.coef_), key=lambda x: abs(x[1]), reverse=True)
         formula_str = f"  FR = {lin.intercept_:.4f}"
         for name, coef in coeffs:
@@ -438,17 +452,34 @@ def per_error_type_regression(df: pd.DataFrame):
             formula_str += f" {sign} {abs(coef):.4f}·{name}"
         print(formula_str)
 
-        # top 3 most important features
-        print(f"  Top predictors: ", end="")
-        for name, coef in coeffs[:3]:
-            print(f"{name}({coef:+.3f})", end="  ")
-        print()
+        # bootstrap CIs for coefficient significance
+        rng = np.random.default_rng(42)
+        n_boot = 500
+        boot_coefs = np.zeros((n_boot, len(available)))
+        for b in range(n_boot):
+            idx = rng.choice(len(X_s), size=len(X_s), replace=True)
+            lr = LinearRegression().fit(X_s[idx], y[idx])
+            boot_coefs[b] = lr.coef_
+        ci_lo = np.percentile(boot_coefs, 2.5, axis=0)
+        ci_hi = np.percentile(boot_coefs, 97.5, axis=0)
+
+        print(f"  Coefficients (95% CI):")
+        for j, (name, coef) in enumerate(coeffs):
+            idx_j = available.index(name)
+            sig = "*" if (ci_lo[idx_j] > 0 or ci_hi[idx_j] < 0) else " "
+            print(f"    {sig} {name:25s}  β={coef:+.4f}  [{ci_lo[idx_j]:+.4f}, {ci_hi[idx_j]:+.4f}]")
 
         formulas[etype] = {
-            "linear_r2": r2_lin,
-            "poly_r2": r2_poly,
+            "linear_r2_train": r2_lin_train,
+            "linear_r2_cv": float(cv_scores_lin.mean()),
+            "linear_r2_cv_std": float(cv_scores_lin.std()),
+            "poly_r2_train": r2_poly_train,
+            "poly_r2_cv": float(cv_scores_poly.mean()),
+            "poly_r2_cv_std": float(cv_scores_poly.std()),
             "intercept": float(lin.intercept_),
-            "coefficients": {n: float(c) for n, c in coeffs},
+            "coefficients": {n: {"beta": float(c), "ci_lo": float(ci_lo[available.index(n)]),
+                                  "ci_hi": float(ci_hi[available.index(n)])}
+                             for n, c in coeffs},
             "n": len(subset),
         }
 
@@ -458,14 +489,15 @@ def per_error_type_regression(df: pd.DataFrame):
 def universal_formula(df: pd.DataFrame):
     """Fit a single formula across all error types — the 'universal law' the professor wants."""
     try:
-        from sklearn.linear_model import Ridge
+        from sklearn.linear_model import Ridge, LinearRegression
         from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+        from sklearn.model_selection import cross_val_score
     except ImportError:
         return
 
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
-        "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_negations",
+        "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
         "severity", "error_step",
     ]
     available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
@@ -485,23 +517,26 @@ def universal_formula(df: pd.DataFrame):
     scaler = StandardScaler()
     X_s = scaler.fit_transform(X)
 
-    # linear
-    from sklearn.linear_model import LinearRegression
-    lin = LinearRegression().fit(X_s, y)
-    r2_lin = lin.score(X_s, y)
+    # linear with CV
+    lin = LinearRegression()
+    cv_lin = cross_val_score(lin, X_s, y, cv=5, scoring="r2")
+    lin.fit(X_s, y)
+    r2_lin_train = lin.score(X_s, y)
 
-    # polynomial with interactions
+    # polynomial with interactions + CV
     poly = PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)
     X_poly = poly.fit_transform(X_s)
-    ridge = Ridge(alpha=1.0).fit(X_poly, y)
-    r2_poly = ridge.score(X_poly, y)
+    ridge = Ridge(alpha=1.0)
+    cv_poly = cross_val_score(ridge, X_poly, y, cv=5, scoring="r2")
+    ridge.fit(X_poly, y)
+    r2_poly_train = ridge.score(X_poly, y)
 
     print(f"\n{'='*60}")
     print("UNIVERSAL FORMULA (all error types combined)")
     print(f"{'='*60}")
     print(f"  n = {len(subset)}")
-    print(f"  Linear R² = {r2_lin:.3f}")
-    print(f"  Poly+interactions R² = {r2_poly:.3f}")
+    print(f"  Linear   R²_train={r2_lin_train:.3f}  R²_cv={cv_lin.mean():.3f} ± {cv_lin.std():.3f}")
+    print(f"  Poly+int R²_train={r2_poly_train:.3f}  R²_cv={cv_poly.mean():.3f} ± {cv_poly.std():.3f}")
 
     coeffs = sorted(zip(all_features, lin.coef_), key=lambda x: abs(x[1]), reverse=True)
     formula_str = f"  FR = {lin.intercept_:.4f}"
@@ -550,6 +585,9 @@ def attenuation_analysis(df: pd.DataFrame):
         return
 
     summary = att_df.groupby(["error_type", "step"])["attenuation"].mean().unstack(fill_value=0)
+    # reorder columns to pipeline order (skip "search" since attenuation is relative to prev step)
+    step_order = [s for s in WORKFLOW_STEPS if s in summary.columns]
+    summary = summary[step_order]
     print(f"\n  Mean attenuation by error type and step:")
     print(summary.round(3).to_string())
 
@@ -574,9 +612,12 @@ def severity_degradation_plot(df: pd.DataFrame):
         print("\n  Only one severity level found, skipping severity plot.")
         return
 
-    fig, axes = plt.subplots(1, df["error_type"].nunique(), figsize=(5 * df["error_type"].nunique(), 4),
-                              squeeze=False)
-    for i, etype in enumerate(sorted(df["error_type"].unique())):
+    etypes = sorted(df["error_type"].unique())
+    fig, axes = plt.subplots(1, len(etypes), figsize=(5 * len(etypes), 4),
+                              sharey=True, squeeze=False)
+
+    # compute global y range for consistent comparison
+    for i, etype in enumerate(etypes):
         ax = axes[0][i]
         edf = df[df["error_type"] == etype]
         sev_step = edf.groupby(["severity", "step_name"])["failure_rate"].mean().reset_index()
@@ -587,7 +628,8 @@ def severity_degradation_plot(df: pd.DataFrame):
                 ax.plot(sdf["severity"], sdf["failure_rate"], marker="o", label=step)
 
         ax.set_xlabel("Severity")
-        ax.set_ylabel("Failure Rate")
+        if i == 0:
+            ax.set_ylabel("Failure Rate")
         ax.set_title(f"{etype.title()}")
         ax.legend(fontsize=7)
         ax.grid(True, alpha=0.3)
@@ -661,11 +703,17 @@ def main():
     if args.model:
         df = df[df["model"] == args.model]
 
+    n_total = len(df)
+    n_with_traces = df["has_traces"].sum()
+    n_without = n_total - n_with_traces
+    if n_without > 0:
+        print(f"\n  Dropping {n_without} records without traces (old format)")
+        df = df[df["has_traces"]].copy()
+
     print(f"\nAnalysis dataset: {len(df)} records")
     print(f"  Models: {sorted(df['model'].unique())}")
     print(f"  Error types: {sorted(df['error_type'].unique())}")
     print(f"  Severities: {sorted(df['severity'].unique())}")
-    print(f"  Has traces: {df['text_length_before'].notna().sum()}/{len(df)}")
 
     # save full feature CSV
     os.makedirs(f"{args.results_dir}/stats", exist_ok=True)
