@@ -155,7 +155,7 @@ def information_retention(baseline: str, test: str) -> dict:
 
 
 # Feature extraction from a single record
-def extract_record_features(record: dict, baselines: dict) -> dict | None:
+def extract_record_features(record: dict, baselines: dict) -> dict:
     """Extract all features from one experiment record.
     baselines: dict of (model, query) -> baseline final output text."""
     es = record.get("error_step")
@@ -656,6 +656,7 @@ def main():
         return
 
     df = add_failure_rates(df, records)
+    df = df[df['error_type'].notna() & (df['model'] != '') & (df['model'].notna())]
 
     if args.model:
         df = df[df["model"] == args.model]
