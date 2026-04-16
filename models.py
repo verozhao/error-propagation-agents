@@ -9,6 +9,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
+USE_CMU_GATEWAY = os.getenv("USE_CMU_GATEWAY", "false").lower() == "true"
+CMU_GATEWAY_URL = os.getenv("CMU_GATEWAY_URL", "https://ai-gateway.andrew.cmu.edu")
+CMU_GATEWAY_API_KEY = os.getenv("CMU_GATEWAY_API_KEY", "")
+
 OPEN_SOURCE_MODELS = {
     "llama-3.1-8b": "meta-llama/Llama-3.1-8B-Instruct",
     "llama-3.1-70b": "meta-llama/Llama-3.1-70B-Instruct",
@@ -26,6 +30,16 @@ API_MODELS = {
     "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-20250414"},
     "gemini-pro": {"provider": "google", "model": "gemini-1.5-pro"},
     "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
+}
+
+# CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
+CMU_GATEWAY_MODELS = {
+    "gpt-4o": "gpt-4.1-mini",           # no gpt-4o on gateway; closest available
+    "gpt-4o-mini": "gpt-4.1-mini",      # no gpt-4o-mini on gateway; gpt-4.1-mini is closest
+    "claude-sonnet-4-20250514": "claude-sonnet-4-20250514-v1:0",
+    "claude-haiku-4-20250414": "claude-haiku-4-5-20251001-v1:0",
+    "gemini-1.5-pro": "gemini-2.5-pro",
+    "gemini-1.5-flash": "gemini-2.5-flash",
 }
 
 _local_model_cache = {}
@@ -70,6 +84,28 @@ def get_local_model(model_name: str) -> LocalModel:
         model_path = OPEN_SOURCE_MODELS[model_name]
         _local_model_cache[model_name] = LocalModel(model_path)
     return _local_model_cache[model_name]
+
+
+def get_cmu_gateway_client():
+    if "cmu_gateway" not in _api_clients:
+        import openai
+        _api_clients["cmu_gateway"] = openai.OpenAI(
+            api_key=CMU_GATEWAY_API_KEY,
+            base_url=CMU_GATEWAY_URL,
+        )
+    return _api_clients["cmu_gateway"]
+
+
+def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
+    client = get_cmu_gateway_client()
+    gateway_model = CMU_GATEWAY_MODELS.get(model, model)
+    response = client.chat.completions.create(
+        model=gateway_model,
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=max_tokens,
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
 
 
 def get_openai_client():
@@ -126,19 +162,22 @@ def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature
     if model_name in OPEN_SOURCE_MODELS:
         model = get_local_model(model_name)
         return model.generate(prompt, max_tokens, temperature)
-    
+
     if model_name in API_MODELS:
         cfg = API_MODELS[model_name]
-        provider = cfg["provider"]
         model_id = cfg["model"]
-        
+
+        if USE_CMU_GATEWAY:
+            return call_cmu_gateway(model_id, prompt, max_tokens, temperature)
+
+        provider = cfg["provider"]
         if provider == "openai":
             return call_openai(model_id, prompt, max_tokens, temperature)
         elif provider == "anthropic":
             return call_anthropic(model_id, prompt, max_tokens, temperature)
         elif provider == "google":
             return call_google(model_id, prompt, max_tokens, temperature)
-    
+
     raise ValueError(f"Unknown model: {model_name}")
 
 
