@@ -23,8 +23,8 @@ done
 
 echo "Config: models=[$MODELS] trials=$TRIALS"
 
-echo "=== Factual error sweeps ==="
-for sev in 1 2 3 4; do
+echo "=== Factual error sweeps (severity 1 already done) ==="
+for sev in 2 3 4; do
   echo "--- factual severity $sev ---"
   python run.py --mode run --use-api --trials "$TRIALS" --models $MODELS --error-type factual --severity "$sev"
 done

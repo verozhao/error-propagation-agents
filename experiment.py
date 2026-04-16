@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR
 from models import call_model
@@ -115,35 +116,48 @@ def run_full_experiment(
     all_results = []
     total_runs = len(models) * len(TASK_TEMPLATES) * (len(WORKFLOW_STEPS) + 1) * num_trials
 
+    # Build list of jobs
+    jobs = []
+    for model_name in models:
+        for task in TASK_TEMPLATES:
+            for error_step in [None] + list(range(len(WORKFLOW_STEPS))):
+                for trial in range(num_trials):
+                    jobs.append((model_name, task, error_step, trial))
+
+    max_workers = min(10, len(jobs))
+
+    def _run_one(job):
+        model_name, task, error_step, trial = job
+        try:
+            result = run_single_experiment(
+                model_name,
+                task,
+                error_step,
+                error_type,
+                severity=severity,
+                judge_models=judge_models,
+                save_traces=save_traces,
+                ground_truth=ground_truth,
+            )
+            result["trial"] = trial
+            return result
+        except Exception as e:
+            return {
+                "model": model_name,
+                "task_query": task["query"],
+                "error_step": error_step,
+                "error_type": error_type,
+                "severity": severity,
+                "trial": trial,
+                "error": str(e),
+            }
+
     with tqdm(total=total_runs, desc="Running experiments") as pbar:
-        for model_name in models:
-            for task in TASK_TEMPLATES:
-                for error_step in [None] + list(range(len(WORKFLOW_STEPS))):
-                    for trial in range(num_trials):
-                        try:
-                            result = run_single_experiment(
-                                model_name,
-                                task,
-                                error_step,
-                                error_type,
-                                severity=severity,
-                                judge_models=judge_models,
-                                save_traces=save_traces,
-                                ground_truth=ground_truth,
-                            )
-                            result["trial"] = trial
-                            all_results.append(result)
-                        except Exception as e:
-                            all_results.append({
-                                "model": model_name,
-                                "task_query": task["query"],
-                                "error_step": error_step,
-                                "error_type": error_type,
-                                "severity": severity,
-                                "trial": trial,
-                                "error": str(e),
-                            })
-                        pbar.update(1)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(_run_one, job): job for job in jobs}
+            for future in as_completed(futures):
+                all_results.append(future.result())
+                pbar.update(1)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = os.path.join(output_dir, f"experiment_{timestamp}.json")
