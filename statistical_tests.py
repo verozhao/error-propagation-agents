@@ -69,44 +69,47 @@ def bootstrap_ci(values: np.ndarray, n_boot: int = 2000, alpha: float = 0.05, se
 
 
 def run_significance(df: pd.DataFrame, conditions_per_family: int = 15) -> pd.DataFrame:
+    """Paired Wilcoxon signed-rank test, aligned by (task_query, trial).
+
+    With verify removed, default conditions_per_family = 4 steps x n_severities.
+    Caller should set this based on the actual experimental design.
+    """
     out = []
     for (model, etype), sub in df.groupby(["model", "error_type"]):
-        baseline = sub[sub["error_step"] == -1]["combined_score"].dropna().values
-        if len(baseline) == 0:
-            continue
-        for step in range(len(WORKFLOW_STEPS)):
-            inj = sub[sub["error_step"] == step]["combined_score"].dropna().values
-            if len(inj) == 0:
+        # Pivot baseline by (task_query, trial) for proper pairing
+        base = sub[sub["error_step"] == -1].set_index(["task_query", "trial"])["combined_score"]
+        for step in sorted(sub["error_step"].unique()):
+            if step == -1:
                 continue
-            mean_b = float(np.mean(baseline))
-            mean_i = float(np.mean(inj))
-            mean_diff = mean_b - mean_i
-
-            # paired Wilcoxon when sample sizes match, else Mann-Whitney
+            inj = sub[sub["error_step"] == step].set_index(["task_query", "trial"])["combined_score"]
+            # Inner-join on (query, trial)
+            paired = base.to_frame("base").join(inj.to_frame("inj"), how="inner").dropna()
+            if len(paired) < 3:
+                continue
+            diffs = paired["base"].values - paired["inj"].values
             try:
-                if len(inj) == len(baseline):
-                    stat, p = stats.wilcoxon(baseline, inj, zero_method="zsplit")
-                    test = "wilcoxon_paired"
+                if np.all(diffs == 0):
+                    stat, p = 0.0, 1.0
                 else:
-                    stat, p = stats.mannwhitneyu(baseline, inj, alternative="two-sided")
-                    test = "mannwhitney"
+                    stat, p = stats.wilcoxon(diffs, zero_method="zsplit")
+                test = "wilcoxon_paired_by_query_trial"
             except ValueError:
                 stat, p, test = float("nan"), float("nan"), "skipped"
 
-            diffs = baseline.mean() - inj  # baseline mean minus per-trial inj
-            ci_lo, ci_hi = bootstrap_ci(inj)
+            ci_lo, ci_hi = bootstrap_ci(paired["inj"].values)
             bonf_p = min(1.0, p * conditions_per_family) if p == p else p
 
+            step_name = WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}"
             out.append(
                 {
                     "model": model,
                     "error_type": etype,
-                    "injection_step": WORKFLOW_STEPS[step],
-                    "n_baseline": len(baseline),
-                    "n_injected": len(inj),
-                    "mean_baseline": mean_b,
-                    "mean_injected": mean_i,
-                    "mean_diff": mean_diff,
+                    "injection_step": step_name,
+                    "n_paired": len(paired),
+                    "mean_baseline": float(paired["base"].mean()),
+                    "mean_injected": float(paired["inj"].mean()),
+                    "mean_diff": float(diffs.mean()),
+                    "std_diff": float(diffs.std(ddof=1)) if len(diffs) > 1 else 0.0,
                     "injected_ci95_lo": ci_lo,
                     "injected_ci95_hi": ci_hi,
                     "test": test,
@@ -125,7 +128,9 @@ def failure_rates_with_ci(df: pd.DataFrame, n_boot: int = 2000) -> pd.DataFrame:
         if len(baseline) == 0:
             continue
         baseline_mean = float(baseline.mean())
-        for step in range(len(WORKFLOW_STEPS)):
+        for step in sorted(sub["error_step"].unique()):
+            if step == -1:
+                continue
             inj = sub[sub["error_step"] == step]["combined_score"].dropna().values
             if len(inj) == 0:
                 continue
@@ -138,7 +143,7 @@ def failure_rates_with_ci(df: pd.DataFrame, n_boot: int = 2000) -> pd.DataFrame:
                 {
                     "model": model,
                     "error_type": etype,
-                    "step_name": WORKFLOW_STEPS[step],
+                    "step_name": WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}",
                     "n": len(inj),
                     "baseline_mean": baseline_mean,
                     "mean_score": mean_score,
