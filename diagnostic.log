@@ -1,0 +1,2 @@
+=== factual severity 1 ===
+Running experiments:   0%|          | 0/25 [00:00<?, ?it/s]Running experiments:   4%|▍         | 1/25 [00:17<06:52, 17.20s/it]Running experiments:   8%|▊         | 2/25 [00:17<02:52,  7.48s/it]Running experiments:  12%|█▏        | 3/25 [00:18<01:33,  4.26s/it]Running experiments:  28%|██▊       | 7/25 [00:18<00:22,  1.26s/it]Running experiments:  32%|███▏      | 8/25 [00:18<00:17,  1.04s/it]Running experiments:  36%|███▌      | 9/25 [00:19<00:13,  1.16it/s]Running experiments:  40%|████      | 10/25 [00:19<00:10,  1.46it/s]
