@@ -1,15 +1,12 @@
-"""Error injection functions.
+"""Error injection functions — unified monotonic severity parameterization.
 
-Each injector accepts (text, step_name, severity=1, return_delta=False) and
-returns either the modified text (legacy) or a tuple (modified_text,
-injected_delta) when `return_delta=True`.
+Severity encodes a *physical* quantity, logged alongside the integer:
 
-Severity scales:
-    factual:  1 = insert 1 false claim (legacy), 2 = replace 1-2 sentences,
-              3 = replace ~30% of sentences, 4 = replace ~50%
-    omission: 1 = remove ~20%, 2 = remove ~40%, 3 = remove ~60%
-    semantic: 1 = up to 2 substitutions (legacy), 2 = up to 5, 3 = unlimited,
-              4 = unlimited + misleading framing sentence
+| Error type | Mechanism                           | Sev1 | Sev2 | Sev3 | Sev4 |
+|------------|-------------------------------------|------|------|------|------|
+| factual    | Insert K fake facts (never replace) | K=1  | K=2  | K=4  | K=8  |
+| omission   | Remove fraction rho of sentences    | 0.10 | 0.25 | 0.50 | 0.75 |
+| semantic   | Apply S polarity substitutions      | S=1  | S=2  | S=4  | S=8  |
 
 POS-targeted injection (pos_target parameter):
     "noun" = only corrupt nouns/proper nouns
@@ -27,6 +24,18 @@ import random
 import re
 import math
 from collections import Counter
+
+# --- Monotonic severity tables ---
+FACTUAL_INSERT_COUNT = {1: 1, 2: 2, 3: 4, 4: 8}
+OMISSION_FRACTION    = {1: 0.10, 2: 0.25, 3: 0.50, 4: 0.75}
+SEMANTIC_SUB_COUNT   = {1: 1, 2: 2, 3: 4, 4: 8}
+
+# --- Sentence splitter (replaces every text.split(". ")) ---
+_SENT_SPLIT = re.compile(r'(?<=[.!?])\s+')
+
+def _split_sents(text):
+    return [s.strip() for s in _SENT_SPLIT.split((text or "").strip()) if s.strip()]
+
 
 # --- POS-targeted substitution tables ---
 _NOUN_SWAPS = {
@@ -57,14 +66,12 @@ _POS_SWAP_TABLES = {"noun": _NOUN_SWAPS, "verb": _VERB_SWAPS, "adj": _ADJ_SWAPS}
 
 
 def _tfidf_rank_words(text: str) -> list[tuple[str, float]]:
-    """Rank words in text by TF (proxy for TF-IDF within a single document).
-    Returns list of (word, score) sorted by score descending."""
+    """Rank words in text by TF (proxy for TF-IDF within a single document)."""
     words = re.findall(r'[a-zA-Z]{3,}', text)
     if not words:
         return []
     tf = Counter(w.lower() for w in words)
     total = sum(tf.values())
-    # IDF approximation: rarer words in the text get higher weight
     scored = []
     for word, count in tf.items():
         tf_score = count / total
@@ -141,144 +148,99 @@ FAKE_FACTS = [
     "Manufacturer announced an end-of-life notice for this product.",
 ]
 
-# Stronger claims for severity >= 2: replace existing sentences instead of inserting
-FACTUAL_REPLACEMENTS = [
-    "However, this option was officially discontinued in late 2023 due to widespread hardware failures and has no manufacturer support.",
-    "Independent testing by Consumer Reports found this option scored last in its category, with a recommendation to avoid purchase.",
-    "A major class-action lawsuit in 2024 revealed that the advertised specifications were fabricated, and a full product recall was issued.",
-    "Recent third-party audits discovered that this product contains components banned under EU safety regulations since 2022.",
-    "Multiple verified reports confirm that the latest firmware update has permanently bricked units, with no fix available.",
-    "A comprehensive 2024 investigation found that performance claims were inflated by 300% compared to actual measured results.",
-    "The manufacturer filed for bankruptcy in Q3 2024, ending all warranty coverage and future product development.",
-    "Security researchers disclosed critical vulnerabilities that expose all user data, with the manufacturer refusing to patch.",
-]
 
-
-def _maybe_return(modified: str, delta: str, return_delta: bool):
+def _maybe_return(modified, delta, return_delta, meta=None):
     if return_delta:
-        return modified, delta
+        if meta is not None:
+            return (modified, delta, meta)
+        return (modified, delta)
     return modified
 
 
 def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
-                          pos_target: str | None = None, tfidf_target: str | None = None):
-    if severity <= 1:
-        max_subs = 2
-    elif severity == 2:
-        max_subs = 5
-    else:
-        max_subs = 10**9  # unlimited
+                          pos_target: str | None = None, tfidf_target: str | None = None,
+                          rng=None):
+    rng = rng or random
+    max_subs = SEMANTIC_SUB_COUNT.get(int(severity), 1)
 
     modified = text
     delta = ""
 
-    # POS-targeted mode: only swap words of the specified part of speech
+    # POS-targeted mode
     if pos_target and pos_target in _POS_SWAP_TABLES:
         modified, delta = _apply_pos_targeted_swap(text, pos_target, max_subs)
-    # TF-IDF-targeted mode: swap highest or lowest importance word
+    # TF-IDF-targeted mode
     elif tfidf_target in ("high", "low"):
         modified, delta = _apply_tfidf_targeted_swap(text, tfidf_target, ERROR_SUBSTITUTIONS)
     else:
-        # Default behavior
-        swaps: list[tuple[str, str]] = []
-        for original, replacement in ERROR_SUBSTITUTIONS.items():
+        # Default: iterate dictionary, each match counts toward max_subs, ONE occurrence per match
+        swaps = []
+        items = list(ERROR_SUBSTITUTIONS.items())
+        rng.shuffle(items)  # avoid dictionary-order bias
+        for original, replacement in items:
             if len(swaps) >= max_subs:
                 break
-            if original.lower() in modified.lower():
-                pattern = re.compile(re.escape(original), re.IGNORECASE)
-                new_modified, n = pattern.subn(replacement, modified, count=(1 if severity <= 1 else 0))
-                if n > 0:
-                    modified = new_modified
-                    swaps.extend([(original, replacement)] * n)
+            pat = re.compile(re.escape(original), re.IGNORECASE)
+            new_modified, n = pat.subn(replacement, modified, count=1)
+            if n > 0:
+                modified = new_modified
+                swaps.append((original, replacement))
         if swaps:
             delta = "; ".join(f"{o}->{r}" for o, r in swaps)
 
     if not delta:
-        sentences = modified.split(". ")
-        if len(sentences) > 1:
-            idx = random.randint(0, len(sentences) - 1)
-            insertion = "This information may be outdated or incorrect."
-            sentences[idx] = insertion
-            modified = ". ".join(sentences)
-            delta = insertion
+        # Fallback: sentinel substitution (not a framing prepend!)
+        sents = _split_sents(modified)
+        if len(sents) > 1:
+            idx = rng.randrange(len(sents))
+            sents[idx] = "This information may be outdated or incorrect."
+            modified = ". ".join(sents)
+            delta = "SENTINEL"
 
-    # severity 4: also prepend a misleading framing sentence
-    if severity >= 4:
-        framing = random.choice([
-            "Note: The following information is based on outdated 2019 data and may no longer be accurate.",
-            "IMPORTANT: Recent investigations have found significant factual errors in the sources below.",
-            "Warning: This content has been flagged for containing misleading claims by multiple fact-checkers.",
-        ])
-        modified = framing + " " + modified
-        delta = (delta + " | FRAMING: " + framing) if delta else framing
-
-    return _maybe_return(modified, delta, return_delta)
+    meta = {"n_subs": len(delta.split(";")) if ";" in delta else (1 if delta else 0),
+            "severity_physical": len(delta.split(";")) if ";" in delta else (1 if delta and delta != "SENTINEL" else 0)}
+    return _maybe_return(modified, delta, return_delta, meta=meta)
 
 
-def inject_factual_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False):
-    sentences = text.split(". ")
+def inject_factual_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
+                         rng=None):
+    rng = rng or random
+    k = FACTUAL_INSERT_COUNT.get(int(severity), 1)
+    sentences = _split_sents(text)
+    if not sentences:
+        return _maybe_return(text, "", return_delta, meta={"n_inserts": 0, "severity_physical": 0})
 
-    if severity <= 1:
-        # Legacy behavior: insert 1 fake fact at midpoint
-        chosen = random.sample(FAKE_FACTS, k=1)
-        if len(sentences) <= 1:
-            modified = text + " " + chosen[0]
-        else:
-            pos = len(sentences) // 2
-            sentences.insert(pos, chosen[0])
-            modified = ". ".join(sentences)
-        return _maybe_return(modified, chosen[0], return_delta)
+    chosen = rng.sample(FAKE_FACTS, k=min(k, len(FAKE_FACTS)))
+    # insert at evenly-spaced positions, back-to-front so indices stay valid
+    n = len(sentences)
+    positions = sorted({max(1, round((i + 1) * n / (k + 1))) for i in range(k)}, reverse=True)
+    for pos, fact in zip(positions, chosen):
+        sentences.insert(pos, fact)
+    modified = ". ".join(sentences)
+    delta = f"INSERTED {len(chosen)}: " + " | ".join(chosen)
+    meta = {"n_inserts": len(chosen), "severity_physical": len(chosen)}
+    return _maybe_return(modified, delta, return_delta, meta=meta)
 
-    # severity >= 2: replace existing sentences with plausible false claims
-    if severity == 2:
-        n_replace = min(2, max(1, len(sentences) - 1))
-    elif severity == 3:
-        n_replace = max(3, int(round(len(sentences) * 0.3)))
-    else:
-        n_replace = max(4, int(round(len(sentences) * 0.5)))
-    n_replace = min(n_replace, len(sentences) - 1, len(FACTUAL_REPLACEMENTS))
 
+def inject_omission_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
+                          rng=None):
+    rng = rng or random
+    rho = OMISSION_FRACTION.get(int(severity), 0.10)
+    sentences = _split_sents(text)
     if len(sentences) <= 2:
-        chosen = random.sample(FACTUAL_REPLACEMENTS, k=1)
-        modified = text + " " + chosen[0]
-        delta = "REPLACED: " + chosen[0]
-    else:
-        candidates = list(range(1, len(sentences)))  # keep first sentence
-        replace_idxs = sorted(random.sample(candidates, k=min(n_replace, len(candidates))))
-        replacements = random.sample(FACTUAL_REPLACEMENTS, k=len(replace_idxs))
-        delta_parts = []
-        for idx, repl in zip(replace_idxs, replacements):
-            delta_parts.append(f"[{sentences[idx][:50]}...] -> [{repl[:50]}...]")
-            sentences[idx] = repl
-        modified = ". ".join(sentences)
-        delta = "REPLACED: " + " | ".join(delta_parts)
+        return _maybe_return(text, "", return_delta, meta={"n_removed": 0, "severity_physical": 0.0})
 
-    return _maybe_return(modified, delta, return_delta)
-
-
-def inject_omission_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False):
-    sentences = [s.strip() for s in text.split(". ") if s.strip()]
-    if len(sentences) <= 2:
-        return _maybe_return(text, "", return_delta)
-
-    # Proportional removal instead of fixed count
-    if severity <= 1:
-        n_remove = max(1, int(round(len(sentences) * 0.20)))
-    elif severity == 2:
-        n_remove = max(2, int(round(len(sentences) * 0.40)))
-    elif severity == 3:
-        n_remove = max(3, int(round(len(sentences) * 0.60)))
-    else:
-        n_remove = max(4, int(round(len(sentences) * 0.80)))
-    n_remove = min(n_remove, len(sentences) - 1)
-
-    candidates = list(range(1, len(sentences)))
-    remove_idxs = sorted(random.sample(candidates, k=min(n_remove, len(candidates))))
-    removed_sentences = [sentences[i] for i in remove_idxs]
-    kept = [s for i, s in enumerate(sentences) if i not in set(remove_idxs)]
+    # Always preserve first sentence. Remove floor(rho * N_eligible).
+    eligible = list(range(1, len(sentences)))
+    n_remove = min(len(eligible) - 1, max(1, int(rho * len(sentences))))
+    remove_idxs = set(rng.sample(eligible, k=n_remove))
+    kept = [s for i, s in enumerate(sentences) if i not in remove_idxs]
+    removed = [sentences[i] for i in sorted(remove_idxs)]
     modified = ". ".join(kept)
-    delta = f"REMOVED ({len(removed_sentences)}/{len(sentences)}): " + " | ".join(removed_sentences)
-    return _maybe_return(modified, delta, return_delta)
+    delta = f"REMOVED {n_remove}/{len(sentences)}: " + " | ".join(removed)
+    meta = {"n_removed": n_remove, "n_total": len(sentences),
+            "severity_physical": n_remove / len(sentences)}
+    return _maybe_return(modified, delta, return_delta, meta=meta)
 
 
 ERROR_TYPES = {

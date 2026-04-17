@@ -49,9 +49,11 @@ def run_single_experiment(
     )
 
     injected_content = None
+    injection_meta = None
     for r in results:
         if r.error_injected and r.injected_content:
             injected_content = r.injected_content
+            injection_meta = r.injection_meta
             break
 
     evaluation = evaluate_workflow_output(
@@ -84,6 +86,7 @@ def run_single_experiment(
         "tfidf_target": tfidf_target,
         "evaluation": evaluation,
         "injected_content": injected_content,
+        "injection_meta": injection_meta,
         "error_found_in_step": error_found_in_step,
     }
 
