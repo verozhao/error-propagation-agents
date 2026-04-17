@@ -227,19 +227,22 @@ def inject_omission_error(text: str, step_name: str, severity: int = 1, return_d
     rng = rng or random
     rho = OMISSION_FRACTION.get(int(severity), 0.10)
     sentences = _split_sents(text)
-    if len(sentences) <= 2:
-        return _maybe_return(text, "", return_delta, meta={"n_removed": 0, "severity_physical": 0.0})
-
-    # Always preserve first sentence. Remove floor(rho * N_eligible).
-    eligible = list(range(1, len(sentences)))
-    n_remove = min(len(eligible) - 1, max(1, int(rho * len(sentences))))
+    n = len(sentences)
+    if n <= 2:
+        return _maybe_return(text, "", return_delta,
+                             meta={"n_removed": 0, "n_total": n, "severity_physical": 0.0})
+    n_remove = int(round(rho * n))
+    n_remove = min(n_remove, n - 2)
+    if n_remove < 1:
+        return _maybe_return(text, "", return_delta,
+                             meta={"n_removed": 0, "n_total": n, "severity_physical": 0.0})
+    eligible = list(range(1, n))
     remove_idxs = set(rng.sample(eligible, k=n_remove))
     kept = [s for i, s in enumerate(sentences) if i not in remove_idxs]
     removed = [sentences[i] for i in sorted(remove_idxs)]
     modified = ". ".join(kept)
-    delta = f"REMOVED {n_remove}/{len(sentences)}: " + " | ".join(removed)
-    meta = {"n_removed": n_remove, "n_total": len(sentences),
-            "severity_physical": n_remove / len(sentences)}
+    delta = f"REMOVED {n_remove}/{n}: " + " | ".join(removed)
+    meta = {"n_removed": n_remove, "n_total": n, "severity_physical": n_remove / n}
     return _maybe_return(modified, delta, return_delta, meta=meta)
 
 
