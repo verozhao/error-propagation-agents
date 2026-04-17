@@ -44,12 +44,14 @@ def load_severity_results(results_dir="results") -> pd.DataFrame:
             if "evaluation" not in d:
                 continue
             ev = d["evaluation"]
+            meta = d.get("injection_meta") or {}
             rows.append({
                 "model": d.get("model", os.path.basename(path).split("_")[0]),
                 "task_query": d.get("task_query"),
                 "error_type": d.get("error_type"),
                 "error_step": -1 if d.get("error_step") is None else d["error_step"],
                 "severity": d.get("severity", dir_severity or 1),
+                "severity_physical": meta.get("severity_physical"),
                 "trial": d.get("trial"),
                 "combined_score": ev.get("combined_score", 0),
                 "combined_score_v2": ev.get("combined_score_v2"),
@@ -75,10 +77,12 @@ def compute_failure_rates_by_severity(df: pd.DataFrame) -> pd.DataFrame:
                 continue
             mean_score = step_df["combined_score"].mean()
             failure_rate = max(0, (baseline_mean - mean_score) / baseline_mean)
+            phys = step_df["severity_physical"].dropna()
             results.append({
                 "model": model,
                 "error_type": etype,
                 "severity": sev,
+                "severity_physical_mean": float(phys.mean()) if len(phys) > 0 else None,
                 "error_step": step,
                 "step_name": WORKFLOW_STEPS[step],
                 "baseline_score": baseline_mean,
@@ -147,8 +151,10 @@ def plot_severity_curves(fr_df: pd.DataFrame, model: str = None, output_dir: str
 
         for sev in sorted(edf["severity"].unique()):
             sdf = edf[edf["severity"] == sev].sort_values("error_step")
+            phys = sdf["severity_physical_mean"].dropna()
+            label = f"sev={sev} (dose={phys.mean():.2f})" if len(phys) > 0 else f"sev={sev}"
             ax.plot(sdf["error_step"], sdf["failure_rate"],
-                    marker="o", label=f"severity={sev}", linewidth=2)
+                    marker="o", label=label, linewidth=2)
 
         ax.set_xlabel("Error Injection Step")
         ax.set_ylabel("Failure Rate")
