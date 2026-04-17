@@ -13,3 +13,7 @@ OUTPUT_DIR = "results"
 
 DEFAULT_OPEN_SOURCE_MODELS = ["llama-3.1-8b", "qwen-2.5-7b", "mistral-7b", "deepseek-r1-7b"]
 DEFAULT_API_MODELS = ["gpt-4o-mini", "claude-haiku", "gemini-flash"]
+
+# Verify is the terminal step; injecting there measures direct output
+# corruption, not propagation. Keep False unless explicitly studying that.
+INJECT_AT_VERIFY = False

@@ -67,7 +67,9 @@ def compute_failure_rates_by_severity(df: pd.DataFrame) -> pd.DataFrame:
             continue
         baseline_mean = baseline.mean()
 
-        for step in range(len(WORKFLOW_STEPS)):
+        for step in sorted(group["error_step"].unique()):
+            if step == -1:
+                continue
             step_df = group[group["error_step"] == step]
             if step_df.empty:
                 continue

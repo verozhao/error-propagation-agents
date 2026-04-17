@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR
+from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, INJECT_AT_VERIFY
 from models import call_model
 from workflow import run_workflow, TASK_TEMPLATES
 from error_injection import ERROR_TYPES
@@ -124,15 +124,17 @@ def run_full_experiment(
     ground_truth = load_ground_truth()
 
     all_results = []
-    total_runs = len(models) * len(TASK_TEMPLATES) * (len(WORKFLOW_STEPS) + 1) * num_trials
+    max_inject_step = len(WORKFLOW_STEPS) if INJECT_AT_VERIFY else len(WORKFLOW_STEPS) - 1
 
     # Build list of jobs
     jobs = []
     for model_name in models:
         for task in TASK_TEMPLATES:
-            for error_step in [None] + list(range(len(WORKFLOW_STEPS))):
+            for error_step in [None] + list(range(max_inject_step)):
                 for trial in range(num_trials):
                     jobs.append((model_name, task, error_step, trial))
+
+    total_runs = len(jobs)
 
     max_workers = min(10, len(jobs))
 
