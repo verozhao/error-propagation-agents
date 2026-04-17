@@ -25,6 +25,7 @@ class StepResult:
     error_injected: bool
     injected_content: Optional[str] = None  # delta text added by the injector
     pre_injection_output: Optional[str] = None  # output before injector ran
+    injection_meta: Optional[dict] = None  # physical-unit metadata from injector
 
 
 def step_search(query: str, model_fn: Callable) -> str:
@@ -93,6 +94,7 @@ def run_workflow(
         error_injected = False
         injected_content = None
         pre_injection_output = None
+        injection_meta = None
         if error_injection_fn and error_step == i:
             pre_injection_output = output
             try:
@@ -100,7 +102,10 @@ def run_workflow(
             except TypeError:
                 injection_result = error_injection_fn(output, step_name)
             if isinstance(injection_result, tuple):
-                output, injected_content = injection_result
+                if len(injection_result) == 3:
+                    output, injected_content, injection_meta = injection_result
+                else:
+                    output, injected_content = injection_result
             else:
                 output = injection_result
             error_injected = True
@@ -113,6 +118,7 @@ def run_workflow(
                 error_injected=error_injected,
                 injected_content=injected_content,
                 pre_injection_output=pre_injection_output,
+                injection_meta=injection_meta,
             )
         )
         current_input = output

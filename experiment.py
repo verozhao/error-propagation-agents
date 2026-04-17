@@ -1,14 +1,27 @@
+import hashlib
 import json
 import os
+import random
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR
+import numpy as np
+from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, INJECT_AT_VERIFY
 from models import call_model
 from workflow import run_workflow, TASK_TEMPLATES
 from error_injection import ERROR_TYPES
 from evaluation import evaluate_workflow_output
 from factual_accuracy import claim_survival_score, load_ground_truth
+
+
+def _derive_seed(model_name, task_query, error_step, trial_idx):
+    """Deterministic seed from (model, query, error_step, trial_idx).
+
+    Does NOT include severity — so the baseline generation is identical
+    across severity levels for the same (model, query, trial).
+    """
+    key = f"{model_name}|{task_query}|{error_step}|{trial_idx}"
+    return int(hashlib.sha256(key.encode()).hexdigest()[:8], 16)
 
 
 def run_single_experiment(
@@ -22,6 +35,7 @@ def run_single_experiment(
     ground_truth: dict | None = None,
     pos_target: str | None = None,
     tfidf_target: str | None = None,
+    trial_idx: int = 0,
 ) -> dict:
     """Run one pipeline trial.
 
@@ -31,10 +45,26 @@ def run_single_experiment(
     survival analysis. Set False only if you need byte-for-byte
     backward-compat output for an old analysis script.
     """
-    model_fn = lambda prompt: call_model(model_name, prompt)
+    seed = _derive_seed(model_name, task["query"], error_step, trial_idx)
+    rng = random.Random(seed)
+    np_rng = np.random.default_rng(seed)
+    try:
+        import torch
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+    except ImportError:
+        pass
+
+    # Deterministic model_fn: different seed per call within a trial
+    call_counter = {"i": 0}
+    def model_fn(prompt):
+        call_counter["i"] += 1
+        return call_model(model_name, prompt, seed=seed + call_counter["i"])
+
     error_fn = ERROR_TYPES.get(error_type) if error_step is not None else None
 
-    error_kwargs = {"severity": severity, "return_delta": True} if error_fn else {}
+    error_kwargs = {"severity": severity, "return_delta": True, "rng": rng} if error_fn else {}
     if error_fn and pos_target:
         error_kwargs["pos_target"] = pos_target
     if error_fn and tfidf_target:
@@ -49,9 +79,11 @@ def run_single_experiment(
     )
 
     injected_content = None
+    injection_meta = None
     for r in results:
         if r.error_injected and r.injected_content:
             injected_content = r.injected_content
+            injection_meta = r.injection_meta
             break
 
     evaluation = evaluate_workflow_output(
@@ -84,7 +116,9 @@ def run_single_experiment(
         "tfidf_target": tfidf_target,
         "evaluation": evaluation,
         "injected_content": injected_content,
+        "injection_meta": injection_meta,
         "error_found_in_step": error_found_in_step,
+        "seed": seed,
     }
 
     if save_traces:
@@ -124,15 +158,17 @@ def run_full_experiment(
     ground_truth = load_ground_truth()
 
     all_results = []
-    total_runs = len(models) * len(TASK_TEMPLATES) * (len(WORKFLOW_STEPS) + 1) * num_trials
+    max_inject_step = len(WORKFLOW_STEPS) if INJECT_AT_VERIFY else len(WORKFLOW_STEPS) - 1
 
     # Build list of jobs
     jobs = []
     for model_name in models:
         for task in TASK_TEMPLATES:
-            for error_step in [None] + list(range(len(WORKFLOW_STEPS))):
+            for error_step in [None] + list(range(max_inject_step)):
                 for trial in range(num_trials):
                     jobs.append((model_name, task, error_step, trial))
+
+    total_runs = len(jobs)
 
     max_workers = min(10, len(jobs))
 
@@ -150,6 +186,7 @@ def run_full_experiment(
                 ground_truth=ground_truth,
                 pos_target=pos_target,
                 tfidf_target=tfidf_target,
+                trial_idx=trial,
             )
             result["trial"] = trial
             return result
