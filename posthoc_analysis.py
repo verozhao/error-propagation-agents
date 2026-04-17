@@ -609,7 +609,7 @@ def attenuation_analysis(df: pd.DataFrame):
             fr_prev = step_means[step - 1]
             fr_curr = step_means[step]
             if fr_prev > 0.001:
-                att = 1.0 - (fr_curr / fr_prev)
+                att = max(-2.0, min(2.0, 1.0 - (fr_curr / fr_prev)))
             else:
                 att = 0.0 if fr_curr < 0.001 else -1.0
             results.append({
