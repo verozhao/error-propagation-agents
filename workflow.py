@@ -5,15 +5,23 @@ TASK_TEMPLATES = [
     {
         "query": "best noise-canceling headphones 2025",
         "expected_keywords": ["sony", "bose", "apple", "airpods", "wh-1000xm5"],
+        "domain": "product_review",
     },
     {
         "query": "top programming languages 2025",
         "expected_keywords": ["python", "javascript", "rust", "typescript", "go"],
+        "domain": "technical_ranking",
     },
     {
         "query": "healthy breakfast recipes quick",
         "expected_keywords": ["oatmeal", "eggs", "smoothie", "yogurt", "avocado"],
+        "domain": "lifestyle",
     },
+    {"query": "TODO_QUERY_4_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
+    {"query": "TODO_QUERY_5_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
+    {"query": "TODO_QUERY_6_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
+    {"query": "TODO_QUERY_7_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
+    {"query": "TODO_QUERY_8_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
 ]
 
 
@@ -66,24 +74,25 @@ def run_workflow(
     query: str,
     model_fn: Callable,
     error_injection_fn: Callable = None,
-    error_step: int = None,
+    error_step: int | list[int] | None = None,
     error_kwargs: dict | None = None,
 ) -> list[StepResult]:
     """Run the 5-step pipeline.
 
-    error_injection_fn signature is one of:
-        fn(text, step_name) -> str   (legacy — returns modified text)
-        fn(text, step_name, **kw) -> (modified_text, injected_delta)
-
-    The second form lets injectors report exactly what was added/changed
-    so the trace logger and factual accuracy evaluator can use it. The
-    first form is still supported for backward compatibility — when used,
-    `injected_content` on the StepResult will be None.
+    error_step can be a single int (inject at one step) or a list of ints
+    (compound injection at multiple steps simultaneously).
     """
     results = []
     current_input = query
     steps = ["search", "filter", "summarize", "compose", "verify"]
     error_kwargs = error_kwargs or {}
+
+    if error_step is None:
+        error_step_set = set()
+    elif isinstance(error_step, int):
+        error_step_set = {error_step}
+    else:
+        error_step_set = set(error_step)
 
     for i, step_name in enumerate(steps):
         if step_name == "verify":
@@ -95,7 +104,7 @@ def run_workflow(
         injected_content = None
         pre_injection_output = None
         injection_meta = None
-        if error_injection_fn and error_step == i:
+        if error_injection_fn and i in error_step_set:
             pre_injection_output = output
             try:
                 injection_result = error_injection_fn(output, step_name, **error_kwargs)

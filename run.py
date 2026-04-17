@@ -11,8 +11,8 @@ def main():
     parser.add_argument("--use-api", action="store_true", help="Use API models instead of local")
     parser.add_argument("--trials", type=int, default=50)
     parser.add_argument("--error-type", default="semantic", choices=["semantic", "factual", "omission"])
-    parser.add_argument("--severity", type=int, default=1, choices=[1, 2, 3, 4],
-                        help="Error injection severity level (1-4, default 1)")
+    parser.add_argument("--severity", type=int, default=1, choices=[1, 2, 3],
+                        help="Error injection severity level (1-3, default 1)")
     parser.add_argument("--pos-target", default=None, choices=["noun", "verb", "adj"],
                         help="POS-targeted injection: only corrupt this word class")
     parser.add_argument("--tfidf-target", default=None, choices=["high", "low"],
@@ -26,6 +26,8 @@ def main():
                         help="Override judge model for evaluation")
     parser.add_argument("--use-llm-judge", action="store_true",
                         help="Enable LLM judge (adds cost). Default off — uses algorithmic metric.")
+    parser.add_argument("--compound-steps", type=str, default=None,
+                        help="Compound injection: comma-separated pair(s) like '0,3' or '0,3;1,3'")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -38,6 +40,13 @@ def main():
             from config import DEFAULT_OPEN_SOURCE_MODELS, DEFAULT_API_MODELS
             args.models = DEFAULT_API_MODELS if args.use_api else DEFAULT_OPEN_SOURCE_MODELS
         
+        compound_pairs = None
+        if args.compound_steps:
+            compound_pairs = [
+                tuple(int(x) for x in pair.split(","))
+                for pair in args.compound_steps.split(";")
+            ]
+
         output_file = run_full_experiment(
             models=args.models,
             num_trials=args.trials,
@@ -49,6 +58,7 @@ def main():
             skip_baseline=args.skip_baseline,
             judge_models=[args.judge_model] if args.judge_model else None,
             use_llm_judge=args.use_llm_judge,
+            compound_pairs=compound_pairs,
         )
         print(f"Results saved to: {output_file}")
     
