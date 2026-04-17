@@ -10,10 +10,102 @@ Severity scales:
     omission: 1 = remove ~20%, 2 = remove ~40%, 3 = remove ~60%
     semantic: 1 = up to 2 substitutions (legacy), 2 = up to 5, 3 = unlimited,
               4 = unlimited + misleading framing sentence
+
+POS-targeted injection (pos_target parameter):
+    "noun" = only corrupt nouns/proper nouns
+    "verb" = only corrupt verbs
+    "adj"  = only corrupt adjectives
+    None   = default (any word, original behavior)
+
+TF-IDF-targeted injection (tfidf_target parameter):
+    "high" = corrupt highest TF-IDF word first
+    "low"  = corrupt lowest TF-IDF word first
+    None   = default (original behavior)
 """
 
 import random
 import re
+import math
+from collections import Counter
+
+# --- POS-targeted substitution tables ---
+_NOUN_SWAPS = {
+    "sony": "Zenith", "bose": "RadioShack", "apple": "Blackberry",
+    "python": "COBOL", "javascript": "ActionScript", "typescript": "CoffeeScript",
+    "rust": "Pascal", "java": "Fortran", "go": "Ada",
+    "oatmeal": "candy", "eggs": "soda", "smoothie": "milkshake",
+    "yogurt": "ice cream", "avocado": "lard",
+    "headphones": "speakers", "battery": "antenna", "recipe": "procedure",
+    "performance": "latency", "quality": "deficiency",
+}
+_VERB_SWAPS = {
+    "recommend": "avoid", "improve": "worsen", "use": "abandon",
+    "buy": "return", "compare": "ignore", "test": "skip",
+    "review": "dismiss", "support": "undermine", "enhance": "degrade",
+    "optimize": "bloat", "accelerate": "stall", "boost": "diminish",
+    "prefer": "reject", "adopt": "discard", "cook": "burn",
+}
+_ADJ_SWAPS = {
+    "best": "worst", "top": "bottom", "good": "bad", "great": "terrible",
+    "popular": "unpopular", "reliable": "unreliable", "quick": "slow",
+    "healthy": "unhealthy", "fast": "sluggish", "cheap": "overpriced",
+    "premium": "budget", "excellent": "awful", "innovative": "obsolete",
+    "advanced": "primitive", "powerful": "weak", "effective": "ineffective",
+    "leading": "lagging", "recommended": "not recommended",
+}
+_POS_SWAP_TABLES = {"noun": _NOUN_SWAPS, "verb": _VERB_SWAPS, "adj": _ADJ_SWAPS}
+
+
+def _tfidf_rank_words(text: str) -> list[tuple[str, float]]:
+    """Rank words in text by TF (proxy for TF-IDF within a single document).
+    Returns list of (word, score) sorted by score descending."""
+    words = re.findall(r'[a-zA-Z]{3,}', text)
+    if not words:
+        return []
+    tf = Counter(w.lower() for w in words)
+    total = sum(tf.values())
+    # IDF approximation: rarer words in the text get higher weight
+    scored = []
+    for word, count in tf.items():
+        tf_score = count / total
+        idf_approx = math.log(total / count) + 1
+        scored.append((word, tf_score * idf_approx))
+    return sorted(scored, key=lambda x: x[1], reverse=True)
+
+
+def _apply_pos_targeted_swap(text: str, pos_target: str, max_subs: int) -> tuple[str, str]:
+    """Swap words matching a specific POS category."""
+    table = _POS_SWAP_TABLES.get(pos_target, {})
+    modified = text
+    swaps = []
+    for original, replacement in table.items():
+        if len(swaps) >= max_subs:
+            break
+        pattern = re.compile(re.escape(original), re.IGNORECASE)
+        new_modified, n = pattern.subn(replacement, modified, count=1)
+        if n > 0:
+            modified = new_modified
+            swaps.append(f"{original}->{replacement}")
+    delta = f"POS[{pos_target}]: " + "; ".join(swaps) if swaps else ""
+    return modified, delta
+
+
+def _apply_tfidf_targeted_swap(text: str, tfidf_target: str, swap_table: dict) -> tuple[str, str]:
+    """Swap the highest or lowest TF-IDF word that has a substitution available."""
+    ranked = _tfidf_rank_words(text)
+    if tfidf_target == "low":
+        ranked = list(reversed(ranked))
+
+    modified = text
+    swap_table_lower = {k.lower(): v for k, v in swap_table.items()}
+    for word, score in ranked:
+        if word in swap_table_lower:
+            pattern = re.compile(re.escape(word), re.IGNORECASE)
+            modified = pattern.sub(swap_table_lower[word], modified, count=1)
+            delta = f"TFIDF[{tfidf_target}]: {word}(score={score:.3f})->{swap_table_lower[word]}"
+            return modified, delta
+    return text, ""
+
 
 ERROR_SUBSTITUTIONS = {
     "2025": "2019",
@@ -68,7 +160,8 @@ def _maybe_return(modified: str, delta: str, return_delta: bool):
     return modified
 
 
-def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False):
+def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
+                          pos_target: str | None = None, tfidf_target: str | None = None):
     if severity <= 1:
         max_subs = 2
     elif severity == 2:
@@ -77,21 +170,30 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
         max_subs = 10**9  # unlimited
 
     modified = text
-    swaps: list[tuple[str, str]] = []
+    delta = ""
 
-    for original, replacement in ERROR_SUBSTITUTIONS.items():
-        if len(swaps) >= max_subs:
-            break
-        if original.lower() in modified.lower():
-            pattern = re.compile(re.escape(original), re.IGNORECASE)
-            new_modified, n = pattern.subn(replacement, modified, count=(1 if severity <= 1 else 0))
-            if n > 0:
-                modified = new_modified
-                swaps.extend([(original, replacement)] * n)
-                if len(swaps) >= max_subs:
-                    pass
+    # POS-targeted mode: only swap words of the specified part of speech
+    if pos_target and pos_target in _POS_SWAP_TABLES:
+        modified, delta = _apply_pos_targeted_swap(text, pos_target, max_subs)
+    # TF-IDF-targeted mode: swap highest or lowest importance word
+    elif tfidf_target in ("high", "low"):
+        modified, delta = _apply_tfidf_targeted_swap(text, tfidf_target, ERROR_SUBSTITUTIONS)
+    else:
+        # Default behavior
+        swaps: list[tuple[str, str]] = []
+        for original, replacement in ERROR_SUBSTITUTIONS.items():
+            if len(swaps) >= max_subs:
+                break
+            if original.lower() in modified.lower():
+                pattern = re.compile(re.escape(original), re.IGNORECASE)
+                new_modified, n = pattern.subn(replacement, modified, count=(1 if severity <= 1 else 0))
+                if n > 0:
+                    modified = new_modified
+                    swaps.extend([(original, replacement)] * n)
+        if swaps:
+            delta = "; ".join(f"{o}->{r}" for o, r in swaps)
 
-    if not swaps:
+    if not delta:
         sentences = modified.split(". ")
         if len(sentences) > 1:
             idx = random.randint(0, len(sentences) - 1)
@@ -99,10 +201,6 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
             sentences[idx] = insertion
             modified = ". ".join(sentences)
             delta = insertion
-        else:
-            delta = ""
-    else:
-        delta = "; ".join(f"{o}->{r}" for o, r in swaps)
 
     # severity 4: also prepend a misleading framing sentence
     if severity >= 4:

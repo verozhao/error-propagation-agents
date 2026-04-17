@@ -13,6 +13,10 @@ def main():
     parser.add_argument("--error-type", default="semantic", choices=["semantic", "factual", "omission"])
     parser.add_argument("--severity", type=int, default=1, choices=[1, 2, 3, 4],
                         help="Error injection severity level (1-4, default 1)")
+    parser.add_argument("--pos-target", default=None, choices=["noun", "verb", "adj"],
+                        help="POS-targeted injection: only corrupt this word class")
+    parser.add_argument("--tfidf-target", default=None, choices=["high", "low"],
+                        help="TF-IDF-targeted injection: corrupt highest or lowest importance word")
     parser.add_argument("--results-file", type=str, default=None)
     args = parser.parse_args()
     
@@ -30,7 +34,9 @@ def main():
             models=args.models,
             num_trials=args.trials,
             error_type=args.error_type,
-            severity=args.severity
+            severity=args.severity,
+            pos_target=args.pos_target,
+            tfidf_target=args.tfidf_target,
         )
         print(f"Results saved to: {output_file}")
     

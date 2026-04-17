@@ -20,6 +20,8 @@ def run_single_experiment(
     judge_models: list[str] | None = None,
     save_traces: bool = True,
     ground_truth: dict | None = None,
+    pos_target: str | None = None,
+    tfidf_target: str | None = None,
 ) -> dict:
     """Run one pipeline trial.
 
@@ -33,6 +35,10 @@ def run_single_experiment(
     error_fn = ERROR_TYPES.get(error_type) if error_step is not None else None
 
     error_kwargs = {"severity": severity, "return_delta": True} if error_fn else {}
+    if error_fn and pos_target:
+        error_kwargs["pos_target"] = pos_target
+    if error_fn and tfidf_target:
+        error_kwargs["tfidf_target"] = tfidf_target
 
     results = run_workflow(
         query=task["query"],
@@ -74,6 +80,8 @@ def run_single_experiment(
         "error_step": error_step,
         "error_type": error_type,
         "severity": severity,
+        "pos_target": pos_target,
+        "tfidf_target": tfidf_target,
         "evaluation": evaluation,
         "injected_content": injected_content,
         "error_found_in_step": error_found_in_step,
@@ -106,6 +114,8 @@ def run_full_experiment(
     judge_models: list[str] | None = None,
     save_traces: bool = True,
     output_subdir: str | None = None,
+    pos_target: str | None = None,
+    tfidf_target: str | None = None,
 ):
     subdir = output_subdir or f"{error_type}_error"
     output_dir = os.path.join(OUTPUT_DIR, subdir)
@@ -138,6 +148,8 @@ def run_full_experiment(
                 judge_models=judge_models,
                 save_traces=save_traces,
                 ground_truth=ground_truth,
+                pos_target=pos_target,
+                tfidf_target=tfidf_target,
             )
             result["trial"] = trial
             return result

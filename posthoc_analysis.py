@@ -230,6 +230,20 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     # how many steps does the error survive through
     n_steps_propagated = sum(1 for v in efs.values() if v.get("propagated", False))
 
+    # self-correction: did verify detect the error?
+    verify_detected = False
+    if has_traces:
+        verify_text = step_outputs[-1].get("output_text", "")
+        verify_detected = "INVALID" in verify_text.upper()
+
+    # per-step information compression: how much does each step change its input?
+    step_compression = []
+    if has_traces:
+        for so in step_outputs:
+            in_len = len(_tokenize(so.get("input_text", "")))
+            out_len = len(_tokenize(so.get("output_text", "")))
+            step_compression.append(out_len / max(in_len, 1))
+
     rubric = ev.get("rubric", {})
 
     return {
@@ -272,6 +286,9 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
         "f1": prf.get("f1"),
         "unigram_retention": retention.get("unigram_retention"),
         "bigram_retention": retention.get("bigram_retention"),
+        # self-correction features
+        "verify_detected": int(verify_detected),
+        "step_compression_mean": round(np.mean(step_compression), 4) if step_compression else None,
     }
 
 
@@ -318,6 +335,11 @@ def build_feature_df(records, baselines) -> pd.DataFrame:
 
 
 def add_failure_rates(df: pd.DataFrame, records: list) -> pd.DataFrame:
+    # Use combined_score_v3 (676 distinct values) instead of v1 (34 values)
+    # for much better regression resolution
+    score_col = "combined_score_v3"
+    fallback_col = "combined_score"
+
     bl_scores = {}
     for r in records:
         es = r.get("error_step")
@@ -325,14 +347,18 @@ def add_failure_rates(df: pd.DataFrame, records: list) -> pd.DataFrame:
             continue
         ev = r.get("evaluation", {})
         key = (r.get("model", ""), r.get("error_type", ""))
-        bl_scores.setdefault(key, []).append(ev.get("combined_score", 0))
+        s = ev.get(score_col) or ev.get(fallback_col, 0)
+        bl_scores.setdefault(key, []).append(s)
 
     bl_means = {k: np.mean(v) for k, v in bl_scores.items()}
 
     def calc_fr(row):
         key = (row["model"], row["error_type"])
         bl = bl_means.get(key, 0)
-        return max(0, (bl - row["combined_score"]) / bl) if bl > 0 else 0
+        score = row.get(score_col)
+        if score is None or np.isnan(score):
+            score = row.get(fallback_col, 0)
+        return max(0, (bl - score) / bl) if bl > 0 else 0
 
     df["failure_rate"] = df.apply(calc_fr, axis=1)
     return df
@@ -677,6 +703,175 @@ def new_metrics_summary(df: pd.DataFrame):
 
 
 
+def self_correction_analysis(df: pd.DataFrame, records: list):
+    """Analyze per-step action spaces and self-correction capabilities.
+
+    The professor's framework:
+      - Each step has an observation space (what it sees) and action space (what it can do)
+      - Some steps can detect errors from prior steps (observation capability)
+      - Detection may or may not reduce error propagation (correction effectiveness)
+      - These capabilities should factor into the universal formula
+    """
+    print(f"\n{'='*60}")
+    print("SELF-CORRECTION & ACTION SPACE ANALYSIS")
+    print(f"{'='*60}")
+
+    # --- Step action space definitions ---
+    action_space = {
+        "search":    {"observes": "original query only",
+                      "can_detect": "none (generates from scratch)",
+                      "can_correct": "no prior step to correct"},
+        "filter":    {"observes": "search results",
+                      "can_detect": "irrelevant/low-quality results",
+                      "can_correct": "remove suspicious entries"},
+        "summarize": {"observes": "filtered results",
+                      "can_detect": "contradictions within results",
+                      "can_correct": "omit conflicting claims"},
+        "compose":   {"observes": "summary only",
+                      "can_detect": "incoherence, off-topic content",
+                      "can_correct": "rephrase, reframe"},
+        "verify":    {"observes": "recommendation + original query",
+                      "can_detect": "factual issues, query mismatch",
+                      "can_correct": "flag INVALID (but does not rewrite)"},
+    }
+
+    print("\n  Step Action Spaces:")
+    for step, space in action_space.items():
+        print(f"    {step:12s}  observes: {space['observes']}")
+        print(f"    {'':12s}  detects:  {space['can_detect']}")
+        print(f"    {'':12s}  corrects: {space['can_correct']}")
+
+    # --- Verify detection rate by injection step and severity ---
+    if "verify_detected" not in df.columns:
+        print("\n  No verify_detected data available.")
+        return
+
+    print(f"\n  Verify Detection Rate (did verify flag INVALID?):")
+    det_pivot = df.pivot_table(index="error_type", columns=["error_step", "severity"],
+                                values="verify_detected", aggfunc="mean")
+    # Simplify: by error_step only
+    det_by_step = df.pivot_table(index="error_type", columns="step_name",
+                                  values="verify_detected", aggfunc="mean")
+    step_order = [s for s in WORKFLOW_STEPS if s in det_by_step.columns]
+    det_by_step = det_by_step[step_order]
+    print(det_by_step.round(3).to_string())
+
+    # --- Does detection actually help? Compare failure rates when verify detected vs not ---
+    print(f"\n  Failure Rate: verify detected vs. not detected:")
+    print(f"    {'error_type':12s}  {'detected':>10s}  {'not_detected':>14s}  {'delta':>8s}  {'n_det':>6s}  {'n_not':>6s}")
+    for etype in sorted(df["error_type"].dropna().unique()):
+        edf = df[df["error_type"] == etype]
+        det = edf[edf["verify_detected"] == 1]["failure_rate"]
+        ndet = edf[edf["verify_detected"] == 0]["failure_rate"]
+        if len(det) > 5 and len(ndet) > 5:
+            delta = det.mean() - ndet.mean()
+            print(f"    {etype:12s}  {det.mean():10.3f}  {ndet.mean():14.3f}  {delta:+8.3f}  {len(det):6d}  {len(ndet):6d}")
+
+    # --- Detection rate by severity ---
+    print(f"\n  Verify Detection Rate by Severity:")
+    det_sev = df.pivot_table(index="error_type", columns="severity",
+                              values="verify_detected", aggfunc="mean")
+    print(det_sev.round(3).to_string())
+
+    # --- Per-step error attenuation: compare survival scores across steps ---
+    print(f"\n  Error Survival Decay Across Steps (mean survival_score):")
+    survival_data = []
+    for r in records:
+        es = r.get("error_step")
+        if es is None or es == -1:
+            continue
+        efs = r.get("error_found_in_step", {})
+        if not efs:
+            continue
+        for step_name, info in efs.items():
+            survival_data.append({
+                "error_type": r.get("error_type"),
+                "error_step": es,
+                "severity": r.get("severity", 1),
+                "observed_at": step_name,
+                "survival_score": info.get("survival_score", 0),
+            })
+
+    if survival_data:
+        surv_df = pd.DataFrame(survival_data)
+        surv_pivot = surv_df.pivot_table(index="error_type", columns="observed_at",
+                                          values="survival_score", aggfunc="mean")
+        surv_pivot = surv_pivot[[s for s in WORKFLOW_STEPS if s in surv_pivot.columns]]
+        print(surv_pivot.round(3).to_string())
+
+    # --- Plot: detection rate heatmap ---
+    fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+    # Detection rate by step
+    ax = axes[0]
+    sns.heatmap(det_by_step, annot=True, fmt=".2f", cmap="YlOrRd", ax=ax, vmin=0, vmax=1)
+    ax.set_title("Verify Detection Rate by Injection Step")
+
+    # Detection rate by severity
+    ax = axes[1]
+    sns.heatmap(det_sev, annot=True, fmt=".2f", cmap="YlOrRd", ax=ax, vmin=0, vmax=1)
+    ax.set_title("Verify Detection Rate by Severity")
+
+    plt.tight_layout()
+    os.makedirs("figures", exist_ok=True)
+    plt.savefig("figures/posthoc_self_correction.png", dpi=150)
+    print(f"\n  Saved: figures/posthoc_self_correction.png")
+    plt.close()
+
+    # --- Plot: survival decay across steps ---
+    if survival_data:
+        fig, ax = plt.subplots(figsize=(8, 4))
+        for etype in sorted(surv_df["error_type"].unique()):
+            edata = surv_df[surv_df["error_type"] == etype]
+            means = edata.groupby("observed_at")["survival_score"].mean()
+            means = means.reindex(WORKFLOW_STEPS).dropna()
+            ax.plot(range(len(means)), means.values, marker="o", label=etype)
+            ax.set_xticks(range(len(means)))
+            ax.set_xticklabels(means.index, rotation=45)
+
+        ax.set_ylabel("Mean Error Survival Score")
+        ax.set_xlabel("Pipeline Step")
+        ax.set_title("Error Survival Decay Across Pipeline")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig("figures/posthoc_survival_decay.png", dpi=150)
+        print(f"  Saved: figures/posthoc_survival_decay.png")
+        plt.close()
+
+    # --- Add verify_detected to regression features ---
+    print(f"\n  Regression with self-correction variable:")
+    try:
+        from sklearn.linear_model import LinearRegression
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.model_selection import cross_val_score
+
+        feature_cols = [
+            "delta_word_count", "injection_position", "n_sentences_affected",
+            "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
+            "severity", "error_step", "verify_detected",
+        ]
+        available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
+        subset = df[available + ["failure_rate"]].dropna()
+
+        if len(subset) > 30:
+            X = subset[available].values
+            y = subset["failure_rate"].values
+            scaler = StandardScaler()
+            X_s = scaler.fit_transform(X)
+            lin = LinearRegression()
+            cv = cross_val_score(lin, X_s, y, cv=5, scoring="r2")
+            lin.fit(X_s, y)
+
+            print(f"    R²_train={lin.score(X_s, y):.3f}  R²_cv={cv.mean():.3f} ± {cv.std():.3f}")
+            coeffs = sorted(zip(available, lin.coef_), key=lambda x: abs(x[1]), reverse=True)
+            for name, coef in coeffs[:5]:
+                print(f"      {name:25s}  beta={coef:+.4f}")
+            print(f"    (verify_detected beta={dict(coeffs).get('verify_detected', 0):+.4f})")
+    except ImportError:
+        pass
+
+
 def distributional_analysis(df: pd.DataFrame):
     """Distributional reporting: PDFs, CDFs, percentiles, and P(degradation > X)."""
     print(f"\n{'='*60}")
@@ -860,6 +1055,7 @@ def main():
     attenuation_analysis(df)
     severity_degradation_plot(df)
     distributional_analysis(df)
+    self_correction_analysis(df, records)
 
     # save formulas
     if formulas:
