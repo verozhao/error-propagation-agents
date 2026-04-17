@@ -172,7 +172,14 @@ def run_full_experiment(
                 pbar.update(1)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(output_dir, f"experiment_{timestamp}.json")
+    model_tag = "_".join(sorted(models))
+    parts = [error_type, f"sev{severity}", model_tag, f"{num_trials}trials"]
+    if pos_target:
+        parts.append(f"pos_{pos_target}")
+    if tfidf_target:
+        parts.append(f"tfidf_{tfidf_target}")
+    parts.append(timestamp)
+    output_file = os.path.join(output_dir, f"{'_'.join(parts)}.json")
     with open(output_file, "w") as f:
         json.dump(all_results, f, indent=2)
 
