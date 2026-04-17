@@ -96,18 +96,6 @@ def get_cmu_gateway_client():
     return _api_clients["cmu_gateway"]
 
 
-def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
-    client = get_cmu_gateway_client()
-    gateway_model = CMU_GATEWAY_MODELS.get(model, model)
-    response = client.chat.completions.create(
-        model=gateway_model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-        temperature=temperature,
-    )
-    return response.choices[0].message.content
-
-
 def get_openai_client():
     if "openai" not in _api_clients:
         import openai
@@ -128,28 +116,32 @@ def get_google_model(model_name: str):
     return genai.GenerativeModel(model_name)
 
 
-def call_openai(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
+def call_openai(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     client = get_openai_client()
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-        temperature=temperature,
-    )
+    kwargs = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+    if seed is not None:
+        kwargs["seed"] = seed
+    response = client.chat.completions.create(**kwargs)
     return response.choices[0].message.content
 
 
-def call_anthropic(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
+def call_anthropic(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     client = get_anthropic_client()
     response = client.messages.create(
         model=model,
         max_tokens=max_tokens,
+        temperature=temperature,
         messages=[{"role": "user", "content": prompt}],
     )
     return response.content[0].text
 
 
-def call_google(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
+def call_google(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     gmodel = get_google_model(model)
     response = gmodel.generate_content(
         prompt,
@@ -158,9 +150,27 @@ def call_google(model: str, prompt: str, max_tokens: int = 1024, temperature: fl
     return response.text
 
 
-def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7) -> str:
+def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
+    client = get_cmu_gateway_client()
+    gateway_model = CMU_GATEWAY_MODELS.get(model, model)
+    kwargs = {
+        "model": gateway_model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+    if seed is not None:
+        kwargs["seed"] = seed
+    response = client.chat.completions.create(**kwargs)
+    return response.choices[0].message.content
+
+
+def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     if model_name in OPEN_SOURCE_MODELS:
         model = get_local_model(model_name)
+        if seed is not None:
+            import torch
+            torch.manual_seed(seed)
         return model.generate(prompt, max_tokens, temperature)
 
     if model_name in API_MODELS:
@@ -168,15 +178,15 @@ def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature
         model_id = cfg["model"]
 
         if USE_CMU_GATEWAY:
-            return call_cmu_gateway(model_id, prompt, max_tokens, temperature)
+            return call_cmu_gateway(model_id, prompt, max_tokens, temperature, seed)
 
         provider = cfg["provider"]
         if provider == "openai":
-            return call_openai(model_id, prompt, max_tokens, temperature)
+            return call_openai(model_id, prompt, max_tokens, temperature, seed)
         elif provider == "anthropic":
-            return call_anthropic(model_id, prompt, max_tokens, temperature)
+            return call_anthropic(model_id, prompt, max_tokens, temperature, seed)
         elif provider == "google":
-            return call_google(model_id, prompt, max_tokens, temperature)
+            return call_google(model_id, prompt, max_tokens, temperature, seed)
 
     raise ValueError(f"Unknown model: {model_name}")
 
