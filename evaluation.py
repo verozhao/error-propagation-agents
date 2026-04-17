@@ -115,11 +115,13 @@ def evaluate_workflow_output(
     ground_truth: dict | None = None,
     judge_models: list[str] | None = None,
     baseline_output: str | None = None,
+    use_llm_judge: bool = True,
 ) -> dict:
     """Evaluate a pipeline output.
 
-    Backward-compatible with v1 callers. New optional arg:
-        baseline_output: final output from a no-error run, for pairwise comparison.
+    When use_llm_judge=False, skips all LLM judge calls (quality_score,
+    rubric, pairwise). The primary combined_score uses factual_accuracy_score
+    instead, making it fully algorithmic and deterministic.
     """
     final_output = results[-1].output_text
     verification_output = final_output
@@ -129,18 +131,19 @@ def evaluate_workflow_output(
     keyword_matches = sum(1 for kw in expected_keywords if kw.lower() in final_output.lower())
     keyword_score = keyword_matches / len(expected_keywords) if expected_keywords else 0.0
 
-    # v1 single-number quality score
-    quality_score = _llm_quality_score(original_query, final_output, evaluator_model)
-
-    # v2 rubric quality scores
-    rubric = _llm_quality_rubric(original_query, final_output, evaluator_model)
-
-    quality_scores = {evaluator_model: quality_score}
-    if judge_models:
-        for jm in judge_models:
-            if jm == evaluator_model:
-                continue
-            quality_scores[jm] = _llm_quality_score(original_query, final_output, jm)
+    if use_llm_judge:
+        quality_score = _llm_quality_score(original_query, final_output, evaluator_model)
+        rubric = _llm_quality_rubric(original_query, final_output, evaluator_model)
+        quality_scores = {evaluator_model: quality_score}
+        if judge_models:
+            for jm in judge_models:
+                if jm == evaluator_model:
+                    continue
+                quality_scores[jm] = _llm_quality_score(original_query, final_output, jm)
+    else:
+        quality_score = None
+        rubric = None
+        quality_scores = {}
 
     if ground_truth is None:
         try:
@@ -173,38 +176,51 @@ def evaluate_workflow_output(
         if total > 0:
             assertion_score = hits / total
 
-    # v1 combined score (unchanged)
+    # Primary combined score: algorithmic only (no LLM judge)
     combined_score = (
         0.3 * int(is_valid)
         + 0.3 * keyword_score
-        + 0.4 * (quality_score / 10)
+        + 0.4 * factual.factual_accuracy_score
     )
 
-    # v2 combined score (unchanged)
-    combined_score_v2 = (
-        0.2 * int(is_valid)
-        + 0.2 * keyword_score
-        + 0.3 * (quality_score / 10)
-        + 0.3 * factual.factual_accuracy_score
-    )
+    # Legacy v1 score preserved for midterm comparability
+    if use_llm_judge and quality_score is not None:
+        combined_score_legacy = (
+            0.3 * int(is_valid)
+            + 0.3 * keyword_score
+            + 0.4 * (quality_score / 10)
+        )
+    else:
+        combined_score_legacy = None
 
-    # v3 combined score: spreads weight across more sensitive sub-scores
-    # Note: factual_accuracy_score already incorporates assertion preservation
-    # internally (preserved * (1 - survival) - contradiction_penalty), so we
-    # don't include assertion_score separately to avoid double-counting.
-    combined_score_v3 = (
-        0.15 * int(is_valid)
-        + 0.15 * keyword_score
-        + 0.125 * (rubric["accuracy"] / 10)
-        + 0.125 * (rubric["completeness"] / 10)
-        + 0.125 * (rubric["coherence"] / 10)
-        + 0.125 * (rubric["usefulness"] / 10)
-        + 0.20 * factual.factual_accuracy_score
-    )
+    # v2 combined score (requires judge)
+    if use_llm_judge and quality_score is not None:
+        combined_score_v2 = (
+            0.2 * int(is_valid)
+            + 0.2 * keyword_score
+            + 0.3 * (quality_score / 10)
+            + 0.3 * factual.factual_accuracy_score
+        )
+    else:
+        combined_score_v2 = None
 
-    # pairwise comparison (only if baseline provided)
+    # v3 combined score (requires rubric)
+    if use_llm_judge and rubric is not None:
+        combined_score_v3 = (
+            0.15 * int(is_valid)
+            + 0.15 * keyword_score
+            + 0.125 * (rubric["accuracy"] / 10)
+            + 0.125 * (rubric["completeness"] / 10)
+            + 0.125 * (rubric["coherence"] / 10)
+            + 0.125 * (rubric["usefulness"] / 10)
+            + 0.20 * factual.factual_accuracy_score
+        )
+    else:
+        combined_score_v3 = None
+
+    # pairwise comparison (only if baseline provided and judge enabled)
     pairwise = None
-    if baseline_output:
+    if baseline_output and use_llm_judge:
         pairwise = _pairwise_comparison(original_query, baseline_output, final_output, evaluator_model)
 
     result = {
@@ -214,9 +230,10 @@ def evaluate_workflow_output(
         "rubric": rubric,
         "assertion_score": assertion_score,
         "combined_score": combined_score,
+        "combined_score_legacy": combined_score_legacy,
         "combined_score_v2": combined_score_v2,
         "combined_score_v3": combined_score_v3,
-        "judge_model": evaluator_model,
+        "judge_model": evaluator_model if use_llm_judge else None,
         "quality_scores": quality_scores,
         "factual": factual.to_dict(),
     }

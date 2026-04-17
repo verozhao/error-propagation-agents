@@ -30,31 +30,58 @@ from config import WORKFLOW_STEPS
 
 def load_all(results_glob: str = "results/**/*.json") -> pd.DataFrame:
     rows = []
-    for path in glob(results_glob, recursive=True):
+    # Load from JSONL first
+    for path in glob("results/**/*.jsonl", recursive=True):
         if "stats" in path or "trace_analysis" in path or "sanity_checks" in path:
             continue
         with open(path) as f:
-            data = json.load(f)
-        if not isinstance(data, list):
-            continue
-        fname = os.path.basename(path)
-        fallback_model = fname.split("_")[0]
-        for d in data:
-            if "evaluation" not in d:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                if "evaluation" not in d:
+                    continue
+                ev = d["evaluation"]
+                rows.append(
+                    {
+                        "model": d.get("model"),
+                        "task_query": d.get("task_query"),
+                        "error_type": d.get("error_type"),
+                        "error_step": -1 if d.get("error_step") is None else d.get("error_step"),
+                        "trial": d.get("trial"),
+                        "combined_score": ev.get("combined_score"),
+                        "combined_score_v2": ev.get("combined_score_v2"),
+                        "source": path,
+                    }
+                )
+    # Fallback to JSON if no JSONL data
+    if not rows:
+        for path in glob(results_glob, recursive=True):
+            if "stats" in path or "trace_analysis" in path or "sanity_checks" in path:
                 continue
-            ev = d["evaluation"]
-            rows.append(
-                {
-                    "model": d.get("model") or fallback_model,
-                    "task_query": d.get("task_query"),
-                    "error_type": d.get("error_type"),
-                    "error_step": -1 if d.get("error_step") is None else d.get("error_step"),
-                    "trial": d.get("trial"),
-                    "combined_score": ev.get("combined_score"),
-                    "combined_score_v2": ev.get("combined_score_v2"),
-                    "source": path,
-                }
-            )
+            with open(path) as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                continue
+            fname = os.path.basename(path)
+            fallback_model = fname.split("_")[0]
+            for d in data:
+                if "evaluation" not in d:
+                    continue
+                ev = d["evaluation"]
+                rows.append(
+                    {
+                        "model": d.get("model") or fallback_model,
+                        "task_query": d.get("task_query"),
+                        "error_type": d.get("error_type"),
+                        "error_step": -1 if d.get("error_step") is None else d.get("error_step"),
+                        "trial": d.get("trial"),
+                        "combined_score": ev.get("combined_score"),
+                        "combined_score_v2": ev.get("combined_score_v2"),
+                        "source": path,
+                    }
+                )
     return pd.DataFrame(rows)
 
 

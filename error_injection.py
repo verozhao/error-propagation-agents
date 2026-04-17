@@ -2,11 +2,11 @@
 
 Severity encodes a *physical* quantity, logged alongside the integer:
 
-| Error type | Mechanism                           | Sev1 | Sev2 | Sev3 | Sev4 |
-|------------|-------------------------------------|------|------|------|------|
-| factual    | Insert K fake facts (never replace) | K=1  | K=2  | K=4  | K=8  |
-| omission   | Remove fraction rho of sentences    | 0.10 | 0.25 | 0.50 | 0.75 |
-| semantic   | Apply S polarity substitutions      | S=1  | S=2  | S=4  | S=8  |
+| Error type | Mechanism                           | Sev1 | Sev2 | Sev3 |
+|------------|-------------------------------------|------|------|------|
+| factual    | Insert K fake facts (never replace) | K=1  | K=2  | K=8  |
+| omission   | Remove fraction rho of sentences    | 0.10 | 0.25 | 0.75 |
+| semantic   | Apply S polarity substitutions      | S=1  | S=2  | S=8  |
 
 POS-targeted injection (pos_target parameter):
     "noun" = only corrupt nouns/proper nouns
@@ -26,9 +26,9 @@ import math
 from collections import Counter
 
 # --- Monotonic severity tables ---
-FACTUAL_INSERT_COUNT = {1: 1, 2: 2, 3: 4, 4: 8}
-OMISSION_FRACTION    = {1: 0.10, 2: 0.25, 3: 0.50, 4: 0.75}
-SEMANTIC_SUB_COUNT   = {1: 1, 2: 2, 3: 4, 4: 8}
+FACTUAL_INSERT_COUNT = {1: 1, 2: 2, 3: 8}
+OMISSION_FRACTION    = {1: 0.10, 2: 0.25, 3: 0.75}
+SEMANTIC_SUB_COUNT   = {1: 1, 2: 2, 3: 8}
 
 # --- Sentence splitter (replaces every text.split(". ")) ---
 _SENT_SPLIT = re.compile(r'(?<=[.!?])\s+')

@@ -132,6 +132,36 @@
         "product is inferior",
         "technology is obsolete"
       ]
+    },
+    {
+      "query": "TODO_QUERY_4_placeholder",
+      "_placeholder": true,
+      "assertions": [],
+      "contradictions": []
+    },
+    {
+      "query": "TODO_QUERY_5_placeholder",
+      "_placeholder": true,
+      "assertions": [],
+      "contradictions": []
+    },
+    {
+      "query": "TODO_QUERY_6_placeholder",
+      "_placeholder": true,
+      "assertions": [],
+      "contradictions": []
+    },
+    {
+      "query": "TODO_QUERY_7_placeholder",
+      "_placeholder": true,
+      "assertions": [],
+      "contradictions": []
+    },
+    {
+      "query": "TODO_QUERY_8_placeholder",
+      "_placeholder": true,
+      "assertions": [],
+      "contradictions": []
     }
   ]
 }

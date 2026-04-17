@@ -28,19 +28,29 @@ API_MODELS = {
     "gpt-4o-mini": {"provider": "openai", "model": "gpt-4o-mini"},
     "claude-sonnet": {"provider": "anthropic", "model": "claude-sonnet-4-20250514"},
     "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-20250414"},
+    "claude-sonnet-3-5": {"provider": "anthropic", "model": "claude-3-5-sonnet"},
     "gemini-pro": {"provider": "google", "model": "gemini-1.5-pro"},
     "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
 }
 
 # CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
 CMU_GATEWAY_MODELS = {
-    "gpt-4o": "gpt-4.1-mini",           # no gpt-4o on gateway; closest available
-    "gpt-4o-mini": "gpt-4.1-mini",      # no gpt-4o-mini on gateway; gpt-4.1-mini is closest
+    "gpt-4o": "gpt-4.1-mini",
+    "gpt-4o-mini": "gpt-4.1-mini",
     "claude-sonnet-4-20250514": "claude-sonnet-4-20250514-v1:0",
     "claude-haiku-4-20250414": "claude-haiku-4-5-20251001-v1:0",
+    "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
     "gemini-1.5-pro": "gemini-2.5-pro",
     "gemini-1.5-flash": "gemini-2.5-flash",
 }
+
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+_API_RETRY = retry(
+    stop=stop_after_attempt(6),
+    wait=wait_exponential(multiplier=2, min=4, max=60),
+    reraise=True,
+)
 
 _local_model_cache = {}
 _api_clients = {}
@@ -116,6 +126,7 @@ def get_google_model(model_name: str):
     return genai.GenerativeModel(model_name)
 
 
+@_API_RETRY
 def call_openai(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     client = get_openai_client()
     kwargs = {
@@ -130,6 +141,7 @@ def call_openai(model: str, prompt: str, max_tokens: int = 1024, temperature: fl
     return response.choices[0].message.content
 
 
+@_API_RETRY
 def call_anthropic(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     client = get_anthropic_client()
     response = client.messages.create(
@@ -141,6 +153,7 @@ def call_anthropic(model: str, prompt: str, max_tokens: int = 1024, temperature:
     return response.content[0].text
 
 
+@_API_RETRY
 def call_google(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     gmodel = get_google_model(model)
     response = gmodel.generate_content(
@@ -150,6 +163,7 @@ def call_google(model: str, prompt: str, max_tokens: int = 1024, temperature: fl
     return response.text
 
 
+@_API_RETRY
 def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
     client = get_cmu_gateway_client()
     gateway_model = CMU_GATEWAY_MODELS.get(model, model)
