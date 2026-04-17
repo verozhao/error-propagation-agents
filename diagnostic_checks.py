@@ -9,23 +9,54 @@ from collections import defaultdict
 import pandas as pd
 
 
-def main():
+def _load_records():
+    """Load records from both JSONL and JSON files."""
     rows = []
-    for f in glob.glob("results/**/*.json", recursive=True):
-        if "stats" in f or "sanity" in f or "baseline_pre_fix" in f or "archive" in f:
+    seen_keys = set()
+
+    for f in glob.glob("results/**/*.jsonl", recursive=True):
+        if "stats" in f or "sanity" in f or "archive" in f:
             continue
-        for r in json.load(open(f)):
-            if "evaluation" not in r:
+        with open(f) as fh:
+            for line in fh:
+                try:
+                    r = json.loads(line)
+                    if "evaluation" not in r:
+                        continue
+                    rows.append(r)
+                except Exception:
+                    continue
+
+    if not rows:
+        for f in glob.glob("results/**/*.json", recursive=True):
+            if "stats" in f or "sanity" in f or "baseline_pre_fix" in f or "archive" in f:
                 continue
-            rows.append({
-                "etype": r["error_type"],
-                "sev": r["severity"],
-                "step": r["error_step"] if r["error_step"] is not None else -1,
-                "score": r["evaluation"]["combined_score"],
-                "meta": r.get("injection_meta") or {},
-                "task_query": r.get("task_query"),
-                "trial": r.get("trial"),
-            })
+            for r in json.load(open(f)):
+                if "evaluation" not in r:
+                    continue
+                rows.append(r)
+
+    return rows
+
+
+def main():
+    raw_records = _load_records()
+
+    rows = []
+    for r in raw_records:
+        rows.append({
+            "etype": r["error_type"],
+            "sev": r["severity"],
+            "step": r["error_step"] if r["error_step"] is not None else -1,
+            "score": r["evaluation"]["combined_score"],
+            "quality_score": r["evaluation"].get("quality_score"),
+            "combined_score_legacy": r["evaluation"].get("combined_score_legacy"),
+            "meta": r.get("injection_meta") or {},
+            "task_query": r.get("task_query"),
+            "trial": r.get("trial"),
+            "compound_steps": r.get("compound_steps"),
+            "error_found_in_step": r.get("error_found_in_step"),
+        })
     df = pd.DataFrame(rows)
     print(f"Loaded {len(df)} records")
 
@@ -38,8 +69,12 @@ def main():
         print("PASS P0-1: no verify injections")
 
     # Check 2: severity_physical is present and monotonic
+    df_single = df[df["compound_steps"].isna() | (df["compound_steps"].apply(lambda x: x is None))]
     for etype in ["factual", "omission", "semantic"]:
-        sub = df[(df["etype"] == etype) & (df["step"] >= 0)]
+        sub = df_single[(df_single["etype"] == etype) & (df_single["step"] >= 0)]
+        if sub.empty:
+            print(f"WARN P0-2: no {etype} injection records found")
+            continue
         phys = sub.groupby("sev")["meta"].apply(
             lambda s: pd.Series([m.get("severity_physical", None) for m in s]).dropna().mean()
         )
@@ -50,28 +85,24 @@ def main():
         else:
             print(f"PASS P0-2: {etype} severity_physical = {phys.round(3).to_dict()}")
 
-    # Check 3: baseline means stable across severity (same (query, trial) -> same upstream)
-    # OpenAI seed is "best effort" — not fully deterministic. Relax threshold
-    # to 0.15 for API models; P1-6 (shared baselines) eliminates this entirely.
-    base = df[df["step"] == -1]
+    # Check 3: baseline means stable across severity
+    base = df_single[df_single["step"] == -1]
     if not base.empty:
         stability = base.groupby(["etype", "sev"])["score"].mean().unstack()
         max_spread = (stability.max(axis=1) - stability.min(axis=1)).max()
-        if max_spread > 0.15:
-            failures.append(f"FAIL P0-4: baseline drift across severity = {max_spread:.3f} (expected <0.15; P1-6 shared baselines will fix)")
-        elif max_spread > 0.02:
-            print(f"WARN P0-4: baseline drift = {max_spread:.4f} (>0.02 due to API non-determinism; seeds verified identical; P1-6 will fix)")
+        if max_spread > 0.02:
+            failures.append(f"FAIL P0-4: baseline drift = {max_spread:.3f} (expected <=0.02 with judge off)")
         else:
             print(f"PASS P0-4: baseline drift = {max_spread:.4f}")
     else:
         print("WARN P0-4: no baseline records found, skipping drift check")
 
-    # Check 4: failure rate monotonic in severity for at least one (etype, step)
+    # Check 4: failure rate monotonic
     fr_by = defaultdict(dict)
-    for etype in df["etype"].unique():
-        sub = df[df["etype"] == etype]
+    for etype in df_single["etype"].unique():
+        sub = df_single[df_single["etype"] == etype]
         base_mean = sub[sub["step"] == -1].groupby("sev")["score"].mean()
-        for step in range(4):  # 0..3
+        for step in range(4):
             inj_mean = sub[sub["step"] == step].groupby("sev")["score"].mean()
             if not base_mean.empty and not inj_mean.empty:
                 fr = ((base_mean - inj_mean) / base_mean).clip(lower=0)
@@ -83,7 +114,7 @@ def main():
         for step, d in by_step.items():
             print(f"    step={step}: " + ", ".join(f"sev{s}={v:.3f}" for s, v in sorted(d.items())))
 
-    # Check 5: run statistical_tests.py and verify pairing worked
+    # Check 5: run statistical_tests.py and verify pairing
     result = subprocess.run(["python", "statistical_tests.py"], capture_output=True, text=True)
     print(result.stdout)
     if result.returncode != 0:
@@ -99,6 +130,39 @@ def main():
                 print(f"PASS P0-3: all {len(sig)} rows use paired Wilcoxon")
         else:
             failures.append("FAIL P0-3: significance.csv not found")
+
+    # Check 6: combined_score present, quality_score null (LLM judge is off)
+    has_judge = df["quality_score"].notna().sum()
+    if has_judge > 0:
+        # Only fail if the new (Phase 3+) records have judge scores
+        new_records = df[df["combined_score_legacy"].isna()]
+        new_with_judge = new_records["quality_score"].notna().sum()
+        if new_with_judge > 0:
+            failures.append(f"FAIL P1-5: {new_with_judge} new records have quality_score (judge should be off)")
+        else:
+            print(f"PASS P1-5: all new records have quality_score=null (judge off); {has_judge} legacy records have scores")
+    else:
+        print("PASS P1-5: all records have quality_score=null (judge off)")
+
+    missing_score = df["score"].isna().sum()
+    if missing_score > 0:
+        failures.append(f"FAIL P1-5: {missing_score} records missing combined_score")
+    else:
+        print(f"PASS P1-5: all {len(df)} records have combined_score")
+
+    # Check 7: compound records present (if any compound runs exist)
+    compound_records = df[df["compound_steps"].apply(lambda x: x is not None and x != [])]
+    if len(compound_records) > 0:
+        print(f"PASS compound: {len(compound_records)} compound records found")
+    else:
+        print("WARN compound: no compound records found (run compound diagnostic to populate)")
+
+    # Check 8: claim-survival matrices exist
+    has_efs = df["error_found_in_step"].apply(lambda x: x is not None and len(x) > 0 if x else False).sum()
+    if has_efs > 0:
+        print(f"PASS survival: {has_efs} records have error_found_in_step data")
+    else:
+        print("WARN survival: no error_found_in_step data found")
 
     if failures:
         print("\n".join(["\n===== DIAGNOSTIC FAILED ====="] + failures))
