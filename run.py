@@ -24,6 +24,8 @@ def main():
                         help="Skip baseline (error_step=None) runs; reuse sev=1 baselines")
     parser.add_argument("--judge-model", type=str, default=None,
                         help="Override judge model for evaluation")
+    parser.add_argument("--use-llm-judge", action="store_true",
+                        help="Enable LLM judge (adds cost). Default off — uses algorithmic metric.")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -46,6 +48,7 @@ def main():
             diagnostic_query=args.diagnostic_query,
             skip_baseline=args.skip_baseline,
             judge_models=[args.judge_model] if args.judge_model else None,
+            use_llm_judge=args.use_llm_judge,
         )
         print(f"Results saved to: {output_file}")
     
