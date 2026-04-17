@@ -192,6 +192,8 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     # injection features from delta text
     pos = _count_pos(injected) if injected else {"n_nouns": 0, "n_adjs": 0, "n_verbs": 0, "n_advs": 0, "n_entities": 0}
     delta_words = len(injected.split()) if injected else 0
+    inj_meta = record.get("injection_meta") or {}
+    severity_physical = inj_meta.get("severity_physical", record.get("severity", 1))
 
     # features from traces
     pre_inj_text = ""
@@ -267,6 +269,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
         "error_step": es,
         "step_name": WORKFLOW_STEPS[es] if es < len(WORKFLOW_STEPS) else "?",
         "severity": record.get("severity", 1),
+        "severity_physical": severity_physical,
         "task_query": query,
         "has_traces": has_traces,
         # injection features (what the professor wants)
@@ -384,7 +387,7 @@ def correlation_analysis(df: pd.DataFrame, target: str = "failure_rate"):
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "length_change_ratio", "text_length_before",
         "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "error_step",
+        "severity", "severity_physical", "error_step",
     ]
     eval_metrics = [
         "tfidf_similarity", "precision", "recall", "f1",
@@ -443,7 +446,7 @@ def per_error_type_regression(df: pd.DataFrame):
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "error_step",
+        "severity", "severity_physical", "error_step",
     ]
 
     print(f"\n{'='*60}")
@@ -539,7 +542,7 @@ def universal_formula(df: pd.DataFrame):
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "error_step",
+        "severity", "severity_physical", "error_step",
     ]
     available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
     subset = df[available + ["failure_rate", "error_type"]].dropna()
@@ -863,7 +866,7 @@ def self_correction_analysis(df: pd.DataFrame, records: list):
         feature_cols = [
             "delta_word_count", "injection_position", "n_sentences_affected",
             "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-            "severity", "error_step", "verify_detected",
+            "severity", "severity_physical", "error_step", "verify_detected",
         ]
         available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
         subset = df[available + ["failure_rate"]].dropna()
