@@ -1,0 +1,302 @@
+[
+  {
+    "model": "gpt-4o-mini",
+    "task_query": "best noise-canceling headphones 2025",
+    "error_step": null,
+    "error_type": "factual",
+    "severity": 2,
+    "compound_steps": [
+      0,
+      3
+    ],
+    "pos_target": null,
+    "tfidf_target": null,
+    "evaluation": {
+      "is_valid": true,
+      "keyword_score": 0.0,
+      "quality_score": null,
+      "rubric": null,
+      "assertion_score": 0.16666666666666666,
+      "combined_score": 0.3603508771929824,
+      "combined_score_legacy": null,
+      "combined_score_v2": null,
+      "combined_score_v3": null,
+      "judge_model": null,
+      "quality_scores": {},
+      "factual": {
+        "factual_accuracy_score": 0.15087719298245614,
+        "error_propagated": false,
+        "error_survival_score": 0.09473684210526315,
+        "assertions_present": 1,
+        "assertions_total": 6,
+        "contradictions_present": 0
+      }
+    },
+    "injected_content": "INSERTED 2: Independent reviewers have flagged this as fraudulent. | Warning: Multiple reports indicate quality issues. | INSERTED 2: This option has been banned in several regions. | A 2024 lawsuit found this option to be unsafe.",
+    "injection_meta": {
+      "n_inserts": 2,
+      "severity_physical": 2
+    },
+    "error_found_in_step": {
+      "search": {
+        "propagated": true,
+        "survival_score": 0.3158
+      },
+      "filter": {
+        "propagated": false,
+        "survival_score": 0.0316
+      },
+      "summarize": {
+        "propagated": false,
+        "survival_score": 0.0316
+      },
+      "compose": {
+        "propagated": true,
+        "survival_score": 0.4062
+      },
+      "verify": {
+        "propagated": false,
+        "survival_score": 0.0947
+      }
+    },
+    "seed": 2572123050,
+    "step_outputs": [
+      {
+        "step": "search",
+        "input_text": "best noise-canceling headphones 2025",
+        "output_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. Warning: Multiple reports indicate quality issues.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.. 4.. Independent reviewers have flagged this as fraudulent.. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.. 5.. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025** \u2013 An overview of the latest technological advancements and features in noise-canceling headphones set to release in 2025.",
+        "error_injected": true,
+        "pre_injection_output": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.\n\n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.\n\n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.\n\n4. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.\n\n5. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025** \u2013 An overview of the latest technological advancements and features in noise-canceling headphones set to release in 2025."
+      },
+      {
+        "step": "filter",
+        "input_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. Warning: Multiple reports indicate quality issues.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.. 4.. Independent reviewers have flagged this as fraudulent.. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.. 5.. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025** \u2013 An overview of the latest technological advancements and features in noise-canceling headphones set to release in 2025.",
+        "output_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "summarize",
+        "input_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.",
+        "output_text": "The 2025 noise-canceling headphone market features top models renowned for superior sound quality, advanced noise cancellation, and enhanced comfort. Expert reviews emphasize key factors such as battery life and efficiency, catering to diverse needs. Specialized guides highlight options ideal for travelers and remote workers, focusing on effective noise isolation and durable performance for on-the-go use.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "compose",
+        "input_text": "The 2025 noise-canceling headphone market features top models renowned for superior sound quality, advanced noise cancellation, and enhanced comfort. Expert reviews emphasize key factors such as battery life and efficiency, catering to diverse needs. Specialized guides highlight options ideal for travelers and remote workers, focusing on effective noise isolation and durable performance for on-the-go use.",
+        "output_text": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for extended periods.. A 2024 lawsuit found this option to be unsafe.. Pay close attention to battery life and efficiency to ensure they meet your daily usage needs.. If you travel frequently or work remotely, look for headphones specifically designed for effective noise isolation and durable performance to withstand on-the-go conditions.. This option has been banned in several regions.. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your lifestyle.",
+        "error_injected": true,
+        "pre_injection_output": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for extended periods. Pay close attention to battery life and efficiency to ensure they meet your daily usage needs. If you travel frequently or work remotely, look for headphones specifically designed for effective noise isolation and durable performance to withstand on-the-go conditions. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your lifestyle."
+      },
+      {
+        "step": "verify",
+        "input_text": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for extended periods.. A 2024 lawsuit found this option to be unsafe.. Pay close attention to battery life and efficiency to ensure they meet your daily usage needs.. If you travel frequently or work remotely, look for headphones specifically designed for effective noise isolation and durable performance to withstand on-the-go conditions.. This option has been banned in several regions.. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your lifestyle.",
+        "output_text": "INVALID - The recommendation contains vague advice without specifying any particular models or updated 2025 options. Additionally, it includes unrelated negative statements about unspecified \"this option\" being unsafe or banned, which are confusing and do not directly address the query for the best noise-canceling headphones in 2025.",
+        "error_injected": false,
+        "pre_injection_output": null
+      }
+    ],
+    "trial": 2
+  },
+  {
+    "model": "gpt-4o-mini",
+    "task_query": "best noise-canceling headphones 2025",
+    "error_step": null,
+    "error_type": "factual",
+    "severity": 2,
+    "compound_steps": [
+      0,
+      3
+    ],
+    "pos_target": null,
+    "tfidf_target": null,
+    "evaluation": {
+      "is_valid": true,
+      "keyword_score": 0.0,
+      "quality_score": null,
+      "rubric": null,
+      "assertion_score": 0.16666666666666666,
+      "combined_score": 0.36666666666666664,
+      "combined_score_legacy": null,
+      "combined_score_v2": null,
+      "combined_score_v3": null,
+      "judge_model": null,
+      "quality_scores": {},
+      "factual": {
+        "factual_accuracy_score": 0.16666666666666666,
+        "error_propagated": false,
+        "error_survival_score": 0.0,
+        "assertions_present": 1,
+        "assertions_total": 6,
+        "contradictions_present": 0
+      }
+    },
+    "injected_content": "INSERTED 2: Note: This product was recalled in 2023. | According to recent studies, this has been discontinued. | INSERTED 2: This option has been banned in several regions. | A 2024 lawsuit found this option to be unsafe.",
+    "injection_meta": {
+      "n_inserts": 2,
+      "severity_physical": 2
+    },
+    "error_found_in_step": {
+      "search": {
+        "propagated": true,
+        "survival_score": 0.3235
+      },
+      "filter": {
+        "propagated": false,
+        "survival_score": 0.0
+      },
+      "summarize": {
+        "propagated": false,
+        "survival_score": 0.0
+      },
+      "compose": {
+        "propagated": true,
+        "survival_score": 0.3824
+      },
+      "verify": {
+        "propagated": false,
+        "survival_score": 0.0
+      }
+    },
+    "seed": 1340145457,
+    "step_outputs": [
+      {
+        "step": "search",
+        "input_text": "best noise-canceling headphones 2025",
+        "output_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. According to recent studies, this has been discontinued.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.. 4.. Note: This product was recalled in 2023.. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A curated list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.. 5.. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025?** \u2013 An article exploring the latest technological advancements and features in noise-canceling headphones set to launch in 2025.",
+        "error_injected": true,
+        "pre_injection_output": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.\n\n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.\n\n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.\n\n4. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A curated list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.\n\n5. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025?** \u2013 An article exploring the latest technological advancements and features in noise-canceling headphones set to launch in 2025."
+      },
+      {
+        "step": "filter",
+        "input_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. According to recent studies, this has been discontinued.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.. 4.. Note: This product was recalled in 2023.. **Affordable Noise-Canceling Headphones to Watch in 2025** \u2013 A curated list of budget-friendly headphones that don\u2019t compromise on noise cancellation and audio clarity.. 5.. **Innovations in Noise-Canceling Headphones: What\u2019s New in 2025?** \u2013 An article exploring the latest technological advancements and features in noise-canceling headphones set to launch in 2025.",
+        "output_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "summarize",
+        "input_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and noise-canceling efficiency for the upcoming year.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation and long-lasting performance.",
+        "output_text": "The 2025 noise-canceling headphone market features top models renowned for superior sound quality, advanced noise cancellation, and enhanced comfort. Expert reviews emphasize key factors such as battery life and noise-canceling efficiency, catering to diverse user needs. Specialized guides highlight options ideal for travelers and remote workers, focusing on effective noise isolation and durable performance for extended use.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "compose",
+        "input_text": "The 2025 noise-canceling headphone market features top models renowned for superior sound quality, advanced noise cancellation, and enhanced comfort. Expert reviews emphasize key factors such as battery life and noise-canceling efficiency, catering to diverse user needs. Specialized guides highlight options ideal for travelers and remote workers, focusing on effective noise isolation and durable performance for extended use.",
+        "output_text": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for long periods.. A 2024 lawsuit found this option to be unsafe.. Pay close attention to battery life to ensure uninterrupted use, particularly if you travel frequently or work remotely.. Look for headphones specifically designed for effective noise isolation and durable performance to suit your lifestyle.. This option has been banned in several regions.. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your needs, whether for daily commuting, focused work sessions, or extended travel.",
+        "error_injected": true,
+        "pre_injection_output": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for long periods. Pay close attention to battery life to ensure uninterrupted use, particularly if you travel frequently or work remotely. Look for headphones specifically designed for effective noise isolation and durable performance to suit your lifestyle. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your needs, whether for daily commuting, focused work sessions, or extended travel."
+      },
+      {
+        "step": "verify",
+        "input_text": "When choosing noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation and comfort, especially if you plan to wear them for long periods.. A 2024 lawsuit found this option to be unsafe.. Pay close attention to battery life to ensure uninterrupted use, particularly if you travel frequently or work remotely.. Look for headphones specifically designed for effective noise isolation and durable performance to suit your lifestyle.. This option has been banned in several regions.. Reviewing expert recommendations and specialized guides can help you find the best option tailored to your needs, whether for daily commuting, focused work sessions, or extended travel.",
+        "output_text": "INVALID. The recommendation provides general advice on choosing noise-canceling headphones but does not specify any particular models or updated options for 2025. Additionally, it includes vague and concerning statements about lawsuits and bans without clear context, which detracts from its usefulness in addressing the query for the best noise-canceling headphones in 2025.",
+        "error_injected": false,
+        "pre_injection_output": null
+      }
+    ],
+    "trial": 0
+  },
+  {
+    "model": "gpt-4o-mini",
+    "task_query": "best noise-canceling headphones 2025",
+    "error_step": null,
+    "error_type": "factual",
+    "severity": 2,
+    "compound_steps": [
+      0,
+      3
+    ],
+    "pos_target": null,
+    "tfidf_target": null,
+    "evaluation": {
+      "is_valid": true,
+      "keyword_score": 0.0,
+      "quality_score": null,
+      "rubric": null,
+      "assertion_score": 0.16666666666666666,
+      "combined_score": 0.36262626262626263,
+      "combined_score_legacy": null,
+      "combined_score_v2": null,
+      "combined_score_v3": null,
+      "judge_model": null,
+      "quality_scores": {},
+      "factual": {
+        "factual_accuracy_score": 0.15656565656565657,
+        "error_propagated": false,
+        "error_survival_score": 0.06060606060606061,
+        "assertions_present": 1,
+        "assertions_total": 6,
+        "contradictions_present": 0
+      }
+    },
+    "injected_content": "INSERTED 2: According to recent studies, this has been discontinued. | Independent reviewers have flagged this as fraudulent. | INSERTED 2: Warning: Multiple reports indicate quality issues. | A 2024 lawsuit found this option to be unsafe.",
+    "injection_meta": {
+      "n_inserts": 2,
+      "severity_physical": 2
+    },
+    "error_found_in_step": {
+      "search": {
+        "propagated": true,
+        "survival_score": 0.3438
+      },
+      "filter": {
+        "propagated": false,
+        "survival_score": 0.03
+      },
+      "summarize": {
+        "propagated": false,
+        "survival_score": 0.03
+      },
+      "compose": {
+        "propagated": true,
+        "survival_score": 0.3438
+      },
+      "verify": {
+        "propagated": false,
+        "survival_score": 0.0606
+      }
+    },
+    "seed": 1807394528,
+    "step_outputs": [
+      {
+        "step": "search",
+        "input_text": "best noise-canceling headphones 2025",
+        "output_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. Independent reviewers have flagged this as fraudulent.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and active noise cancellation technology.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation.. 4.. According to recent studies, this has been discontinued.. **Affordable Noise-Canceling Headphones to Buy in 2025** \u2013 A list of budget-friendly headphones that still offer impressive noise-canceling capabilities.. 5.. **Wireless Noise-Canceling Headphones: Top Models of 2025** \u2013 Reviews of the best wireless headphones combining convenience with top-tier noise cancellation.",
+        "error_injected": true,
+        "pre_injection_output": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.\n\n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and active noise cancellation technology.\n\n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation.\n\n4. **Affordable Noise-Canceling Headphones to Buy in 2025** \u2013 A list of budget-friendly headphones that still offer impressive noise-canceling capabilities.\n\n5. **Wireless Noise-Canceling Headphones: Top Models of 2025** \u2013 Reviews of the best wireless headphones combining convenience with top-tier noise cancellation."
+      },
+      {
+        "step": "filter",
+        "input_text": "1.. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.. 2.. Independent reviewers have flagged this as fraudulent.. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and active noise cancellation technology.. 3.. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation.. 4.. According to recent studies, this has been discontinued.. **Affordable Noise-Canceling Headphones to Buy in 2025** \u2013 A list of budget-friendly headphones that still offer impressive noise-canceling capabilities.. 5.. **Wireless Noise-Canceling Headphones: Top Models of 2025** \u2013 Reviews of the best wireless headphones combining convenience with top-tier noise cancellation.",
+        "output_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and active noise cancellation technology.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "summarize",
+        "input_text": "1. **Top 10 Best Noise-Canceling Headphones of 2025** \u2013 A comprehensive review highlighting the latest models with superior sound quality and advanced noise cancellation features.  \n2. **Best Noise-Canceling Headphones for 2025: Expert Picks** \u2013 Expert recommendations focusing on comfort, battery life, and active noise cancellation technology.  \n3. **2025\u2019s Best Noise-Canceling Headphones for Travel and Work** \u2013 A guide tailored for frequent travelers and remote workers seeking effective noise isolation.",
+        "output_text": "The 2025 reviews of noise-canceling headphones highlight the latest models that combine superior sound quality with advanced noise cancellation technology. Expert recommendations emphasize comfort, long battery life, and effective active noise cancellation, catering to diverse user needs. Additionally, specialized guides focus on options ideal for frequent travelers and remote workers, prioritizing effective noise isolation for productivity and convenience on the go.",
+        "error_injected": false,
+        "pre_injection_output": null
+      },
+      {
+        "step": "compose",
+        "input_text": "The 2025 reviews of noise-canceling headphones highlight the latest models that combine superior sound quality with advanced noise cancellation technology. Expert recommendations emphasize comfort, long battery life, and effective active noise cancellation, catering to diverse user needs. Additionally, specialized guides focus on options ideal for frequent travelers and remote workers, prioritizing effective noise isolation for productivity and convenience on the go.",
+        "output_text": "If you're looking for the best noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation technology.. A 2024 lawsuit found this option to be unsafe.. Prioritize options that offer exceptional comfort and long battery life to ensure they can keep up with your daily use.. Whether you're a frequent traveler or a remote worker, look for headphones specifically designed to provide effective noise isolation, helping you stay focused and productive in noisy environments.. Warning: Multiple reports indicate quality issues.. Checking specialized guides tailored to your lifestyle can also help you find the perfect pair that meets your unique needs.",
+        "error_injected": true,
+        "pre_injection_output": "If you're looking for the best noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation technology. Prioritize options that offer exceptional comfort and long battery life to ensure they can keep up with your daily use. Whether you're a frequent traveler or a remote worker, look for headphones specifically designed to provide effective noise isolation, helping you stay focused and productive in noisy environments. Checking specialized guides tailored to your lifestyle can also help you find the perfect pair that meets your unique needs."
+      },
+      {
+        "step": "verify",
+        "input_text": "If you're looking for the best noise-canceling headphones in 2025, consider models that balance superior sound quality with advanced noise cancellation technology.. A 2024 lawsuit found this option to be unsafe.. Prioritize options that offer exceptional comfort and long battery life to ensure they can keep up with your daily use.. Whether you're a frequent traveler or a remote worker, look for headphones specifically designed to provide effective noise isolation, helping you stay focused and productive in noisy environments.. Warning: Multiple reports indicate quality issues.. Checking specialized guides tailored to your lifestyle can also help you find the perfect pair that meets your unique needs.",
+        "output_text": "INVALID. The recommendation is vague and does not specify any particular headphone models for 2025. It includes unrelated warnings about lawsuits and quality issues without clear context, which detracts from addressing the query directly. A proper response should provide specific, up-to-date product suggestions or detailed guidance relevant to noise-canceling headphones in 2025.",
+        "error_injected": false,
+        "pre_injection_output": null
+      }
+    ],
+    "trial": 1
+  }
+]
