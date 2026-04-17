@@ -150,6 +150,8 @@ def run_full_experiment(
     output_subdir: str | None = None,
     pos_target: str | None = None,
     tfidf_target: str | None = None,
+    diagnostic_query: str | None = None,
+    skip_baseline: bool = False,
 ):
     subdir = output_subdir or f"{error_type}_error"
     output_dir = os.path.join(OUTPUT_DIR, subdir)
@@ -160,11 +162,21 @@ def run_full_experiment(
     all_results = []
     max_inject_step = len(WORKFLOW_STEPS) if INJECT_AT_VERIFY else len(WORKFLOW_STEPS) - 1
 
+    tasks = TASK_TEMPLATES
+    if diagnostic_query:
+        tasks = [t for t in TASK_TEMPLATES if t["query"] == diagnostic_query]
+        if not tasks:
+            raise ValueError(f"No task matching diagnostic query: {diagnostic_query}")
+
+    error_steps = list(range(max_inject_step))
+    if not skip_baseline:
+        error_steps = [None] + error_steps
+
     # Build list of jobs
     jobs = []
     for model_name in models:
-        for task in TASK_TEMPLATES:
-            for error_step in [None] + list(range(max_inject_step)):
+        for task in tasks:
+            for error_step in error_steps:
                 for trial in range(num_trials):
                     jobs.append((model_name, task, error_step, trial))
 

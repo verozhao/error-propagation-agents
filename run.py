@@ -18,6 +18,12 @@ def main():
     parser.add_argument("--tfidf-target", default=None, choices=["high", "low"],
                         help="TF-IDF-targeted injection: corrupt highest or lowest importance word")
     parser.add_argument("--results-file", type=str, default=None)
+    parser.add_argument("--diagnostic-query", type=str, default=None,
+                        help="Run only this single query (for diagnostic mini-sweep)")
+    parser.add_argument("--skip-baseline", action="store_true",
+                        help="Skip baseline (error_step=None) runs; reuse sev=1 baselines")
+    parser.add_argument("--judge-model", type=str, default=None,
+                        help="Override judge model for evaluation")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -37,6 +43,9 @@ def main():
             severity=args.severity,
             pos_target=args.pos_target,
             tfidf_target=args.tfidf_target,
+            diagnostic_query=args.diagnostic_query,
+            skip_baseline=args.skip_baseline,
+            judge_models=[args.judge_model] if args.judge_model else None,
         )
         print(f"Results saved to: {output_file}")
     
