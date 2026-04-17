@@ -266,8 +266,10 @@ def inject_omission_error(text: str, step_name: str, severity: int = 1, return_d
         n_remove = max(1, int(round(len(sentences) * 0.20)))
     elif severity == 2:
         n_remove = max(2, int(round(len(sentences) * 0.40)))
-    else:
+    elif severity == 3:
         n_remove = max(3, int(round(len(sentences) * 0.60)))
+    else:
+        n_remove = max(4, int(round(len(sentences) * 0.80)))
     n_remove = min(n_remove, len(sentences) - 1)
 
     candidates = list(range(1, len(sentences)))
