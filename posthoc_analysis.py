@@ -127,7 +127,21 @@ def precision_recall_f1(output: str, query: str) -> dict:
                 tp += 1
                 break
 
-    fp = sum(1 for c in contradictions if c.lower() in out_lower)
+    # Use trigram containment (matching factual_accuracy.py logic) to avoid
+    # false positives from single-word or short substring matches
+    fp = 0
+    out_tok = _tokenize(output)
+    out_tris = set(zip(out_tok, out_tok[1:], out_tok[2:])) if len(out_tok) >= 3 else set()
+    for c in contradictions:
+        c_tok = _tokenize(c)
+        if len(c_tok) < 3:
+            # short phrase: require exact substring (same as factual_accuracy.py)
+            if c.lower() in out_lower:
+                fp += 1
+        else:
+            c_tris = set(zip(c_tok, c_tok[1:], c_tok[2:]))
+            if c_tris and len(c_tris & out_tris) / len(c_tris) >= 0.5:
+                fp += 1
 
     recall = tp / len(assertions) if assertions else 1.0
     precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
