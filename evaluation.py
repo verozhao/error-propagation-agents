@@ -189,15 +189,17 @@ def evaluate_workflow_output(
     )
 
     # v3 combined score: spreads weight across more sensitive sub-scores
+    # Note: factual_accuracy_score already incorporates assertion preservation
+    # internally (preserved * (1 - survival) - contradiction_penalty), so we
+    # don't include assertion_score separately to avoid double-counting.
     combined_score_v3 = (
         0.15 * int(is_valid)
         + 0.15 * keyword_score
-        + 0.15 * assertion_score
-        + 0.10 * (rubric["accuracy"] / 10)
-        + 0.10 * (rubric["completeness"] / 10)
-        + 0.10 * (rubric["coherence"] / 10)
-        + 0.10 * (rubric["usefulness"] / 10)
-        + 0.15 * factual.factual_accuracy_score
+        + 0.125 * (rubric["accuracy"] / 10)
+        + 0.125 * (rubric["completeness"] / 10)
+        + 0.125 * (rubric["coherence"] / 10)
+        + 0.125 * (rubric["usefulness"] / 10)
+        + 0.20 * factual.factual_accuracy_score
     )
 
     # pairwise comparison (only if baseline provided)
