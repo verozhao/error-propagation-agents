@@ -1019,6 +1019,93 @@ def distributional_analysis(df: pd.DataFrame):
             print()
 
 
+def failure_rate_sanity_check(df: pd.DataFrame):
+    """Check that failure_rate has enough spread for meaningful regression."""
+    print(f"\n{'='*60}")
+    print("FAILURE RATE SANITY CHECK")
+    print(f"{'='*60}")
+
+    fr = df["failure_rate"].dropna()
+    print(f"  n={len(fr)}  mean={fr.mean():.3f}  std={fr.std():.3f}  "
+          f"min={fr.min():.3f}  max={fr.max():.3f}  unique={fr.nunique()}")
+    pcts = np.percentile(fr, [10, 25, 50, 75, 90])
+    print(f"  P10={pcts[0]:.3f}  P25={pcts[1]:.3f}  P50={pcts[2]:.3f}  "
+          f"P75={pcts[3]:.3f}  P90={pcts[4]:.3f}")
+
+    if fr.nunique() < 20:
+        print(f"  WARNING: only {fr.nunique()} unique values — target variable has low resolution")
+    if fr.std() < 0.05:
+        print(f"  WARNING: std={fr.std():.3f} — target variable has very low spread")
+
+    # per error_type breakdown
+    print(f"\n  By error type:")
+    for etype in sorted(df["error_type"].dropna().unique()):
+        efr = df.loc[df["error_type"] == etype, "failure_rate"].dropna()
+        print(f"    {etype:12s}  n={len(efr):4d}  mean={efr.mean():.3f}  "
+              f"std={efr.std():.3f}  unique={efr.nunique()}")
+
+    # score component analysis: what drives variation?
+    print(f"\n  Score component variation:")
+    for col in ["is_valid", "keyword_score", "combined_score"]:
+        if col in df.columns:
+            vals = df[col].dropna()
+            print(f"    {col:25s}  mean={vals.mean():.3f}  std={vals.std():.3f}  unique={vals.nunique()}")
+
+
+def per_query_analysis(df: pd.DataFrame, target: str = "failure_rate"):
+    """Per-query breakdown: different domains may have different propagation patterns."""
+    if "task_query" not in df.columns or df["task_query"].nunique() < 2:
+        print("\n  Only 1 query in data — skipping per-query analysis.")
+        return
+
+    print(f"\n{'='*60}")
+    print("PER-QUERY ANALYSIS")
+    print(f"{'='*60}")
+
+    key_features = [
+        "delta_word_count", "error_step", "severity",
+        "n_nouns", "n_adjs", "n_words_changed",
+    ]
+    available = [c for c in key_features if c in df.columns and df[c].notna().sum() > 5]
+
+    for query in sorted(df["task_query"].unique()):
+        qdf = df[df["task_query"] == query]
+        print(f"\n  Query: \"{query}\" (n={len(qdf)})")
+        print(f"    failure_rate: mean={qdf[target].mean():.3f}  std={qdf[target].std():.3f}")
+
+        # top correlations for this query
+        corrs = {}
+        for col in available:
+            valid = qdf[[col, target]].dropna()
+            if len(valid) >= 5:
+                corrs[col] = valid[col].corr(valid[target])
+
+        top = sorted(corrs.items(), key=lambda x: abs(x[1]), reverse=True)[:5]
+        print(f"    Top correlations with {target}:")
+        for name, r in top:
+            print(f"      {name:25s}  r = {r:+.3f}")
+
+        # per error_type mean failure rate
+        print(f"    Mean failure rate by error type:")
+        for etype in sorted(qdf["error_type"].dropna().unique()):
+            efr = qdf.loc[qdf["error_type"] == etype, target].dropna()
+            print(f"      {etype:12s}  mean={efr.mean():.3f}  std={efr.std():.3f}  n={len(efr)}")
+
+        # per severity
+        if qdf["severity"].nunique() > 1:
+            print(f"    Mean failure rate by severity:")
+            for sev in sorted(qdf["severity"].unique()):
+                sfr = qdf.loc[qdf["severity"] == sev, target].dropna()
+                print(f"      sev={sev}  mean={sfr.mean():.3f}  n={len(sfr)}")
+
+    # cross-query comparison: which query is most vulnerable?
+    print(f"\n  Cross-query vulnerability ranking:")
+    query_means = df.groupby("task_query")[target].mean().sort_values(ascending=False)
+    for q, m in query_means.items():
+        n = len(df[df["task_query"] == q])
+        print(f"    {m:.3f}  {q}  (n={n})")
+
+
 # Main
 def main():
     parser = argparse.ArgumentParser()
@@ -1065,6 +1152,8 @@ def main():
     print(f"  Saved: {csv_path}")
 
     # run all analyses
+    failure_rate_sanity_check(df)
+    per_query_analysis(df)
     correlation_analysis(df)
     new_metrics_summary(df)
     formulas = per_error_type_regression(df)
