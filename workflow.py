@@ -77,7 +77,13 @@ def step_compose(summary: str, model_fn: Callable) -> str:
 
 
 def step_verify(recommendation: str, original_query: str, model_fn: Callable) -> str:
-    prompt = f"Verify if this recommendation properly addresses the query '{original_query}':\n\n{recommendation}\n\nRespond with 'VALID' or 'INVALID' followed by a brief explanation."
+    prompt = (
+        f"Verify if this recommendation properly addresses the query "
+        f"'{original_query}':\n\n{recommendation}\n\n"
+        f"Your response must start with exactly one word: "
+        f"VALID or INVALID. Then on a new line, give a one-sentence reason. "
+        f"Do not use any other words before VALID/INVALID."
+    )
     return model_fn(prompt)
 
 

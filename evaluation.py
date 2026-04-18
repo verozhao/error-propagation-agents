@@ -150,18 +150,13 @@ def evaluate_workflow_output(
     # anything needs it, but nothing in this function reads it anymore.
     final_output = verify_text  # noqa: F841 — legacy field
 
-    # P0-17: robust VALID detection. Strip whitespace, ignore any
-    # "INVALID" occurrences, then look for a standalone "VALID" token.
-    verify_upper = verify_text.strip().upper()
-    if verify_upper.startswith("INVALID"):
-        is_valid = False
-    elif verify_upper.startswith("VALID"):
-        is_valid = True
-    else:
-        # Fallback for responses that don't start with the verdict:
-        # strip all INVALID tokens first, then check for VALID.
-        cleaned = verify_upper.replace("INVALID", "")
-        is_valid = "VALID" in cleaned
+    # P0-17 + P0-19: first-token-only VALID detection. Claude models
+    # can be verbose; substring checks are fragile when both "VALID" and
+    # "INVALID" appear in prose. Parsing only the first token is robust.
+    first_token = ""
+    if verify_text.strip():
+        first_token = verify_text.strip().split(None, 1)[0].upper().rstrip(".,:;")
+    is_valid = first_token == "VALID"
 
     # P0-18: content-level checks use content_text (compose output)
     keyword_matches = sum(1 for kw in expected_keywords if kw.lower() in content_text.lower())
