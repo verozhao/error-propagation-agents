@@ -43,20 +43,21 @@ def load_severity_results(results_dir="results") -> pd.DataFrame:
         for d in data:
             if "evaluation" not in d:
                 continue
-            # P0-1: normalize heterogeneous error_step representations
-            is_baseline = d.get("is_baseline")
-            if is_baseline is None:
-                is_baseline = (d.get("error_step") is None
-                               and d.get("compound_steps") is None)
-            es = d.get("error_step")
-            if is_baseline:
+            from record_utils import is_baseline as _is_baseline, injection_is_valid
+            if _is_baseline(d):
                 step = -1
-            elif isinstance(es, list):
-                step = es[0] if es else None
             else:
-                step = es
-            if step is None:
-                continue  # legacy bad record — skip
+                # Issue α: drop failed-injection no-ops
+                if injection_is_valid(d) is False:
+                    continue
+                es = d.get("error_step")
+                if isinstance(es, list):
+                    step = es[0] if es else None
+                else:
+                    step = es
+                if step is None:
+                    continue  # legacy bad record — skip
+            es = d.get("error_step")
             ev = d["evaluation"]
             meta = d.get("injection_meta") or {}
             rows.append({

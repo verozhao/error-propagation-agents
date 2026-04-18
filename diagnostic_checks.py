@@ -42,14 +42,13 @@ def _load_records():
 def main():
     raw_records = _load_records()
 
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
+
     rows = []
     for r in raw_records:
-        # P0-1: normalize step for compound records (list -> first step),
-        # track is_baseline explicitly.
         es = r["error_step"]
-        is_baseline = r.get("is_baseline")
-        if is_baseline is None:
-            is_baseline = (es is None and r.get("compound_steps") is None)
+        is_baseline = _is_baseline(r)
+        inj_valid = injection_is_valid(r)
         if is_baseline:
             step_norm = -1
         elif isinstance(es, list):
@@ -65,6 +64,7 @@ def main():
             "step": step_norm,
             "is_baseline": is_baseline,
             "is_compound": isinstance(es, list),
+            "injection_valid": inj_valid,
             "score": r["evaluation"]["combined_score"],
             "quality_score": r["evaluation"].get("quality_score"),
             "combined_score_legacy": r["evaluation"].get("combined_score_legacy"),
@@ -180,6 +180,29 @@ def main():
         print(f"PASS survival: {has_efs} records have error_found_in_step data")
     else:
         print("WARN survival: no error_found_in_step data found")
+
+    # Check 9 (Issue α): injection validity rate — failed injections
+    # should be a small fraction (<5%) of attempts. Higher rates mean
+    # the source text is too short for the injector (e.g. single-sentence
+    # outputs for omission), and those conditions should be reported.
+    non_bl = df[df["is_baseline"] == False]
+    if not non_bl.empty:
+        invalid = non_bl[non_bl["injection_valid"] == False]
+        invalid_rate = len(invalid) / len(non_bl)
+        print(f"\nInjection validity (non-baseline records):")
+        print(f"  total={len(non_bl)}, invalid={len(invalid)}, rate={invalid_rate:.2%}")
+        if invalid_rate > 0.05:
+            # breakdown by condition
+            by_cell = (
+                invalid.groupby(["etype", "sev", "step"]).size()
+                .reset_index(name="n_invalid")
+                .sort_values("n_invalid", ascending=False)
+                .head(10)
+            )
+            print(f"  WARN: invalid-injection rate > 5%. Top cells:")
+            print(by_cell.to_string(index=False))
+        else:
+            print(f"  PASS: invalid-injection rate under 5% threshold")
 
     if failures:
         print("\n".join(["\n===== DIAGNOSTIC FAILED ====="] + failures))

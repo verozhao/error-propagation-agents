@@ -175,16 +175,19 @@ def information_retention(baseline: str, test: str) -> dict:
 # Feature extraction from a single record
 def extract_record_features(record: dict, baselines: dict) -> dict:
     """Extract all features from one experiment record.
-    baselines: dict of (model, query) -> baseline final output text."""
-    # P0-1: prefer the explicit is_baseline flag. Fall back to the legacy
-    # (error_step is None) heuristic for old records, but note that old
-    # compound records also had error_step=None and would be mis-classified
-    # as baseline — they should be re-run.
-    is_baseline = record.get("is_baseline")
-    if is_baseline is None:
-        is_baseline = (record.get("error_step") is None
-                       and record.get("compound_steps") is None)
-    if is_baseline:
+    baselines: dict of (model, query) -> baseline final output text.
+
+    P0-1: drops baselines. Issue α: drops injection-attempted records
+    where the injector produced no delta (these would show up as
+    "injected but zero propagation" and bias the regression toward
+    "pipeline is robust").
+    """
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
+
+    if _is_baseline(record):
+        return None
+    # Issue α: if injection was attempted but injector no-opped, drop.
+    if injection_is_valid(record) is False:
         return None
     es = record.get("error_step")
     # compound records carry a list; use first step for step-wise features,
@@ -216,6 +219,31 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     delta_words = len(injected.split()) if injected else 0
     inj_meta = record.get("injection_meta") or {}
     severity_physical = inj_meta.get("severity_physical", record.get("severity", 1))
+
+    # P0-3: severity_physical in raw form is NOT comparable across error
+    # types (factual=count of inserts, omission=fraction removed, semantic=
+    # count of substitutions). For cross-type regression we need a common
+    # dose scale. Normalize each to "fraction of source sentences affected":
+    #   factual    n_inserts / (n_source_sents + n_inserts)
+    #   omission   n_removed / n_total   (already a fraction)
+    #   semantic   n_subs    / max(1, n_source_sents)
+    # This still isn't a perfectly comparable unit (a semantic sub ≠ an
+    # omission sub-sentence), but it lives in [0,1] for every error type
+    # and is at least monotone in severity within each type, which is
+    # what the regression needs.
+    etype = record.get("error_type")
+    severity_physical_norm = None
+    if etype == "omission":
+        # meta.severity_physical already = n_removed/n_total
+        severity_physical_norm = inj_meta.get("severity_physical")
+    elif etype == "factual":
+        n_ins = inj_meta.get("n_inserts", 0) or 0
+        # approximate source sentence count from pre_injection text below;
+        # compute after we parse step_outputs.
+        severity_physical_norm = ("defer", n_ins)  # placeholder, filled later
+    elif etype == "semantic":
+        n_subs = inj_meta.get("n_subs", 0) or 0
+        severity_physical_norm = ("defer", n_subs)
 
     # features from traces
     pre_inj_text = ""
@@ -254,6 +282,24 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
 
     pre_words = len(pre_inj_text.split()) if pre_inj_text else 0
     post_words = len(post_inj_text.split()) if post_inj_text else 0
+
+    # P0-3: finalize cross-type-normalized dose now that we know source
+    # sentence counts.
+    if isinstance(severity_physical_norm, tuple) and severity_physical_norm[0] == "defer":
+        n_ops = severity_physical_norm[1]
+        n_source_sents = len(_sentences(pre_inj_text)) if pre_inj_text else 0
+        if etype == "factual":
+            # inserts add to the total; use post-injection sentence count
+            denom = max(1, n_source_sents + n_ops)
+            severity_physical_norm = n_ops / denom
+        elif etype == "semantic":
+            # each sub touches at most one sentence; fraction of sentences
+            # potentially affected
+            severity_physical_norm = min(1.0, n_ops / max(1, n_source_sents))
+        else:
+            severity_physical_norm = None
+    if severity_physical_norm is None:
+        severity_physical_norm = 0.0  # baseline / unknown
 
     # baseline for TF-IDF and retention (uses compose-step text on both sides)
     bl_key = (model, query)
@@ -304,6 +350,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
         "compound_steps": es if isinstance(es, list) else None,
         "severity": record.get("severity", 1),
         "severity_physical": severity_physical,
+        "severity_physical_normalized": round(severity_physical_norm, 4),  # P0-3: cross-type-comparable dose
         "task_query": query,
         "has_traces": has_traces,
         # injection features (what the professor wants)
@@ -345,6 +392,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
 
 # Data loading
 def load_all_records(results_dir="results"):
+    from record_utils import is_baseline as _is_baseline
     records = []
     baselines = {}  # (model, query) -> final output text
 
@@ -364,13 +412,8 @@ def load_all_records(results_dir="results"):
                 continue
             records.append(d)
 
-            # P0-1: only collect true baselines (is_baseline flag, or
-            # legacy records with no injection AND no compound_steps).
-            is_baseline = d.get("is_baseline")
-            if is_baseline is None:
-                es = d.get("error_step")
-                is_baseline = (es is None) and (d.get("compound_steps") is None)
-            if is_baseline:
+            # only collect TRUE baselines for the baseline pool
+            if _is_baseline(d):
                 so = d.get("step_outputs", [])
                 if so and isinstance(so[0], dict) and "output_text" in so[0]:
                     key = (d.get("model", ""), d.get("task_query", ""))
@@ -398,14 +441,11 @@ def add_failure_rates(df: pd.DataFrame, records: list) -> pd.DataFrame:
     score_col = "combined_score_v3"
     fallback_col = "combined_score"
 
+    from record_utils import is_baseline as _is_baseline
+
     bl_scores = {}
     for r in records:
-        # P0-1: use is_baseline, fall back to legacy detection
-        is_baseline = r.get("is_baseline")
-        if is_baseline is None:
-            is_baseline = (r.get("error_step") is None
-                           and r.get("compound_steps") is None)
-        if not is_baseline:
+        if not _is_baseline(r):
             continue
         ev = r.get("evaluation", {})
         key = (r.get("model", ""), r.get("error_type", ""))
@@ -428,11 +468,15 @@ def add_failure_rates(df: pd.DataFrame, records: list) -> pd.DataFrame:
 
 # Analysis functions
 def correlation_analysis(df: pd.DataFrame, target: str = "failure_rate"):
+    # P0-3: correlation analysis is run across ALL error types combined,
+    # so we must use severity_physical_normalized (comparable scale),
+    # NOT the integer `severity` (which means different things in each
+    # error type) nor raw `severity_physical` (units differ by type).
     injection_features = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "length_change_ratio", "text_length_before",
         "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "severity_physical", "error_step",
+        "severity_physical_normalized", "error_step",
     ]
     eval_metrics = [
         "tfidf_similarity", "precision", "recall", "f1",
@@ -488,10 +532,15 @@ def per_error_type_regression(df: pd.DataFrame):
         print("pip install scikit-learn")
         return {}
 
+    # P0-3: within a single error type, `severity_physical` IS a valid
+    # monotone dose (same units within one type). But including integer
+    # `severity` alongside creates near-perfect multicollinearity
+    # (sev=1,2,3 map deterministically to a small set of physical values),
+    # which destabilizes coefficient estimates. Keep only the physical one.
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "severity_physical", "error_step",
+        "severity_physical", "error_step",
     ]
 
     print(f"\n{'='*60}")
@@ -584,10 +633,14 @@ def universal_formula(df: pd.DataFrame):
     except ImportError:
         return
 
+    # P0-3: universal formula is fit ACROSS error types, so raw severity
+    # and raw severity_physical are not comparable and must not be used
+    # as features. severity_physical_normalized lives in [0,1] for every
+    # error type and represents "fraction of source content affected".
     feature_cols = [
         "delta_word_count", "injection_position", "n_sentences_affected",
         "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-        "severity", "severity_physical", "error_step",
+        "severity_physical_normalized", "error_step",
     ]
     available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
     subset = df[available + ["failure_rate", "error_type"]].dropna()
@@ -908,10 +961,13 @@ def self_correction_analysis(df: pd.DataFrame, records: list):
         from sklearn.preprocessing import StandardScaler
         from sklearn.model_selection import cross_val_score
 
+        # P0-3: cross-type regression must use the normalized dose, not
+        # integer severity (incomparable across types) or raw
+        # severity_physical (different units per type).
         feature_cols = [
             "delta_word_count", "injection_position", "n_sentences_affected",
             "n_words_changed", "n_nouns", "n_adjs", "n_verbs", "n_advs", "n_entities",
-            "severity", "severity_physical", "error_step", "verify_detected",
+            "severity_physical_normalized", "error_step", "verify_detected",
         ]
         available = [c for c in feature_cols if c in df.columns and df[c].notna().sum() > 10]
         subset = df[available + ["failure_rate"]].dropna()
@@ -1107,8 +1163,10 @@ def per_query_analysis(df: pd.DataFrame, target: str = "failure_rate"):
     print("PER-QUERY ANALYSIS")
     print(f"{'='*60}")
 
+    # P0-3: per-query correlations pool across error types within each
+    # query, so the dose feature must be cross-type-comparable.
     key_features = [
-        "delta_word_count", "error_step", "severity",
+        "delta_word_count", "error_step", "severity_physical_normalized",
         "n_nouns", "n_adjs", "n_words_changed",
     ]
     available = [c for c in key_features if c in df.columns and df[c].notna().sum() > 5]

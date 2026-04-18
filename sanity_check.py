@@ -54,13 +54,7 @@ ANNOTATION_FIELDS = [
 ]
 
 
-def _is_baseline(r: dict) -> bool:
-    """P0-1: a record is a baseline iff is_baseline=True, or (legacy
-    fallback) both error_step and compound_steps are None."""
-    flag = r.get("is_baseline")
-    if flag is not None:
-        return bool(flag)
-    return r.get("error_step") is None and r.get("compound_steps") is None
+from record_utils import is_baseline as _is_baseline, injection_is_valid
 
 
 def _load_records(paths: list[str]) -> list[dict]:
@@ -102,7 +96,9 @@ def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
                 "_record": r,
             }
             for r in records
-            if not _is_baseline(r) and not isinstance(r.get("error_step"), list)
+            if not _is_baseline(r)
+               and not isinstance(r.get("error_step"), list)
+               and injection_is_valid(r) is not False  # Issue α: drop no-ops
         ]
     )
     if df.empty:

@@ -35,13 +35,18 @@ def _normalize_step(d):
       - single-step injection (int)      -> that int
       - compound injection (list)        -> first step of the list
       - missing (legacy bad records)     -> None (caller should drop)
+
+    Issue α: if the record is a non-baseline with injection_valid=False
+    (injector produced no delta), return None so callers drop it from
+    step-wise statistics.
     """
-    is_baseline = d.get("is_baseline")
-    if is_baseline is None:
-        is_baseline = (d.get("error_step") is None
-                       and d.get("compound_steps") is None)
-    if is_baseline:
+    from record_utils import is_baseline, injection_is_valid
+
+    if is_baseline(d):
         return -1
+    # Issue α: drop failed-injection no-ops from step-wise analyses
+    if injection_is_valid(d) is False:
+        return None
     es = d.get("error_step")
     if isinstance(es, list):
         return es[0] if es else None

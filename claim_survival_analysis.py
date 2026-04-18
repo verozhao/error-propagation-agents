@@ -39,14 +39,13 @@ def load_records(results_glob="results/**/*.jsonl"):
 
 
 def build_survival_matrices(records):
+    from record_utils import is_baseline, injection_is_valid
     results = {}
     for r in records:
-        # P0-1: skip baselines (explicit flag preferred, legacy fallback)
-        is_baseline = r.get("is_baseline")
-        if is_baseline is None:
-            is_baseline = (r.get("error_step") is None
-                           and r.get("compound_steps") is None)
-        if is_baseline:
+        if is_baseline(r):
+            continue
+        # Issue α: drop failed-injection no-ops
+        if injection_is_valid(r) is False:
             continue
         # skip compound runs — this analysis is single-injection only
         if r.get("compound_steps"):

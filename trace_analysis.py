@@ -36,17 +36,16 @@ def load_traced_results(paths: list[str]) -> list[dict]:
 
 def step_survival_table(records: list[dict]) -> pd.DataFrame:
     """Return long-form DF: model, error_type, injection_step, observed_step, n, propagated_rate, mean_score."""
+    from record_utils import is_baseline, injection_is_valid
     buckets: dict[tuple, list[tuple[bool, float]]] = defaultdict(list)
     for r in records:
         if not r.get("error_found_in_step"):
             continue
-        # P0-1: skip baselines and compound runs; handle both new and
-        # legacy representations of error_step.
-        is_baseline = r.get("is_baseline")
-        if is_baseline is None:
-            is_baseline = (r.get("error_step") is None
-                           and r.get("compound_steps") is None)
-        if is_baseline:
+        # skip baselines and compound runs; handle both new and legacy repr
+        if is_baseline(r):
+            continue
+        # Issue α: skip failed-injection no-ops
+        if injection_is_valid(r) is False:
             continue
         if r.get("compound_steps"):
             continue

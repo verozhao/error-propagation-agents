@@ -109,6 +109,18 @@ def run_single_experiment(
     if len(injected_contents) > 1:
         injected_content = " | ".join(injected_contents)
 
+    # Issue α: distinguish "injection was attempted and produced a delta"
+    # from "injection was attempted but the injector returned no-op" (e.g.
+    # omission at severity 3 when the text is a single sentence triggers
+    # the n <= 2 early-return in inject_omission_error). Baseline records
+    # have injection_valid=None because no injection was attempted.
+    injection_attempted = actual_error_step is not None
+    if not injection_attempted:
+        injection_valid = None  # baseline
+    else:
+        # attempted. Consider it valid iff the injector produced a delta.
+        injection_valid = bool(injected_content)
+
     evaluation = evaluate_workflow_output(
         results=results,
         original_query=task["query"],
@@ -152,6 +164,7 @@ def run_single_experiment(
         "severity": severity,
         "compound_steps": compound_steps,
         "is_baseline": is_baseline,
+        "injection_valid": injection_valid,  # Issue α: True / False / None (baseline)
         "pos_target": pos_target,
         "tfidf_target": tfidf_target,
         "evaluation": evaluation,

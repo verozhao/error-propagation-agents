@@ -168,6 +168,7 @@ def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None
 
 def load_single_result(filepath):
     import os
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
     model_name = os.path.basename(filepath).split("_")[0]
     with open(filepath) as f:
         data = json.load(f)
@@ -177,32 +178,25 @@ def load_single_result(filepath):
             continue
         if "model" not in d:
             d["model"] = model_name
-        # P0-1: compound records have error_step=<list>; treat them as
-        # non-baseline but normalize the *step* for step-wise analyses to
-        # the first injection point (their compound nature is preserved
-        # in the compound_steps field). `is_baseline` is the primary flag.
         es = d.get("error_step")
-        is_baseline = d.get("is_baseline")
-        if is_baseline is None:
-            # Legacy records without the flag: infer conservatively.
-            # NOTE: old compound records were buggy and had error_step=None;
-            # we cannot distinguish those from baselines after the fact, so
-            # legacy compound data should be re-run or hand-flagged.
-            is_baseline = (es is None) and (d.get("compound_steps") is None)
-        if is_baseline:
+        if _is_baseline(d):
             d["error_step"] = -1
-        elif isinstance(es, list):
-            # compound: use first step for step-wise roll-ups
-            d["error_step"] = es[0] if es else -1
-            d["_compound"] = True
-        elif es is None:
-            # non-baseline but no explicit step — probably a legacy
-            # compound record; skip to avoid contaminating baselines.
-            continue
+        else:
+            # Issue α: drop failed-injection no-ops
+            if injection_is_valid(d) is False:
+                continue
+            if isinstance(es, list):
+                # compound: use first step for step-wise roll-ups
+                d["error_step"] = es[0] if es else -1
+                d["_compound"] = True
+            elif es is None:
+                # non-baseline but no explicit step — legacy compound; skip.
+                continue
         all_data.append(d)
     return pd.DataFrame(all_data)
 
 def load_all_results(results_dir="results"):
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
     all_data = []
     for f in glob.glob(f"{results_dir}/**/*.json", recursive=True):
         model_name = f.split("/")[-1].split("_")[0]
@@ -214,16 +208,16 @@ def load_all_results(results_dir="results"):
                 if "model" not in d:
                     d["model"] = model_name
                 es = d.get("error_step")
-                is_baseline = d.get("is_baseline")
-                if is_baseline is None:
-                    is_baseline = (es is None) and (d.get("compound_steps") is None)
-                if is_baseline:
+                if _is_baseline(d):
                     d["error_step"] = -1
-                elif isinstance(es, list):
-                    d["error_step"] = es[0] if es else -1
-                    d["_compound"] = True
-                elif es is None:
-                    continue
+                else:
+                    if injection_is_valid(d) is False:
+                        continue
+                    if isinstance(es, list):
+                        d["error_step"] = es[0] if es else -1
+                        d["_compound"] = True
+                    elif es is None:
+                        continue
                 all_data.append(d)
     return pd.DataFrame(all_data)
 
