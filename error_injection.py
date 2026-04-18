@@ -61,14 +61,49 @@ def _join_sents(sents):
 
 
 # --- POS-targeted substitution tables ---
+# Expanded to increase semantic-injection hit rate. Additions were chosen
+# based on word-frequency analysis of baseline compose outputs (smoke #4):
+#   - High-frequency words that the previous dict missed (noise, sound,
+#     comfort, clarity, cancellation, audio, experience, features) —
+#     these nearly always appear in recommendation text.
+#   - Brand-name aliases the model uses naturally (e.g. "AirPods" not
+#     just "apple"; "QuietComfort" which is the actual Bose product).
+#   - Swap *targets* chosen to violate ground-truth assertions directly.
+#     For the headphones query, swapping "noise" -> "interference"
+#     breaks the "noise cancellation" assertion outright.
+# Dead weight removed: year substitutions ("2025"->"2019") are never
+# reproduced by the compose step, so they never fire.
 _NOUN_SWAPS = {
+    # Brands / products — direct ground-truth attacks
     "sony": "Zenith", "bose": "RadioShack", "apple": "Blackberry",
+    "airpods": "WalkmanPods", "quietcomfort": "LoudDiscomfort",
+    "wh-1000xm5": "WH-obsolete", "xm5": "XM-legacy",
+    # Programming languages
     "python": "COBOL", "javascript": "ActionScript", "typescript": "CoffeeScript",
-    "rust": "Pascal", "java": "Fortran", "go": "Ada",
+    "rust": "Pascal", "java": "Fortran", "golang": "Ada",
+    # Foods
     "oatmeal": "candy", "eggs": "soda", "smoothie": "milkshake",
-    "yogurt": "ice cream", "avocado": "lard",
-    "headphones": "speakers", "battery": "antenna", "recipe": "procedure",
-    "performance": "latency", "quality": "deficiency",
+    "yogurt": "ice cream", "avocado": "lard", "toast": "doughnut",
+    "granola": "cotton candy",
+    # Product categories — critical to contradiction detection
+    "headphones": "speakers", "earbuds": "earplugs",
+    "battery": "antenna", "recipe": "procedure",
+    # High-frequency audio-domain nouns that assertions rely on
+    "noise": "interference", "cancellation": "amplification",
+    "cancelling": "amplifying", "sound": "static",
+    "audio": "silence", "music": "noise pollution",
+    # General product-review nouns (shared across all 3 queries)
+    "quality": "deficiency", "performance": "latency",
+    "comfort": "discomfort", "clarity": "distortion",
+    "experience": "ordeal", "features": "flaws",
+    "design": "defect", "build": "kit",
+    # Programming-domain nouns
+    "web": "intranet", "systems": "legacy-systems",
+    "development": "deprecation", "framework": "antipattern",
+    "language": "dialect",
+    # Food-domain nouns
+    "protein": "sugar", "fiber": "starch", "breakfast": "snack",
+    "energy": "fatigue", "nutrition": "calorie-bomb",
 }
 _VERB_SWAPS = {
     "recommend": "avoid", "improve": "worsen", "use": "abandon",
@@ -76,6 +111,11 @@ _VERB_SWAPS = {
     "review": "dismiss", "support": "undermine", "enhance": "degrade",
     "optimize": "bloat", "accelerate": "stall", "boost": "diminish",
     "prefer": "reject", "adopt": "discard", "cook": "burn",
+    # Additions
+    "consider": "dismiss", "provide": "withhold", "offer": "deny",
+    "seek": "avoid", "choose": "reject", "prioritize": "deprioritize",
+    "ensure": "prevent", "deliver": "withhold", "stand out": "fade",
+    "excel": "falter", "integrate": "disconnect", "stream": "buffer",
 }
 _ADJ_SWAPS = {
     "best": "worst", "top": "bottom", "good": "bad", "great": "terrible",
@@ -84,6 +124,18 @@ _ADJ_SWAPS = {
     "premium": "budget", "excellent": "awful", "innovative": "obsolete",
     "advanced": "primitive", "powerful": "weak", "effective": "ineffective",
     "leading": "lagging", "recommended": "not recommended",
+    # High-frequency praise adjectives from smoke data
+    "outstanding": "mediocre", "exceptional": "average", "impressive": "underwhelming",
+    "luxurious": "shabby", "immersive": "distracting", "seamless": "glitchy",
+    "crisp": "muddy", "smooth": "choppy", "rich": "thin", "solid": "flimsy",
+    "sleek": "bulky", "stylish": "ugly", "durable": "fragile",
+    "lightweight": "heavy", "comfortable": "uncomfortable",
+    "nutritious": "empty-calorie", "balanced": "imbalanced",
+    "fresh": "stale", "organic": "synthetic", "natural": "artificial",
+    "versatile": "limited", "scalable": "rigid", "typed": "untyped",
+    "safe": "unsafe", "concurrent": "serial",
+    "clear": "muffled", "seamlessly": "awkwardly", "highly": "barely",
+    "perfect": "flawed", "superior": "inferior",
 }
 _POS_SWAP_TABLES = {"noun": _NOUN_SWAPS, "verb": _VERB_SWAPS, "adj": _ADJ_SWAPS}
 
@@ -138,8 +190,12 @@ def _apply_tfidf_targeted_swap(text: str, tfidf_target: str, swap_table: dict) -
 
 
 ERROR_SUBSTITUTIONS = {
+    # Year tokens — kept but note they rarely appear in compose output.
+    # The model tends to strip year phrases when writing recommendations,
+    # so these rarely fire; left in for search/filter/summarize injection.
     "2025": "2019",
     "2024": "2018",
+    # Original adjective-flip set (kept for back-compat of old sev=1 runs)
     "best": "worst",
     "top": "outdated",
     "recommended": "not recommended",
@@ -158,6 +214,57 @@ ERROR_SUBSTITUTIONS = {
     "fastest": "slowest",
     "highly rated": "poorly rated",
     "strongly": "weakly",
+    # --- Additions informed by smoke #4 baseline word-frequency analysis ---
+    # High-frequency domain nouns that existed in every compose output and
+    # whose substitution directly contradicts ground-truth assertions.
+    "noise": "interference",
+    "cancellation": "amplification",
+    "cancelling": "amplifying",
+    "noise-cancelling": "noise-amplifying",
+    "noise-canceling": "noise-amplifying",
+    "sound": "static",
+    "audio": "silence",
+    "music": "noise pollution",
+    "comfort": "discomfort",
+    "clarity": "distortion",
+    "quality": "deficiency",
+    "experience": "ordeal",
+    "features": "flaws",
+    "build": "kit",
+    # Frequent praise adjectives from smoke #4 (present in >50% of outputs)
+    "outstanding": "mediocre",
+    "exceptional": "average",
+    "impressive": "underwhelming",
+    "luxurious": "shabby",
+    "immersive": "distracting",
+    "seamless": "glitchy",
+    "comfortable": "uncomfortable",
+    "perfect": "flawed",
+    # Brand / product names — ground-truth attacks for the headphones query
+    "airpods": "WalkmanPods",
+    "quietcomfort": "LoudDiscomfort",
+    # Programming-query high-frequency words
+    "development": "deprecation",
+    "framework": "antipattern",
+    "versatile": "limited",
+    "scalable": "rigid",
+    "safe": "unsafe",
+    "concurrent": "serial",
+    # Breakfast-query high-frequency words
+    "nutritious": "empty-calorie",
+    "balanced": "imbalanced",
+    "fresh": "stale",
+    "protein": "sugar",
+    "fiber": "starch",
+    "healthy": "unhealthy",
+    "quick": "slow",
+    # Common verbs that appear in recommendation prose
+    "recommend": "avoid",
+    "consider": "dismiss",
+    "prioritize": "deprioritize",
+    "prefer": "reject",
+    "choose": "reject",
+    "ensure": "prevent",
 }
 
 FAKE_FACTS = [
