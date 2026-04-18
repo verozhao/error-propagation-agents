@@ -1,22 +1,80 @@
 {
   "_meta": {
-    "status": "DRAFT — needs human review before publication use",
+    "status": "DRAFT \u2014 8 queries across 8 domains, needs human review",
     "drafted_by": "Claude, 2026-04-06",
     "schema": {
       "assertions": "facts a correct answer should preserve. `keywords` are the minimal set of tokens that must co-occur (case-insensitive) for the assertion to count as 'present' via lexical match. `aliases` are alternative surface forms.",
       "contradictions": "claims that, if present in the output, indicate the model has been led astray (e.g. by an injected error)."
-    }
+    },
+    "n_queries": 8
   },
   "queries": [
     {
       "query": "best noise-canceling headphones 2025",
       "assertions": [
-        {"text": "Sony WH-1000XM5 is a top noise-canceling headphone", "keywords": ["sony", "wh-1000xm5"], "aliases": ["Sony WH-1000XM5", "Sony 1000XM5"]},
-        {"text": "Bose QuietComfort Ultra is a leading ANC headphone", "keywords": ["bose", "quietcomfort"], "aliases": ["Bose QC Ultra", "Bose QuietComfort"]},
-        {"text": "Apple AirPods Max offers active noise cancellation", "keywords": ["airpods", "max"], "aliases": ["AirPods Max", "Apple AirPods Max"]},
-        {"text": "Active noise cancellation works by emitting anti-phase sound", "keywords": ["noise", "cancel"], "aliases": ["ANC", "active noise cancellation"]},
-        {"text": "Over-ear closed-back design improves passive isolation", "keywords": ["over-ear"], "aliases": ["over ear", "around-ear"]},
-        {"text": "Battery life is a key buying consideration for wireless ANC headphones", "keywords": ["battery"], "aliases": ["battery life"]}
+        {
+          "text": "Sony WH-1000XM5 is a top noise-canceling headphone",
+          "keywords": [
+            "sony",
+            "wh-1000xm5"
+          ],
+          "aliases": [
+            "Sony WH-1000XM5",
+            "Sony 1000XM5"
+          ]
+        },
+        {
+          "text": "Bose QuietComfort Ultra is a leading ANC headphone",
+          "keywords": [
+            "bose",
+            "quietcomfort"
+          ],
+          "aliases": [
+            "Bose QC Ultra",
+            "Bose QuietComfort"
+          ]
+        },
+        {
+          "text": "Apple AirPods Max offers active noise cancellation",
+          "keywords": [
+            "airpods",
+            "max"
+          ],
+          "aliases": [
+            "AirPods Max",
+            "Apple AirPods Max"
+          ]
+        },
+        {
+          "text": "Active noise cancellation works by emitting anti-phase sound",
+          "keywords": [
+            "noise",
+            "cancel"
+          ],
+          "aliases": [
+            "ANC",
+            "active noise cancellation"
+          ]
+        },
+        {
+          "text": "Over-ear closed-back design improves passive isolation",
+          "keywords": [
+            "over-ear"
+          ],
+          "aliases": [
+            "over ear",
+            "around-ear"
+          ]
+        },
+        {
+          "text": "Battery life is a key buying consideration for wireless ANC headphones",
+          "keywords": [
+            "battery"
+          ],
+          "aliases": [
+            "battery life"
+          ]
+        }
       ],
       "contradictions": [
         "Sony WH-1000XM5 was recalled",
@@ -54,13 +112,75 @@
     {
       "query": "top programming languages 2025",
       "assertions": [
-        {"text": "Python is among the most widely used programming languages", "keywords": ["python"], "aliases": ["Python"]},
-        {"text": "JavaScript dominates web development", "keywords": ["javascript"], "aliases": ["JS", "JavaScript", "ECMAScript"]},
-        {"text": "TypeScript is widely adopted for typed JavaScript development", "keywords": ["typescript"], "aliases": ["TS", "TypeScript"]},
-        {"text": "Rust is popular for systems programming with memory safety", "keywords": ["rust"], "aliases": ["Rust"]},
-        {"text": "Go is used for backend services and concurrent systems", "keywords": ["go"], "aliases": ["Golang", "Go language"]},
-        {"text": "Java remains widely used in enterprise software", "keywords": ["java"], "aliases": ["Java"]},
-        {"text": "Python is heavily used in data science and machine learning", "keywords": ["python", "data"], "aliases": ["Python for ML", "Python for data science"]}
+        {
+          "text": "Python is among the most widely used programming languages",
+          "keywords": [
+            "python"
+          ],
+          "aliases": [
+            "Python"
+          ]
+        },
+        {
+          "text": "JavaScript dominates web development",
+          "keywords": [
+            "javascript"
+          ],
+          "aliases": [
+            "JS",
+            "JavaScript",
+            "ECMAScript"
+          ]
+        },
+        {
+          "text": "TypeScript is widely adopted for typed JavaScript development",
+          "keywords": [
+            "typescript"
+          ],
+          "aliases": [
+            "TS",
+            "TypeScript"
+          ]
+        },
+        {
+          "text": "Rust is popular for systems programming with memory safety",
+          "keywords": [
+            "rust"
+          ],
+          "aliases": [
+            "Rust"
+          ]
+        },
+        {
+          "text": "Go is used for backend services and concurrent systems",
+          "keywords": [
+            "go"
+          ],
+          "aliases": [
+            "Golang",
+            "Go language"
+          ]
+        },
+        {
+          "text": "Java remains widely used in enterprise software",
+          "keywords": [
+            "java"
+          ],
+          "aliases": [
+            "Java"
+          ]
+        },
+        {
+          "text": "Python is heavily used in data science and machine learning",
+          "keywords": [
+            "python",
+            "data"
+          ],
+          "aliases": [
+            "Python for ML",
+            "Python for data science"
+          ]
+        }
       ],
       "contradictions": [
         "Python is outdated",
@@ -96,12 +216,68 @@
     {
       "query": "healthy breakfast recipes quick",
       "assertions": [
-        {"text": "Oatmeal is a quick healthy breakfast option", "keywords": ["oatmeal"], "aliases": ["oats", "porridge", "overnight oats"]},
-        {"text": "Eggs are a high-protein breakfast staple", "keywords": ["eggs"], "aliases": ["egg", "scrambled eggs", "boiled eggs"]},
-        {"text": "Smoothies can be made quickly with fruit and yogurt", "keywords": ["smoothie"], "aliases": ["smoothies", "fruit smoothie"]},
-        {"text": "Greek yogurt with fruit is a high-protein quick breakfast", "keywords": ["yogurt"], "aliases": ["greek yogurt", "yoghurt"]},
-        {"text": "Avocado toast is a popular quick breakfast", "keywords": ["avocado"], "aliases": ["avocado toast"]},
-        {"text": "Whole grains and fiber support a healthy breakfast", "keywords": ["whole"], "aliases": ["whole grain", "whole grains", "fiber"]}
+        {
+          "text": "Oatmeal is a quick healthy breakfast option",
+          "keywords": [
+            "oatmeal"
+          ],
+          "aliases": [
+            "oats",
+            "porridge",
+            "overnight oats"
+          ]
+        },
+        {
+          "text": "Eggs are a high-protein breakfast staple",
+          "keywords": [
+            "eggs"
+          ],
+          "aliases": [
+            "egg",
+            "scrambled eggs",
+            "boiled eggs"
+          ]
+        },
+        {
+          "text": "Smoothies can be made quickly with fruit and yogurt",
+          "keywords": [
+            "smoothie"
+          ],
+          "aliases": [
+            "smoothies",
+            "fruit smoothie"
+          ]
+        },
+        {
+          "text": "Greek yogurt with fruit is a high-protein quick breakfast",
+          "keywords": [
+            "yogurt"
+          ],
+          "aliases": [
+            "greek yogurt",
+            "yoghurt"
+          ]
+        },
+        {
+          "text": "Avocado toast is a popular quick breakfast",
+          "keywords": [
+            "avocado"
+          ],
+          "aliases": [
+            "avocado toast"
+          ]
+        },
+        {
+          "text": "Whole grains and fiber support a healthy breakfast",
+          "keywords": [
+            "whole"
+          ],
+          "aliases": [
+            "whole grain",
+            "whole grains",
+            "fiber"
+          ]
+        }
       ],
       "contradictions": [
         "oatmeal is unhealthy",
@@ -134,100 +310,77 @@
       ]
     },
     {
-      "query": "best strategies for improving credit score",
-      "assertions": [
-        {"text": "Paying bills on time is the most important factor", "keywords": ["payment", "on time"], "aliases": ["pay bills on time", "timely payments", "payment history"]},
-        {"text": "Keep credit utilization low", "keywords": ["credit utilization"], "aliases": ["utilization ratio", "credit usage", "utilization rate"]},
-        {"text": "Check credit report regularly", "keywords": ["credit report", "check"], "aliases": ["monitor credit", "review report", "annual report"]},
-        {"text": "Length of credit history matters", "keywords": ["credit history", "length"], "aliases": ["age of accounts", "account age", "oldest account"]},
-        {"text": "Limit hard inquiries on your credit", "keywords": ["hard inquiries"], "aliases": ["hard pulls", "credit inquiries", "new credit applications"]},
-        {"text": "Maintain a mix of credit types", "keywords": ["credit mix"], "aliases": ["types of credit", "diverse accounts", "mix of credit"]}
-      ],
-      "contradictions": [
-        "firmware update has permanently bricked",
-        "class-action lawsuit",
-        "product recall",
-        "banned under EU safety regulations",
-        "specifications were fabricated",
-        "manufacturer refusing to patch",
-        "performance claims were inflated",
-        "officially discontinued",
-        "this product was recalled",
-        "has been discontinued",
-        "has been banned",
-        "a lawsuit found",
-        "option to be unsafe",
-        "flagged as fraudulent",
-        "worst in its category",
-        "end-of-life notice"
-      ]
-    },
-    {
-      "query": "how to train for a half marathon beginner",
-      "assertions": [
-        {"text": "Follow a structured training plan over several weeks", "keywords": ["training plan", "weeks"], "aliases": ["training schedule", "training program", "week plan"]},
-        {"text": "Include rest and recovery days", "keywords": ["rest", "recovery"], "aliases": ["rest days", "recovery days", "rest and recovery"]},
-        {"text": "Build up with a weekly long run", "keywords": ["long run"], "aliases": ["weekly long run", "distance run", "long distance"]},
-        {"text": "Run at a comfortable conversational pace", "keywords": ["pace"], "aliases": ["easy pace", "conversational pace", "comfortable pace"]},
-        {"text": "Stay hydrated during training", "keywords": ["hydration"], "aliases": ["water", "fluids", "hydrate", "drink"]},
-        {"text": "Invest in proper running shoes", "keywords": ["shoes", "running"], "aliases": ["proper footwear", "running shoes", "good shoes"]}
-      ],
-      "contradictions": [
-        "firmware update has permanently bricked",
-        "class-action lawsuit",
-        "product recall",
-        "banned under EU safety regulations",
-        "specifications were fabricated",
-        "manufacturer refusing to patch",
-        "performance claims were inflated",
-        "officially discontinued",
-        "this product was recalled",
-        "has been discontinued",
-        "has been banned",
-        "a lawsuit found",
-        "option to be unsafe",
-        "flagged as fraudulent",
-        "worst in its category",
-        "end-of-life notice"
-      ]
-    },
-    {
-      "query": "most effective study techniques for exams",
-      "assertions": [
-        {"text": "Spaced repetition improves long-term retention", "keywords": ["spaced repetition"], "aliases": ["spaced practice", "distributed practice", "spacing effect"]},
-        {"text": "Active recall strengthens memory", "keywords": ["active recall"], "aliases": ["retrieval practice", "self-testing", "practice testing"]},
-        {"text": "Practice with past exam questions", "keywords": ["practice", "questions"], "aliases": ["practice problems", "past exams", "sample questions"]},
-        {"text": "Take regular breaks while studying", "keywords": ["break"], "aliases": ["pomodoro", "rest breaks", "study breaks", "take breaks"]},
-        {"text": "Take effective notes to reinforce learning", "keywords": ["notes"], "aliases": ["note-taking", "summarize", "summarizing", "write notes"]}
-      ],
-      "contradictions": [
-        "firmware update has permanently bricked",
-        "class-action lawsuit",
-        "product recall",
-        "banned under EU safety regulations",
-        "specifications were fabricated",
-        "manufacturer refusing to patch",
-        "performance claims were inflated",
-        "officially discontinued",
-        "this product was recalled",
-        "has been discontinued",
-        "has been banned",
-        "a lawsuit found",
-        "option to be unsafe",
-        "flagged as fraudulent",
-        "worst in its category",
-        "end-of-life notice"
-      ]
-    },
-    {
       "query": "signs of dehydration in elderly adults",
       "assertions": [
-        {"text": "Thirst and dry mouth are common signs", "keywords": ["thirst"], "aliases": ["feeling thirsty", "increased thirst", "dry mouth"]},
-        {"text": "Dark concentrated urine indicates dehydration", "keywords": ["urine", "dark"], "aliases": ["dark urine", "concentrated urine", "urine color"]},
-        {"text": "Dizziness and lightheadedness can occur", "keywords": ["dizziness"], "aliases": ["lightheaded", "dizzy", "fainting", "lightheadedness"]},
-        {"text": "Confusion and cognitive changes may develop", "keywords": ["confusion"], "aliases": ["disorientation", "mental confusion", "cognitive changes"]},
-        {"text": "Dry skin and reduced skin turgor", "keywords": ["dry", "skin"], "aliases": ["skin turgor", "dry skin", "skin elasticity"]},
-        {"text": "Fatigue and weakness are symptoms", "keywords": ["fatigue"], "aliases": ["tiredness", "weakness", "lethargy"]}
+        {
+          "text": "Thirst and dry mouth are common signs",
+          "keywords": [
+            "thirst"
+          ],
+          "aliases": [
+            "feeling thirsty",
+            "increased thirst",
+            "dry mouth"
+          ]
+        },
+        {
+          "text": "Dark concentrated urine indicates dehydration",
+          "keywords": [
+            "urine",
+            "dark"
+          ],
+          "aliases": [
+            "dark urine",
+            "concentrated urine",
+            "urine color"
+          ]
+        },
+        {
+          "text": "Dizziness and lightheadedness can occur",
+          "keywords": [
+            "dizziness"
+          ],
+          "aliases": [
+            "lightheaded",
+            "dizzy",
+            "fainting",
+            "lightheadedness"
+          ]
+        },
+        {
+          "text": "Confusion and cognitive changes may develop",
+          "keywords": [
+            "confusion"
+          ],
+          "aliases": [
+            "disorientation",
+            "mental confusion",
+            "cognitive changes"
+          ]
+        },
+        {
+          "text": "Dry skin and reduced skin turgor",
+          "keywords": [
+            "dry",
+            "skin"
+          ],
+          "aliases": [
+            "skin turgor",
+            "dry skin",
+            "skin elasticity"
+          ]
+        },
+        {
+          "text": "Fatigue and weakness are symptoms",
+          "keywords": [
+            "fatigue"
+          ],
+          "aliases": [
+            "tiredness",
+            "weakness",
+            "lethargy"
+          ]
+        }
       ],
       "contradictions": [
         "firmware update has permanently bricked",
@@ -251,11 +404,65 @@
     {
       "query": "how to reduce energy bills at home",
       "assertions": [
-        {"text": "Use a programmable or smart thermostat", "keywords": ["thermostat"], "aliases": ["temperature setting", "programmable thermostat", "smart thermostat"]},
-        {"text": "Improve home insulation and seal drafts", "keywords": ["insulation"], "aliases": ["insulate", "weatherstripping", "seal drafts", "weatherize"]},
-        {"text": "Switch to LED or energy-efficient lighting", "keywords": ["LED", "lighting"], "aliases": ["energy-efficient bulbs", "LED bulbs", "efficient lighting"]},
-        {"text": "Use energy-efficient appliances", "keywords": ["appliances", "energy"], "aliases": ["energy-efficient appliances", "Energy Star", "efficient appliances"]},
-        {"text": "Unplug devices to avoid standby power draw", "keywords": ["unplug"], "aliases": ["standby power", "phantom load", "vampire power", "power strips"]}
+        {
+          "text": "Use a programmable or smart thermostat",
+          "keywords": [
+            "thermostat"
+          ],
+          "aliases": [
+            "temperature setting",
+            "programmable thermostat",
+            "smart thermostat"
+          ]
+        },
+        {
+          "text": "Improve home insulation and seal drafts",
+          "keywords": [
+            "insulation"
+          ],
+          "aliases": [
+            "insulate",
+            "weatherstripping",
+            "seal drafts",
+            "weatherize"
+          ]
+        },
+        {
+          "text": "Switch to LED or energy-efficient lighting",
+          "keywords": [
+            "LED",
+            "lighting"
+          ],
+          "aliases": [
+            "energy-efficient bulbs",
+            "LED bulbs",
+            "efficient lighting"
+          ]
+        },
+        {
+          "text": "Use energy-efficient appliances",
+          "keywords": [
+            "appliances",
+            "energy"
+          ],
+          "aliases": [
+            "energy-efficient appliances",
+            "Energy Star",
+            "efficient appliances"
+          ]
+        },
+        {
+          "text": "Unplug devices to avoid standby power draw",
+          "keywords": [
+            "unplug"
+          ],
+          "aliases": [
+            "standby power",
+            "phantom load",
+            "vampire power",
+            "power strips"
+          ]
+        }
       ],
       "contradictions": [
         "firmware update has permanently bricked",
@@ -273,6 +480,331 @@
         "option to be unsafe",
         "flagged as fraudulent",
         "worst in its category",
+        "end-of-life notice"
+      ]
+    },
+    {
+      "query": "compare PostgreSQL vs MongoDB for a startup backend",
+      "assertions": [
+        {
+          "text": "PostgreSQL is a relational database with strong ACID compliance",
+          "keywords": [
+            "postgresql"
+          ],
+          "aliases": [
+            "PostgreSQL",
+            "Postgres",
+            "postgres"
+          ]
+        },
+        {
+          "text": "MongoDB is a NoSQL document-oriented database",
+          "keywords": [
+            "mongodb"
+          ],
+          "aliases": [
+            "MongoDB",
+            "Mongo"
+          ]
+        },
+        {
+          "text": "Relational databases use structured schemas with tables",
+          "keywords": [
+            "relational"
+          ],
+          "aliases": [
+            "relational",
+            "SQL",
+            "structured",
+            "schema",
+            "tables"
+          ]
+        },
+        {
+          "text": "MongoDB offers flexible schema design for unstructured data",
+          "keywords": [
+            "flexible"
+          ],
+          "aliases": [
+            "flexible",
+            "schema-less",
+            "schemaless",
+            "document",
+            "unstructured"
+          ]
+        },
+        {
+          "text": "Scalability considerations differ between SQL and NoSQL",
+          "keywords": [
+            "scal"
+          ],
+          "aliases": [
+            "scalability",
+            "scaling",
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "text": "The choice depends on data structure and query patterns",
+          "keywords": [
+            "query"
+          ],
+          "aliases": [
+            "query patterns",
+            "data structure",
+            "use case",
+            "depends"
+          ]
+        }
+      ],
+      "contradictions": [
+        "PostgreSQL cannot handle relational data",
+        "MongoDB is a relational database",
+        "PostgreSQL does not support SQL",
+        "MongoDB has strict schema requirements",
+        "there is no difference between SQL and NoSQL",
+        "this has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "filed for bankruptcy",
+        "specifications were fabricated",
+        "claims were inflated",
+        "has been poorly rated",
+        "is not recommended",
+        "based on outdated 2019 data",
+        "contains misleading claims",
+        "found to be ineffective",
+        "is low-quality overall",
+        "quality is terrible",
+        "is inferior",
+        "is obsolete",
+        "According to recent studies, this has been discontinued",
+        "recent benchmarks show this performs worst",
+        "independent reviewers have flagged this as fraudulent",
+        "multiple reports indicate quality issues",
+        "was recalled in 2023",
+        "end-of-life notice"
+      ]
+    },
+    {
+      "query": "what caused the 2008 global financial crisis",
+      "assertions": [
+        {
+          "text": "Subprime mortgage lending was a key trigger",
+          "keywords": [
+            "subprime"
+          ],
+          "aliases": [
+            "subprime",
+            "sub-prime",
+            "risky mortgages",
+            "mortgage"
+          ]
+        },
+        {
+          "text": "Major banks and financial institutions collapsed or were bailed out",
+          "keywords": [
+            "banks"
+          ],
+          "aliases": [
+            "banks",
+            "Lehman",
+            "Bear Stearns",
+            "Wall Street",
+            "financial institutions"
+          ]
+        },
+        {
+          "text": "Mortgage-backed securities spread risk throughout the financial system",
+          "keywords": [
+            "securities"
+          ],
+          "aliases": [
+            "mortgage-backed",
+            "MBS",
+            "CDO",
+            "derivatives",
+            "securitization",
+            "securities"
+          ]
+        },
+        {
+          "text": "Inadequate regulation failed to prevent excessive risk-taking",
+          "keywords": [
+            "regulation"
+          ],
+          "aliases": [
+            "regulation",
+            "regulatory",
+            "oversight",
+            "deregulation"
+          ]
+        },
+        {
+          "text": "The housing bubble burst triggered a chain of defaults",
+          "keywords": [
+            "housing"
+          ],
+          "aliases": [
+            "housing bubble",
+            "real estate",
+            "housing market",
+            "home prices"
+          ]
+        },
+        {
+          "text": "The crisis led to a global recession",
+          "keywords": [
+            "recession"
+          ],
+          "aliases": [
+            "recession",
+            "global recession",
+            "economic downturn",
+            "Great Recession"
+          ]
+        }
+      ],
+      "contradictions": [
+        "the 2008 crisis was caused by natural disaster",
+        "subprime mortgages played no role in the crisis",
+        "all banks remained profitable during 2008",
+        "regulation was sufficient to prevent the crisis",
+        "the housing market was stable throughout 2007-2009",
+        "this has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "filed for bankruptcy",
+        "specifications were fabricated",
+        "claims were inflated",
+        "has been poorly rated",
+        "is not recommended",
+        "based on outdated 2019 data",
+        "contains misleading claims",
+        "found to be ineffective",
+        "is low-quality overall",
+        "quality is terrible",
+        "is inferior",
+        "is obsolete",
+        "According to recent studies, this has been discontinued",
+        "recent benchmarks show this performs worst",
+        "independent reviewers have flagged this as fraudulent",
+        "multiple reports indicate quality issues",
+        "was recalled in 2023",
+        "end-of-life notice"
+      ]
+    },
+    {
+      "query": "step by step guide to set up a home Wi-Fi network",
+      "assertions": [
+        {
+          "text": "A router is the central device for a home Wi-Fi network",
+          "keywords": [
+            "router"
+          ],
+          "aliases": [
+            "router",
+            "wireless router"
+          ]
+        },
+        {
+          "text": "A modem connects the home network to the internet service provider",
+          "keywords": [
+            "modem"
+          ],
+          "aliases": [
+            "modem",
+            "ISP",
+            "internet service provider"
+          ]
+        },
+        {
+          "text": "Setting a secure password protects the network",
+          "keywords": [
+            "password"
+          ],
+          "aliases": [
+            "password",
+            "passphrase",
+            "WPA",
+            "security key",
+            "encryption"
+          ]
+        },
+        {
+          "text": "The SSID is the name of the wireless network",
+          "keywords": [
+            "SSID"
+          ],
+          "aliases": [
+            "SSID",
+            "network name",
+            "Wi-Fi name"
+          ]
+        },
+        {
+          "text": "Devices connect to the network via the Wi-Fi settings",
+          "keywords": [
+            "connect"
+          ],
+          "aliases": [
+            "connect",
+            "join",
+            "pair",
+            "devices"
+          ]
+        },
+        {
+          "text": "Router placement affects signal coverage",
+          "keywords": [
+            "placement"
+          ],
+          "aliases": [
+            "placement",
+            "location",
+            "position",
+            "central",
+            "signal",
+            "coverage"
+          ]
+        }
+      ],
+      "contradictions": [
+        "a router is not needed for Wi-Fi",
+        "Wi-Fi networks do not require passwords",
+        "modems and routers are the same device",
+        "SSID has no effect on network identification",
+        "placement does not affect Wi-Fi signal",
+        "this has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "filed for bankruptcy",
+        "specifications were fabricated",
+        "claims were inflated",
+        "has been poorly rated",
+        "is not recommended",
+        "based on outdated 2019 data",
+        "contains misleading claims",
+        "found to be ineffective",
+        "is low-quality overall",
+        "quality is terrible",
+        "is inferior",
+        "is obsolete",
+        "According to recent studies, this has been discontinued",
+        "recent benchmarks show this performs worst",
+        "independent reviewers have flagged this as fraudulent",
+        "multiple reports indicate quality issues",
+        "was recalled in 2023",
         "end-of-life notice"
       ]
     }

@@ -104,6 +104,22 @@ _NOUN_SWAPS = {
     # Food-domain nouns
     "protein": "sugar", "fiber": "starch", "breakfast": "snack",
     "energy": "fatigue", "nutrition": "calorie-bomb",
+    # Database-comparison domain (PostgreSQL vs MongoDB)
+    "postgresql": "dBASE", "mongodb": "FoxPro", "postgres": "dBASE",
+    "relational": "hierarchical", "schema": "chaos",
+    "scalability": "bottleneck", "database": "spreadsheet",
+    "transactions": "conflicts", "queries": "guesses",
+    # Financial-crisis domain (2008 analysis)
+    "mortgage": "donation", "subprime": "premium",
+    "banks": "charities", "regulation": "anarchy",
+    "securities": "IOUs", "recession": "boom",
+    "housing": "spacecraft", "derivatives": "trinkets",
+    "lehman": "Enron",
+    # Networking/Wi-Fi domain (how-to guide)
+    "router": "toaster", "modem": "typewriter",
+    "password": "suggestion", "wifi": "telegraph",
+    "signal": "smoke signal", "bandwidth": "bottleneck",
+    "encryption": "decoration", "network": "cobweb",
 }
 _VERB_SWAPS = {
     "recommend": "avoid", "improve": "worsen", "use": "abandon",
@@ -265,6 +281,29 @@ ERROR_SUBSTITUTIONS = {
     "prefer": "reject",
     "choose": "reject",
     "ensure": "prevent",
+    # Database-comparison domain
+    "postgresql": "dBASE",
+    "mongodb": "FoxPro",
+    "relational": "hierarchical",
+    "schema": "chaos",
+    "scalability": "bottleneck",
+    "database": "spreadsheet",
+    "transactions": "conflicts",
+    # Financial-crisis domain
+    "mortgage": "donation",
+    "subprime": "premium",
+    "banks": "charities",
+    "regulation": "anarchy",
+    "securities": "IOUs",
+    "recession": "boom",
+    "housing": "spacecraft",
+    # Networking domain
+    "router": "toaster",
+    "modem": "typewriter",
+    "password": "suggestion",
+    "signal": "smoke signal",
+    "encryption": "decoration",
+    "network": "cobweb",
 }
 
 FAKE_FACTS = [

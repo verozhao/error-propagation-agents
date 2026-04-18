@@ -18,19 +18,19 @@ TASK_TEMPLATES = [
         "domain": "lifestyle",
     },
     {
-        "query": "best strategies for improving credit score",
-        "expected_keywords": ["payment", "credit", "utilization", "report", "history"],
-        "domain": "personal_finance",
+        "query": "compare PostgreSQL vs MongoDB for a startup backend",
+        "expected_keywords": ["postgresql", "mongodb", "relational", "schema", "scalability"],
+        "domain": "technical_comparison",
     },
     {
-        "query": "how to train for a half marathon beginner",
-        "expected_keywords": ["training", "rest", "pace", "hydration", "shoes"],
-        "domain": "fitness",
+        "query": "what caused the 2008 global financial crisis",
+        "expected_keywords": ["mortgage", "banks", "lehman", "subprime", "regulation"],
+        "domain": "historical_analysis",
     },
     {
-        "query": "most effective study techniques for exams",
-        "expected_keywords": ["spaced", "recall", "practice", "break", "notes"],
-        "domain": "education",
+        "query": "step by step guide to set up a home Wi-Fi network",
+        "expected_keywords": ["router", "modem", "password", "SSID", "connect"],
+        "domain": "how_to_guide",
     },
     {
         "query": "signs of dehydration in elderly adults",
