@@ -134,34 +134,147 @@
       ]
     },
     {
-      "query": "TODO_QUERY_4_placeholder",
-      "_placeholder": true,
-      "assertions": [],
-      "contradictions": []
+      "query": "best strategies for improving credit score",
+      "assertions": [
+        {"text": "Paying bills on time is the most important factor", "keywords": ["payment", "on time"], "aliases": ["pay bills on time", "timely payments", "payment history"]},
+        {"text": "Keep credit utilization low", "keywords": ["credit utilization"], "aliases": ["utilization ratio", "credit usage", "utilization rate"]},
+        {"text": "Check credit report regularly", "keywords": ["credit report", "check"], "aliases": ["monitor credit", "review report", "annual report"]},
+        {"text": "Length of credit history matters", "keywords": ["credit history", "length"], "aliases": ["age of accounts", "account age", "oldest account"]},
+        {"text": "Limit hard inquiries on your credit", "keywords": ["hard inquiries"], "aliases": ["hard pulls", "credit inquiries", "new credit applications"]},
+        {"text": "Maintain a mix of credit types", "keywords": ["credit mix"], "aliases": ["types of credit", "diverse accounts", "mix of credit"]}
+      ],
+      "contradictions": [
+        "firmware update has permanently bricked",
+        "class-action lawsuit",
+        "product recall",
+        "banned under EU safety regulations",
+        "specifications were fabricated",
+        "manufacturer refusing to patch",
+        "performance claims were inflated",
+        "officially discontinued",
+        "this product was recalled",
+        "has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "end-of-life notice"
+      ]
     },
     {
-      "query": "TODO_QUERY_5_placeholder",
-      "_placeholder": true,
-      "assertions": [],
-      "contradictions": []
+      "query": "how to train for a half marathon beginner",
+      "assertions": [
+        {"text": "Follow a structured training plan over several weeks", "keywords": ["training plan", "weeks"], "aliases": ["training schedule", "training program", "week plan"]},
+        {"text": "Include rest and recovery days", "keywords": ["rest", "recovery"], "aliases": ["rest days", "recovery days", "rest and recovery"]},
+        {"text": "Build up with a weekly long run", "keywords": ["long run"], "aliases": ["weekly long run", "distance run", "long distance"]},
+        {"text": "Run at a comfortable conversational pace", "keywords": ["pace"], "aliases": ["easy pace", "conversational pace", "comfortable pace"]},
+        {"text": "Stay hydrated during training", "keywords": ["hydration"], "aliases": ["water", "fluids", "hydrate", "drink"]},
+        {"text": "Invest in proper running shoes", "keywords": ["shoes", "running"], "aliases": ["proper footwear", "running shoes", "good shoes"]}
+      ],
+      "contradictions": [
+        "firmware update has permanently bricked",
+        "class-action lawsuit",
+        "product recall",
+        "banned under EU safety regulations",
+        "specifications were fabricated",
+        "manufacturer refusing to patch",
+        "performance claims were inflated",
+        "officially discontinued",
+        "this product was recalled",
+        "has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "end-of-life notice"
+      ]
     },
     {
-      "query": "TODO_QUERY_6_placeholder",
-      "_placeholder": true,
-      "assertions": [],
-      "contradictions": []
+      "query": "most effective study techniques for exams",
+      "assertions": [
+        {"text": "Spaced repetition improves long-term retention", "keywords": ["spaced repetition"], "aliases": ["spaced practice", "distributed practice", "spacing effect"]},
+        {"text": "Active recall strengthens memory", "keywords": ["active recall"], "aliases": ["retrieval practice", "self-testing", "practice testing"]},
+        {"text": "Practice with past exam questions", "keywords": ["practice", "questions"], "aliases": ["practice problems", "past exams", "sample questions"]},
+        {"text": "Take regular breaks while studying", "keywords": ["break"], "aliases": ["pomodoro", "rest breaks", "study breaks", "take breaks"]},
+        {"text": "Take effective notes to reinforce learning", "keywords": ["notes"], "aliases": ["note-taking", "summarize", "summarizing", "write notes"]}
+      ],
+      "contradictions": [
+        "firmware update has permanently bricked",
+        "class-action lawsuit",
+        "product recall",
+        "banned under EU safety regulations",
+        "specifications were fabricated",
+        "manufacturer refusing to patch",
+        "performance claims were inflated",
+        "officially discontinued",
+        "this product was recalled",
+        "has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "end-of-life notice"
+      ]
     },
     {
-      "query": "TODO_QUERY_7_placeholder",
-      "_placeholder": true,
-      "assertions": [],
-      "contradictions": []
+      "query": "signs of dehydration in elderly adults",
+      "assertions": [
+        {"text": "Thirst and dry mouth are common signs", "keywords": ["thirst"], "aliases": ["feeling thirsty", "increased thirst", "dry mouth"]},
+        {"text": "Dark concentrated urine indicates dehydration", "keywords": ["urine", "dark"], "aliases": ["dark urine", "concentrated urine", "urine color"]},
+        {"text": "Dizziness and lightheadedness can occur", "keywords": ["dizziness"], "aliases": ["lightheaded", "dizzy", "fainting", "lightheadedness"]},
+        {"text": "Confusion and cognitive changes may develop", "keywords": ["confusion"], "aliases": ["disorientation", "mental confusion", "cognitive changes"]},
+        {"text": "Dry skin and reduced skin turgor", "keywords": ["dry", "skin"], "aliases": ["skin turgor", "dry skin", "skin elasticity"]},
+        {"text": "Fatigue and weakness are symptoms", "keywords": ["fatigue"], "aliases": ["tiredness", "weakness", "lethargy"]}
+      ],
+      "contradictions": [
+        "firmware update has permanently bricked",
+        "class-action lawsuit",
+        "product recall",
+        "banned under EU safety regulations",
+        "specifications were fabricated",
+        "manufacturer refusing to patch",
+        "performance claims were inflated",
+        "officially discontinued",
+        "this product was recalled",
+        "has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "end-of-life notice"
+      ]
     },
     {
-      "query": "TODO_QUERY_8_placeholder",
-      "_placeholder": true,
-      "assertions": [],
-      "contradictions": []
+      "query": "how to reduce energy bills at home",
+      "assertions": [
+        {"text": "Use a programmable or smart thermostat", "keywords": ["thermostat"], "aliases": ["temperature setting", "programmable thermostat", "smart thermostat"]},
+        {"text": "Improve home insulation and seal drafts", "keywords": ["insulation"], "aliases": ["insulate", "weatherstripping", "seal drafts", "weatherize"]},
+        {"text": "Switch to LED or energy-efficient lighting", "keywords": ["LED", "lighting"], "aliases": ["energy-efficient bulbs", "LED bulbs", "efficient lighting"]},
+        {"text": "Use energy-efficient appliances", "keywords": ["appliances", "energy"], "aliases": ["energy-efficient appliances", "Energy Star", "efficient appliances"]},
+        {"text": "Unplug devices to avoid standby power draw", "keywords": ["unplug"], "aliases": ["standby power", "phantom load", "vampire power", "power strips"]}
+      ],
+      "contradictions": [
+        "firmware update has permanently bricked",
+        "class-action lawsuit",
+        "product recall",
+        "banned under EU safety regulations",
+        "specifications were fabricated",
+        "manufacturer refusing to patch",
+        "performance claims were inflated",
+        "officially discontinued",
+        "this product was recalled",
+        "has been discontinued",
+        "has been banned",
+        "a lawsuit found",
+        "option to be unsafe",
+        "flagged as fraudulent",
+        "worst in its category",
+        "end-of-life notice"
+      ]
     }
   ]
 }

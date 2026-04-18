@@ -17,11 +17,31 @@ TASK_TEMPLATES = [
         "expected_keywords": ["oatmeal", "eggs", "smoothie", "yogurt", "avocado"],
         "domain": "lifestyle",
     },
-    {"query": "TODO_QUERY_4_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
-    {"query": "TODO_QUERY_5_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
-    {"query": "TODO_QUERY_6_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
-    {"query": "TODO_QUERY_7_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
-    {"query": "TODO_QUERY_8_placeholder", "expected_keywords": ["placeholder"], "domain": "TODO", "_placeholder": True},
+    {
+        "query": "best strategies for improving credit score",
+        "expected_keywords": ["payment", "credit", "utilization", "report", "history"],
+        "domain": "personal_finance",
+    },
+    {
+        "query": "how to train for a half marathon beginner",
+        "expected_keywords": ["training", "rest", "pace", "hydration", "shoes"],
+        "domain": "fitness",
+    },
+    {
+        "query": "most effective study techniques for exams",
+        "expected_keywords": ["spaced", "recall", "practice", "break", "notes"],
+        "domain": "education",
+    },
+    {
+        "query": "signs of dehydration in elderly adults",
+        "expected_keywords": ["thirst", "urine", "dizziness", "confusion", "fatigue"],
+        "domain": "health",
+    },
+    {
+        "query": "how to reduce energy bills at home",
+        "expected_keywords": ["thermostat", "insulation", "LED", "appliances", "unplug"],
+        "domain": "household",
+    },
 ]
 
 
