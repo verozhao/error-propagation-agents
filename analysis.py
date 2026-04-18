@@ -168,6 +168,7 @@ def plot_pattern_comparison(pattern_results: list[dict], output_path: str = None
 
 def load_single_result(filepath):
     import os
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
     model_name = os.path.basename(filepath).split("_")[0]
     with open(filepath) as f:
         data = json.load(f)
@@ -177,24 +178,47 @@ def load_single_result(filepath):
             continue
         if "model" not in d:
             d["model"] = model_name
-        if d.get("error_step") is None:
+        es = d.get("error_step")
+        if _is_baseline(d):
             d["error_step"] = -1
+        else:
+            # Issue α: drop failed-injection no-ops
+            if injection_is_valid(d) is False:
+                continue
+            if isinstance(es, list):
+                # compound: use first step for step-wise roll-ups
+                d["error_step"] = es[0] if es else -1
+                d["_compound"] = True
+            elif es is None:
+                # non-baseline but no explicit step — legacy compound; skip.
+                continue
         all_data.append(d)
     return pd.DataFrame(all_data)
 
 def load_all_results(results_dir="results"):
+    from record_utils import is_baseline as _is_baseline, injection_is_valid
     all_data = []
     for f in glob.glob(f"{results_dir}/**/*.json", recursive=True):
         model_name = f.split("/")[-1].split("_")[0]
         with open(f) as file:
             data = json.load(file)
             for d in data:
-                if "error" not in d:
-                    if "model" not in d:
-                        d["model"] = model_name
-                    if d.get("error_step") is None:
-                        d["error_step"] = -1
-                    all_data.append(d)
+                if "error" in d:
+                    continue
+                if "model" not in d:
+                    d["model"] = model_name
+                es = d.get("error_step")
+                if _is_baseline(d):
+                    d["error_step"] = -1
+                else:
+                    if injection_is_valid(d) is False:
+                        continue
+                    if isinstance(es, list):
+                        d["error_step"] = es[0] if es else -1
+                        d["_compound"] = True
+                    elif es is None:
+                        continue
+                all_data.append(d)
     return pd.DataFrame(all_data)
 
 def generate_report(results_path=None, error_type=None):

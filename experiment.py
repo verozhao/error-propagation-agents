@@ -15,12 +15,27 @@ from factual_accuracy import claim_survival_score, load_ground_truth
 
 
 def _derive_seed(model_name, task_query, error_step, trial_idx):
-    """Deterministic seed from (model, query, error_step, trial_idx).
+    """Deterministic seed from (model, query, trial_idx).
 
-    Does NOT include severity — so the baseline generation is identical
-    across severity levels for the same (model, query, trial).
+    P0-15 FIX: does NOT include error_step or severity. This means:
+      - baseline (error_step=None)  at (model, query, trial=t)
+      - injected (error_step=k)     at (model, query, trial=t)
+    use the SAME per-call seed sequence through the pre-injection steps.
+    Outputs will be byte-identical up to step k-1; from step k onward
+    the injected run diverges only because the injector modified the
+    text. This is what makes paired statistical tests (Wilcoxon
+    signed-rank) legitimate: baseline(t) and injected(t) are matched on
+    all nuisance variation through the first k-1 steps.
+
+    Severity is excluded for the same reason — sev1/sev2/sev3 at the
+    same (model, query, step, trial) share pre-injection state, so the
+    severity sweep controls for everything but the dose.
+
+    error_step/severity are kept in the function signature for legacy
+    callers but ignored.
     """
-    key = f"{model_name}|{task_query}|{error_step}|{trial_idx}"
+    del error_step  # no longer part of the key
+    key = f"{model_name}|{task_query}|{trial_idx}"
     return int(hashlib.sha256(key.encode()).hexdigest()[:8], 16)
 
 
@@ -94,6 +109,18 @@ def run_single_experiment(
     if len(injected_contents) > 1:
         injected_content = " | ".join(injected_contents)
 
+    # Issue α: distinguish "injection was attempted and produced a delta"
+    # from "injection was attempted but the injector returned no-op" (e.g.
+    # omission at severity 3 when the text is a single sentence triggers
+    # the n <= 2 early-return in inject_omission_error). Baseline records
+    # have injection_valid=None because no injection was attempted.
+    injection_attempted = actual_error_step is not None
+    if not injection_attempted:
+        injection_valid = None  # baseline
+    else:
+        # attempted. Consider it valid iff the injector produced a delta.
+        injection_valid = bool(injected_content)
+
     evaluation = evaluate_workflow_output(
         results=results,
         original_query=task["query"],
@@ -120,13 +147,24 @@ def run_single_experiment(
             for r in results
         }
 
+    # Baseline records have NO injection at all (neither single-step nor
+    # compound). Downstream analyses must distinguish these three cases:
+    #   baseline:  error_step=None, compound_steps=None, is_baseline=True
+    #   single:    error_step=<int>, compound_steps=None, is_baseline=False
+    #   compound:  error_step=<list>, compound_steps=<list>, is_baseline=False
+    # Writing the list into error_step for compound runs fixes P0-1: old
+    # analysis code that only looks at error_step no longer mis-classifies
+    # compound trials as baselines.
+    is_baseline = (error_step is None and compound_steps is None)
     record = {
         "model": model_name,
         "task_query": task["query"],
-        "error_step": error_step,
+        "error_step": compound_steps if compound_steps else error_step,
         "error_type": error_type,
         "severity": severity,
         "compound_steps": compound_steps,
+        "is_baseline": is_baseline,
+        "injection_valid": injection_valid,  # Issue α: True / False / None (baseline)
         "pos_target": pos_target,
         "tfidf_target": tfidf_target,
         "evaluation": evaluation,
@@ -270,13 +308,15 @@ def run_full_experiment(
             result["trial"] = trial
             return result
         except Exception as e:
+            is_baseline = (error_step is None and compound is None)
             return {
                 "model": model_name,
                 "task_query": task["query"],
-                "error_step": error_step,
+                "error_step": compound if compound else error_step,
                 "error_type": error_type,
                 "severity": severity,
                 "compound_steps": compound,
+                "is_baseline": is_baseline,
                 "trial": trial,
                 "error": str(e),
             }

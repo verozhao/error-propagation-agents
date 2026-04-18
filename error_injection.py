@@ -31,21 +31,79 @@ OMISSION_FRACTION    = {1: 0.10, 2: 0.25, 3: 0.75}
 SEMANTIC_SUB_COUNT   = {1: 1, 2: 2, 3: 8}
 
 # --- Sentence splitter (replaces every text.split(". ")) ---
+# Splits on sentence-terminal punctuation followed by whitespace. The
+# terminal punctuation stays attached to each sentence token (e.g.
+# "Hello!" stays "Hello!", not "Hello"). Use `_join_sents` to
+# reconstruct text without double-punctuation artifacts like "Hello!."
 _SENT_SPLIT = re.compile(r'(?<=[.!?])\s+')
 
 def _split_sents(text):
     return [s.strip() for s in _SENT_SPLIT.split((text or "").strip()) if s.strip()]
 
 
+def _join_sents(sents):
+    """Rejoin sentences with single spaces, appending a period only if
+    the sentence has no terminal punctuation of its own. This avoids
+    the "Hello!." / "Hello?." / "Hello.." artifacts produced by
+    `". ".join(sents)` when sentences already end with punctuation."""
+    if not sents:
+        return ""
+    out = []
+    for s in sents:
+        s = s.rstrip()
+        if not s:
+            continue
+        if s[-1] in ".!?":
+            out.append(s)
+        else:
+            out.append(s + ".")
+    return " ".join(out)
+
+
 # --- POS-targeted substitution tables ---
+# Expanded to increase semantic-injection hit rate. Additions were chosen
+# based on word-frequency analysis of baseline compose outputs (smoke #4):
+#   - High-frequency words that the previous dict missed (noise, sound,
+#     comfort, clarity, cancellation, audio, experience, features) —
+#     these nearly always appear in recommendation text.
+#   - Brand-name aliases the model uses naturally (e.g. "AirPods" not
+#     just "apple"; "QuietComfort" which is the actual Bose product).
+#   - Swap *targets* chosen to violate ground-truth assertions directly.
+#     For the headphones query, swapping "noise" -> "interference"
+#     breaks the "noise cancellation" assertion outright.
+# Dead weight removed: year substitutions ("2025"->"2019") are never
+# reproduced by the compose step, so they never fire.
 _NOUN_SWAPS = {
+    # Brands / products — direct ground-truth attacks
     "sony": "Zenith", "bose": "RadioShack", "apple": "Blackberry",
+    "airpods": "WalkmanPods", "quietcomfort": "LoudDiscomfort",
+    "wh-1000xm5": "WH-obsolete", "xm5": "XM-legacy",
+    # Programming languages
     "python": "COBOL", "javascript": "ActionScript", "typescript": "CoffeeScript",
-    "rust": "Pascal", "java": "Fortran", "go": "Ada",
+    "rust": "Pascal", "java": "Fortran", "golang": "Ada",
+    # Foods
     "oatmeal": "candy", "eggs": "soda", "smoothie": "milkshake",
-    "yogurt": "ice cream", "avocado": "lard",
-    "headphones": "speakers", "battery": "antenna", "recipe": "procedure",
-    "performance": "latency", "quality": "deficiency",
+    "yogurt": "ice cream", "avocado": "lard", "toast": "doughnut",
+    "granola": "cotton candy",
+    # Product categories — critical to contradiction detection
+    "headphones": "speakers", "earbuds": "earplugs",
+    "battery": "antenna", "recipe": "procedure",
+    # High-frequency audio-domain nouns that assertions rely on
+    "noise": "interference", "cancellation": "amplification",
+    "cancelling": "amplifying", "sound": "static",
+    "audio": "silence", "music": "noise pollution",
+    # General product-review nouns (shared across all 3 queries)
+    "quality": "deficiency", "performance": "latency",
+    "comfort": "discomfort", "clarity": "distortion",
+    "experience": "ordeal", "features": "flaws",
+    "design": "defect", "build": "kit",
+    # Programming-domain nouns
+    "web": "intranet", "systems": "legacy-systems",
+    "development": "deprecation", "framework": "antipattern",
+    "language": "dialect",
+    # Food-domain nouns
+    "protein": "sugar", "fiber": "starch", "breakfast": "snack",
+    "energy": "fatigue", "nutrition": "calorie-bomb",
 }
 _VERB_SWAPS = {
     "recommend": "avoid", "improve": "worsen", "use": "abandon",
@@ -53,6 +111,11 @@ _VERB_SWAPS = {
     "review": "dismiss", "support": "undermine", "enhance": "degrade",
     "optimize": "bloat", "accelerate": "stall", "boost": "diminish",
     "prefer": "reject", "adopt": "discard", "cook": "burn",
+    # Additions
+    "consider": "dismiss", "provide": "withhold", "offer": "deny",
+    "seek": "avoid", "choose": "reject", "prioritize": "deprioritize",
+    "ensure": "prevent", "deliver": "withhold", "stand out": "fade",
+    "excel": "falter", "integrate": "disconnect", "stream": "buffer",
 }
 _ADJ_SWAPS = {
     "best": "worst", "top": "bottom", "good": "bad", "great": "terrible",
@@ -61,6 +124,18 @@ _ADJ_SWAPS = {
     "premium": "budget", "excellent": "awful", "innovative": "obsolete",
     "advanced": "primitive", "powerful": "weak", "effective": "ineffective",
     "leading": "lagging", "recommended": "not recommended",
+    # High-frequency praise adjectives from smoke data
+    "outstanding": "mediocre", "exceptional": "average", "impressive": "underwhelming",
+    "luxurious": "shabby", "immersive": "distracting", "seamless": "glitchy",
+    "crisp": "muddy", "smooth": "choppy", "rich": "thin", "solid": "flimsy",
+    "sleek": "bulky", "stylish": "ugly", "durable": "fragile",
+    "lightweight": "heavy", "comfortable": "uncomfortable",
+    "nutritious": "empty-calorie", "balanced": "imbalanced",
+    "fresh": "stale", "organic": "synthetic", "natural": "artificial",
+    "versatile": "limited", "scalable": "rigid", "typed": "untyped",
+    "safe": "unsafe", "concurrent": "serial",
+    "clear": "muffled", "seamlessly": "awkwardly", "highly": "barely",
+    "perfect": "flawed", "superior": "inferior",
 }
 _POS_SWAP_TABLES = {"noun": _NOUN_SWAPS, "verb": _VERB_SWAPS, "adj": _ADJ_SWAPS}
 
@@ -115,8 +190,12 @@ def _apply_tfidf_targeted_swap(text: str, tfidf_target: str, swap_table: dict) -
 
 
 ERROR_SUBSTITUTIONS = {
+    # Year tokens — kept but note they rarely appear in compose output.
+    # The model tends to strip year phrases when writing recommendations,
+    # so these rarely fire; left in for search/filter/summarize injection.
     "2025": "2019",
     "2024": "2018",
+    # Original adjective-flip set (kept for back-compat of old sev=1 runs)
     "best": "worst",
     "top": "outdated",
     "recommended": "not recommended",
@@ -135,6 +214,57 @@ ERROR_SUBSTITUTIONS = {
     "fastest": "slowest",
     "highly rated": "poorly rated",
     "strongly": "weakly",
+    # --- Additions informed by smoke #4 baseline word-frequency analysis ---
+    # High-frequency domain nouns that existed in every compose output and
+    # whose substitution directly contradicts ground-truth assertions.
+    "noise": "interference",
+    "cancellation": "amplification",
+    "cancelling": "amplifying",
+    "noise-cancelling": "noise-amplifying",
+    "noise-canceling": "noise-amplifying",
+    "sound": "static",
+    "audio": "silence",
+    "music": "noise pollution",
+    "comfort": "discomfort",
+    "clarity": "distortion",
+    "quality": "deficiency",
+    "experience": "ordeal",
+    "features": "flaws",
+    "build": "kit",
+    # Frequent praise adjectives from smoke #4 (present in >50% of outputs)
+    "outstanding": "mediocre",
+    "exceptional": "average",
+    "impressive": "underwhelming",
+    "luxurious": "shabby",
+    "immersive": "distracting",
+    "seamless": "glitchy",
+    "comfortable": "uncomfortable",
+    "perfect": "flawed",
+    # Brand / product names — ground-truth attacks for the headphones query
+    "airpods": "WalkmanPods",
+    "quietcomfort": "LoudDiscomfort",
+    # Programming-query high-frequency words
+    "development": "deprecation",
+    "framework": "antipattern",
+    "versatile": "limited",
+    "scalable": "rigid",
+    "safe": "unsafe",
+    "concurrent": "serial",
+    # Breakfast-query high-frequency words
+    "nutritious": "empty-calorie",
+    "balanced": "imbalanced",
+    "fresh": "stale",
+    "protein": "sugar",
+    "fiber": "starch",
+    "healthy": "unhealthy",
+    "quick": "slow",
+    # Common verbs that appear in recommendation prose
+    "recommend": "avoid",
+    "consider": "dismiss",
+    "prioritize": "deprioritize",
+    "prefer": "reject",
+    "choose": "reject",
+    "ensure": "prevent",
 }
 
 FAKE_FACTS = [
@@ -194,11 +324,17 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
         if len(sents) > 1:
             idx = rng.randrange(len(sents))
             sents[idx] = "This information may be outdated or incorrect."
-            modified = ". ".join(sents)
+            modified = _join_sents(sents)
             delta = "SENTINEL"
 
-    meta = {"n_subs": len(delta.split(";")) if ";" in delta else (1 if delta else 0),
-            "severity_physical": len(delta.split(";")) if ";" in delta else (1 if delta and delta != "SENTINEL" else 0)}
+    # n_subs counts delta entries separated by "; "; SENTINEL counts as 1 op.
+    if ";" in delta:
+        n_ops = len(delta.split(";"))
+    elif delta:
+        n_ops = 1
+    else:
+        n_ops = 0
+    meta = {"n_subs": n_ops, "severity_physical": n_ops}
     return _maybe_return(modified, delta, return_delta, meta=meta)
 
 
@@ -216,7 +352,7 @@ def inject_factual_error(text: str, step_name: str, severity: int = 1, return_de
     positions = sorted({max(1, round((i + 1) * n / (k + 1))) for i in range(k)}, reverse=True)
     for pos, fact in zip(positions, chosen):
         sentences.insert(pos, fact)
-    modified = ". ".join(sentences)
+    modified = _join_sents(sentences)
     delta = f"INSERTED {len(chosen)}: " + " | ".join(chosen)
     meta = {"n_inserts": len(chosen), "severity_physical": len(chosen)}
     return _maybe_return(modified, delta, return_delta, meta=meta)
@@ -240,7 +376,7 @@ def inject_omission_error(text: str, step_name: str, severity: int = 1, return_d
     remove_idxs = set(rng.sample(eligible, k=n_remove))
     kept = [s for i, s in enumerate(sentences) if i not in remove_idxs]
     removed = [sentences[i] for i in sorted(remove_idxs)]
-    modified = ". ".join(kept)
+    modified = _join_sents(kept)
     delta = f"REMOVED {n_remove}/{n}: " + " | ".join(removed)
     meta = {"n_removed": n_remove, "n_total": n, "severity_physical": n_remove / n}
     return _maybe_return(modified, delta, return_delta, meta=meta)

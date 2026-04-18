@@ -122,24 +122,60 @@ def evaluate_workflow_output(
     When use_llm_judge=False, skips all LLM judge calls (quality_score,
     rubric, pairwise). The primary combined_score uses factual_accuracy_score
     instead, making it fully algorithmic and deterministic.
+
+    P0-18 FIX: Content evaluation (keyword_score, factual accuracy,
+    assertion coverage, injected-claim survival) is now performed on the
+    `compose` step output (i.e. results[-2]), which is the pipeline's
+    actual recommendation. The `verify` step output (results[-1]) only
+    produces a short 'VALID/INVALID + one-sentence reason' meta-comment,
+    which does not re-state product/language/food names and therefore
+    cannot be meaningfully checked against ground-truth assertion
+    keywords. Using it for content evaluation made every pipeline look
+    almost equally bad regardless of injection.
+
+    P0-17 FIX: is_valid now uses startswith('VALID') instead of
+    substring containment, because 'INVALID' trivially contains 'VALID'
+    and the old test was silently True for every INVALID response.
+
+    Falls back to results[-1] for content if there's no penultimate
+    step (defensive — production pipeline always has 5 steps).
     """
-    final_output = results[-1].output_text
-    verification_output = final_output
+    # P0-18: distinguish the two outputs. `verify_text` is the final
+    # step's VALID/INVALID meta-comment; `content_text` is what the
+    # pipeline actually produced for the user.
+    verify_text = results[-1].output_text if results else ""
+    content_text = results[-2].output_text if len(results) >= 2 else verify_text
+    # Backward-compat alias: old code and old records use `final_output`
+    # to mean "the last step". We keep a name for downstream in case
+    # anything needs it, but nothing in this function reads it anymore.
+    final_output = verify_text  # noqa: F841 — legacy field
 
-    is_valid = "VALID" in verification_output.upper()
+    # P0-17: robust VALID detection. Strip whitespace, ignore any
+    # "INVALID" occurrences, then look for a standalone "VALID" token.
+    verify_upper = verify_text.strip().upper()
+    if verify_upper.startswith("INVALID"):
+        is_valid = False
+    elif verify_upper.startswith("VALID"):
+        is_valid = True
+    else:
+        # Fallback for responses that don't start with the verdict:
+        # strip all INVALID tokens first, then check for VALID.
+        cleaned = verify_upper.replace("INVALID", "")
+        is_valid = "VALID" in cleaned
 
-    keyword_matches = sum(1 for kw in expected_keywords if kw.lower() in final_output.lower())
+    # P0-18: content-level checks use content_text (compose output)
+    keyword_matches = sum(1 for kw in expected_keywords if kw.lower() in content_text.lower())
     keyword_score = keyword_matches / len(expected_keywords) if expected_keywords else 0.0
 
     if use_llm_judge:
-        quality_score = _llm_quality_score(original_query, final_output, evaluator_model)
-        rubric = _llm_quality_rubric(original_query, final_output, evaluator_model)
+        quality_score = _llm_quality_score(original_query, content_text, evaluator_model)
+        rubric = _llm_quality_rubric(original_query, content_text, evaluator_model)
         quality_scores = {evaluator_model: quality_score}
         if judge_models:
             for jm in judge_models:
                 if jm == evaluator_model:
                     continue
-                quality_scores[jm] = _llm_quality_score(original_query, final_output, jm)
+                quality_scores[jm] = _llm_quality_score(original_query, content_text, jm)
     else:
         quality_score = None
         rubric = None
@@ -151,17 +187,17 @@ def evaluate_workflow_output(
         except Exception:
             ground_truth = {}
     factual = evaluate_factual_accuracy(
-        pipeline_output=final_output,
+        pipeline_output=content_text,
         injected_error=injected_error,
         query=original_query,
         ground_truth=ground_truth,
     )
 
-    # assertion coverage from ground truth
+    # assertion coverage from ground truth (P0-18: on content_text)
     gt_entry = ground_truth.get(original_query) if ground_truth else None
     assertion_score = 1.0
     if gt_entry:
-        out_lower = final_output.lower()
+        out_lower = content_text.lower()
         hits = 0
         total = len(gt_entry.get("assertions", []))
         for a in gt_entry.get("assertions", []):
@@ -176,8 +212,56 @@ def evaluate_workflow_output(
         if total > 0:
             assertion_score = hits / total
 
-    # Primary combined score: algorithmic only (no LLM judge)
+    # ------------------------------------------------------------------
+    # P0-2 FIX: combined_score rewrite.
+    #
+    # The old formula (0.3·is_valid + 0.3·keyword_score + 0.4·factual) had
+    # keyword_score and factual.preserved (assertion coverage) measuring
+    # nearly the same thing — for our 3 queries, 6/7 assertion keywords
+    # overlap with the expected_keywords list. That made ~64% of the score
+    # a single redundant signal ("are the query keywords still present").
+    #
+    # The new formula separates the two orthogonal signals the experiment
+    # actually cares about:
+    #
+    #   preserved      (factual_accuracy_score's "assertions_present/total")
+    #                  = did the GOOD information survive?
+    #   1 - survival   (1 - claim_survival_score of injected content)
+    #                  = did the BAD information fail to propagate?
+    #   is_valid       = did verify flag the output as valid?
+    #
+    # Weights: 0.4 preserved + 0.4 (1 - survival) + 0.2 is_valid.
+    # A contradiction-penalty is already folded into factual.factual_accuracy_score
+    # via the factual_accuracy module; we retrieve `preserved` and `survival`
+    # directly from the FactualAccuracyResult to keep the formula transparent.
+    #
+    # keyword_score is still reported in the output dict for diagnostic
+    # purposes, but it is no longer a direct term in combined_score.
+    # ------------------------------------------------------------------
+    # Recover preserved and survival components (they are already computed
+    # inside `factual`).
+    if factual.assertions_total > 0:
+        preserved_component = factual.assertions_present / factual.assertions_total
+    else:
+        preserved_component = 1.0  # no assertions defined → neutral
+    survival_component = factual.error_survival_score  # 0 if no injection
+
+    # Contradiction penalty is reused from factual module (small, bounded)
+    contradiction_penalty = 0.0
+    if factual.assertions_total > 0 and factual.contradictions_present > 0:
+        contradiction_penalty = min(0.5, 0.15 * factual.contradictions_present)
+
     combined_score = (
+        0.40 * preserved_component
+        + 0.40 * (1.0 - survival_component)
+        + 0.20 * int(is_valid)
+        - contradiction_penalty
+    )
+    combined_score = max(0.0, min(1.0, combined_score))
+
+    # P0-2: keep the pre-fix formula under a named field so we can
+    # compare before/after if needed. This is NOT the primary metric.
+    combined_score_prefix_formula = (
         0.3 * int(is_valid)
         + 0.3 * keyword_score
         + 0.4 * factual.factual_accuracy_score
@@ -219,9 +303,10 @@ def evaluate_workflow_output(
         combined_score_v3 = None
 
     # pairwise comparison (only if baseline provided and judge enabled)
+    # P0-18: compare the main content (compose output), not the verify meta-comment
     pairwise = None
     if baseline_output and use_llm_judge:
-        pairwise = _pairwise_comparison(original_query, baseline_output, final_output, evaluator_model)
+        pairwise = _pairwise_comparison(original_query, baseline_output, content_text, evaluator_model)
 
     result = {
         "is_valid": is_valid,
@@ -230,6 +315,15 @@ def evaluate_workflow_output(
         "rubric": rubric,
         "assertion_score": assertion_score,
         "combined_score": combined_score,
+        "combined_score_prefix_formula": round(combined_score_prefix_formula, 4),
+        # P0-2: expose the score components so analysis can decompose
+        "combined_score_components": {
+            "preserved": round(preserved_component, 4),
+            "one_minus_survival": round(1.0 - survival_component, 4),
+            "is_valid": int(is_valid),
+            "contradiction_penalty": round(contradiction_penalty, 4),
+            "weights": {"preserved": 0.40, "one_minus_survival": 0.40, "is_valid": 0.20},
+        },
         "combined_score_legacy": combined_score_legacy,
         "combined_score_v2": combined_score_v2,
         "combined_score_v3": combined_score_v3,

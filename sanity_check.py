@@ -54,6 +54,9 @@ ANNOTATION_FIELDS = [
 ]
 
 
+from record_utils import is_baseline as _is_baseline, injection_is_valid
+
+
 def _load_records(paths: list[str]) -> list[dict]:
     out = []
     for p in paths:
@@ -93,14 +96,16 @@ def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
                 "_record": r,
             }
             for r in records
-            if r.get("error_step") is not None and r.get("error_step") != -1
+            if not _is_baseline(r)
+               and not isinstance(r.get("error_step"), list)
+               and injection_is_valid(r) is not False  # Issue α: drop no-ops
         ]
     )
     if df.empty:
         print("No error-injected traced records.")
         return
 
-    # baseline mean per (model, error_type)
+    # baseline mean per (model, error_type)  — P0-1: use is_baseline flag
     base = pd.DataFrame(
         [
             {
@@ -109,7 +114,7 @@ def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
                 "combined_score": r["evaluation"].get("combined_score", 0.0),
             }
             for r in records
-            if r.get("error_step") is None or r.get("error_step") == -1
+            if _is_baseline(r)
         ]
     )
     base_mean = base.groupby(["model", "error_type"])["combined_score"].mean().to_dict()
@@ -218,8 +223,17 @@ def _write_outputs(records: list[dict], base_mean: dict):
                 )
                 if pre:
                     f.write(f"\n**Pre-injection output at injected step**:\n\n```\n{pre[:1500]}\n```\n")
-            final = steps[-1]["output_text"] if steps else ""
-            f.write(f"\n**Final pipeline output**:\n\n```\n{final[:2000]}\n```\n\n")
+            # P0-18: show compose (index -2, the main recommendation content)
+            # and verify (index -1, the VALID/INVALID self-judgment) separately.
+            # Automated metrics are computed on compose, not verify.
+            if len(steps) >= 2:
+                compose_out = steps[-2].get("output_text", "") or ""
+                verify_out = steps[-1].get("output_text", "") or ""
+                f.write(f"\n**Recommendation (compose step — primary content)**:\n\n```\n{compose_out[:2000]}\n```\n")
+                f.write(f"\n**Self-verification (verify step)**:\n\n```\n{verify_out[:500]}\n```\n\n")
+            elif steps:
+                final = steps[-1].get("output_text", "") or ""
+                f.write(f"\n**Final pipeline output**:\n\n```\n{final[:2000]}\n```\n\n")
 
 
 def _kappa(a: list[int], b: list[int]) -> float:
