@@ -177,8 +177,28 @@ def load_single_result(filepath):
             continue
         if "model" not in d:
             d["model"] = model_name
-        if d.get("error_step") is None:
+        # P0-1: compound records have error_step=<list>; treat them as
+        # non-baseline but normalize the *step* for step-wise analyses to
+        # the first injection point (their compound nature is preserved
+        # in the compound_steps field). `is_baseline` is the primary flag.
+        es = d.get("error_step")
+        is_baseline = d.get("is_baseline")
+        if is_baseline is None:
+            # Legacy records without the flag: infer conservatively.
+            # NOTE: old compound records were buggy and had error_step=None;
+            # we cannot distinguish those from baselines after the fact, so
+            # legacy compound data should be re-run or hand-flagged.
+            is_baseline = (es is None) and (d.get("compound_steps") is None)
+        if is_baseline:
             d["error_step"] = -1
+        elif isinstance(es, list):
+            # compound: use first step for step-wise roll-ups
+            d["error_step"] = es[0] if es else -1
+            d["_compound"] = True
+        elif es is None:
+            # non-baseline but no explicit step — probably a legacy
+            # compound record; skip to avoid contaminating baselines.
+            continue
         all_data.append(d)
     return pd.DataFrame(all_data)
 
@@ -189,12 +209,22 @@ def load_all_results(results_dir="results"):
         with open(f) as file:
             data = json.load(file)
             for d in data:
-                if "error" not in d:
-                    if "model" not in d:
-                        d["model"] = model_name
-                    if d.get("error_step") is None:
-                        d["error_step"] = -1
-                    all_data.append(d)
+                if "error" in d:
+                    continue
+                if "model" not in d:
+                    d["model"] = model_name
+                es = d.get("error_step")
+                is_baseline = d.get("is_baseline")
+                if is_baseline is None:
+                    is_baseline = (es is None) and (d.get("compound_steps") is None)
+                if is_baseline:
+                    d["error_step"] = -1
+                elif isinstance(es, list):
+                    d["error_step"] = es[0] if es else -1
+                    d["_compound"] = True
+                elif es is None:
+                    continue
+                all_data.append(d)
     return pd.DataFrame(all_data)
 
 def generate_report(results_path=None, error_type=None):

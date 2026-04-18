@@ -54,6 +54,15 @@ ANNOTATION_FIELDS = [
 ]
 
 
+def _is_baseline(r: dict) -> bool:
+    """P0-1: a record is a baseline iff is_baseline=True, or (legacy
+    fallback) both error_step and compound_steps are None."""
+    flag = r.get("is_baseline")
+    if flag is not None:
+        return bool(flag)
+    return r.get("error_step") is None and r.get("compound_steps") is None
+
+
 def _load_records(paths: list[str]) -> list[dict]:
     out = []
     for p in paths:
@@ -93,14 +102,14 @@ def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
                 "_record": r,
             }
             for r in records
-            if r.get("error_step") is not None and r.get("error_step") != -1
+            if not _is_baseline(r) and not isinstance(r.get("error_step"), list)
         ]
     )
     if df.empty:
         print("No error-injected traced records.")
         return
 
-    # baseline mean per (model, error_type)
+    # baseline mean per (model, error_type)  — P0-1: use is_baseline flag
     base = pd.DataFrame(
         [
             {
@@ -109,7 +118,7 @@ def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
                 "combined_score": r["evaluation"].get("combined_score", 0.0),
             }
             for r in records
-            if r.get("error_step") is None or r.get("error_step") == -1
+            if _is_baseline(r)
         ]
     )
     base_mean = base.groupby(["model", "error_type"])["combined_score"].mean().to_dict()

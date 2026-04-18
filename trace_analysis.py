@@ -38,9 +38,22 @@ def step_survival_table(records: list[dict]) -> pd.DataFrame:
     """Return long-form DF: model, error_type, injection_step, observed_step, n, propagated_rate, mean_score."""
     buckets: dict[tuple, list[tuple[bool, float]]] = defaultdict(list)
     for r in records:
-        if not r.get("error_found_in_step") or r.get("error_step") is None:
+        if not r.get("error_found_in_step"):
             continue
-        inj = WORKFLOW_STEPS[r["error_step"]] if isinstance(r["error_step"], int) and r["error_step"] >= 0 else None
+        # P0-1: skip baselines and compound runs; handle both new and
+        # legacy representations of error_step.
+        is_baseline = r.get("is_baseline")
+        if is_baseline is None:
+            is_baseline = (r.get("error_step") is None
+                           and r.get("compound_steps") is None)
+        if is_baseline:
+            continue
+        if r.get("compound_steps"):
+            continue
+        es = r.get("error_step")
+        if isinstance(es, list) or es is None:
+            continue
+        inj = WORKFLOW_STEPS[es] if isinstance(es, int) and 0 <= es < len(WORKFLOW_STEPS) else None
         if inj is None:
             continue
         for observed_step, info in r["error_found_in_step"].items():

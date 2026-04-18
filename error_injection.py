@@ -31,10 +31,33 @@ OMISSION_FRACTION    = {1: 0.10, 2: 0.25, 3: 0.75}
 SEMANTIC_SUB_COUNT   = {1: 1, 2: 2, 3: 8}
 
 # --- Sentence splitter (replaces every text.split(". ")) ---
+# Splits on sentence-terminal punctuation followed by whitespace. The
+# terminal punctuation stays attached to each sentence token (e.g.
+# "Hello!" stays "Hello!", not "Hello"). Use `_join_sents` to
+# reconstruct text without double-punctuation artifacts like "Hello!."
 _SENT_SPLIT = re.compile(r'(?<=[.!?])\s+')
 
 def _split_sents(text):
     return [s.strip() for s in _SENT_SPLIT.split((text or "").strip()) if s.strip()]
+
+
+def _join_sents(sents):
+    """Rejoin sentences with single spaces, appending a period only if
+    the sentence has no terminal punctuation of its own. This avoids
+    the "Hello!." / "Hello?." / "Hello.." artifacts produced by
+    `". ".join(sents)` when sentences already end with punctuation."""
+    if not sents:
+        return ""
+    out = []
+    for s in sents:
+        s = s.rstrip()
+        if not s:
+            continue
+        if s[-1] in ".!?":
+            out.append(s)
+        else:
+            out.append(s + ".")
+    return " ".join(out)
 
 
 # --- POS-targeted substitution tables ---
@@ -194,11 +217,17 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
         if len(sents) > 1:
             idx = rng.randrange(len(sents))
             sents[idx] = "This information may be outdated or incorrect."
-            modified = ". ".join(sents)
+            modified = _join_sents(sents)
             delta = "SENTINEL"
 
-    meta = {"n_subs": len(delta.split(";")) if ";" in delta else (1 if delta else 0),
-            "severity_physical": len(delta.split(";")) if ";" in delta else (1 if delta and delta != "SENTINEL" else 0)}
+    # n_subs counts delta entries separated by "; "; SENTINEL counts as 1 op.
+    if ";" in delta:
+        n_ops = len(delta.split(";"))
+    elif delta:
+        n_ops = 1
+    else:
+        n_ops = 0
+    meta = {"n_subs": n_ops, "severity_physical": n_ops}
     return _maybe_return(modified, delta, return_delta, meta=meta)
 
 
@@ -216,7 +245,7 @@ def inject_factual_error(text: str, step_name: str, severity: int = 1, return_de
     positions = sorted({max(1, round((i + 1) * n / (k + 1))) for i in range(k)}, reverse=True)
     for pos, fact in zip(positions, chosen):
         sentences.insert(pos, fact)
-    modified = ". ".join(sentences)
+    modified = _join_sents(sentences)
     delta = f"INSERTED {len(chosen)}: " + " | ".join(chosen)
     meta = {"n_inserts": len(chosen), "severity_physical": len(chosen)}
     return _maybe_return(modified, delta, return_delta, meta=meta)
@@ -240,7 +269,7 @@ def inject_omission_error(text: str, step_name: str, severity: int = 1, return_d
     remove_idxs = set(rng.sample(eligible, k=n_remove))
     kept = [s for i, s in enumerate(sentences) if i not in remove_idxs]
     removed = [sentences[i] for i in sorted(remove_idxs)]
-    modified = ". ".join(kept)
+    modified = _join_sents(kept)
     delta = f"REMOVED {n_remove}/{n}: " + " | ".join(removed)
     meta = {"n_removed": n_remove, "n_total": n, "severity_physical": n_remove / n}
     return _maybe_return(modified, delta, return_delta, meta=meta)

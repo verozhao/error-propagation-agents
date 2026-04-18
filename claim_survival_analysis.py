@@ -41,15 +41,25 @@ def load_records(results_glob="results/**/*.jsonl"):
 def build_survival_matrices(records):
     results = {}
     for r in records:
-        if r.get("error_step") is None:
+        # P0-1: skip baselines (explicit flag preferred, legacy fallback)
+        is_baseline = r.get("is_baseline")
+        if is_baseline is None:
+            is_baseline = (r.get("error_step") is None
+                           and r.get("compound_steps") is None)
+        if is_baseline:
             continue
+        # skip compound runs — this analysis is single-injection only
         if r.get("compound_steps"):
+            continue
+        es = r.get("error_step")
+        if isinstance(es, list) or es is None:
+            # compound or legacy-bad record; skip
             continue
         efs = r.get("error_found_in_step") or {}
         if not efs:
             continue
         key = (r["error_type"], r.get("severity", 1))
-        inj_step_idx = r["error_step"]
+        inj_step_idx = es
         for step_name, d in efs.items():
             try:
                 obs_step_idx = WORKFLOW_STEPS.index(step_name)

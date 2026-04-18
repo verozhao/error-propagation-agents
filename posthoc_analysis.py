@@ -176,8 +176,30 @@ def information_retention(baseline: str, test: str) -> dict:
 def extract_record_features(record: dict, baselines: dict) -> dict:
     """Extract all features from one experiment record.
     baselines: dict of (model, query) -> baseline final output text."""
+    # P0-1: prefer the explicit is_baseline flag. Fall back to the legacy
+    # (error_step is None) heuristic for old records, but note that old
+    # compound records also had error_step=None and would be mis-classified
+    # as baseline — they should be re-run.
+    is_baseline = record.get("is_baseline")
+    if is_baseline is None:
+        is_baseline = (record.get("error_step") is None
+                       and record.get("compound_steps") is None)
+    if is_baseline:
+        return None
     es = record.get("error_step")
-    if es is None or es == -1:
+    # compound records carry a list; use first step for step-wise features,
+    # but keep the full list available on the record for compound-specific
+    # analysis.
+    if isinstance(es, list):
+        if not es:
+            return None
+        es_for_step = es[0]
+    elif es is None:
+        # non-baseline but missing error_step: legacy compound, skip.
+        return None
+    else:
+        es_for_step = es
+    if es_for_step == -1:
         return None
     if "evaluation" not in record:
         return None
@@ -260,14 +282,16 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
             out_len = len(_tokenize(so.get("output_text", "")))
             step_compression.append(out_len / max(in_len, 1))
 
-    rubric = ev.get("rubric", {})
+    rubric = ev.get("rubric") or {}  # rubric is None when use_llm_judge=False
 
     return {
         # identifiers
         "model": model,
         "error_type": record.get("error_type"),
-        "error_step": es,
-        "step_name": WORKFLOW_STEPS[es] if es < len(WORKFLOW_STEPS) else "?",
+        "error_step": es_for_step,
+        "step_name": WORKFLOW_STEPS[es_for_step] if es_for_step < len(WORKFLOW_STEPS) else "?",
+        "is_compound": isinstance(es, list),
+        "compound_steps": es if isinstance(es, list) else None,
         "severity": record.get("severity", 1),
         "severity_physical": severity_physical,
         "task_query": query,
@@ -330,9 +354,13 @@ def load_all_records(results_dir="results"):
                 continue
             records.append(d)
 
-            # collect baselines
-            es = d.get("error_step")
-            if es is None or es == -1:
+            # P0-1: only collect true baselines (is_baseline flag, or
+            # legacy records with no injection AND no compound_steps).
+            is_baseline = d.get("is_baseline")
+            if is_baseline is None:
+                es = d.get("error_step")
+                is_baseline = (es is None) and (d.get("compound_steps") is None)
+            if is_baseline:
                 so = d.get("step_outputs", [])
                 if so and isinstance(so[0], dict) and "output_text" in so[0]:
                     key = (d.get("model", ""), d.get("task_query", ""))
@@ -359,8 +387,12 @@ def add_failure_rates(df: pd.DataFrame, records: list) -> pd.DataFrame:
 
     bl_scores = {}
     for r in records:
-        es = r.get("error_step")
-        if es is not None and es != -1:
+        # P0-1: use is_baseline, fall back to legacy detection
+        is_baseline = r.get("is_baseline")
+        if is_baseline is None:
+            is_baseline = (r.get("error_step") is None
+                           and r.get("compound_steps") is None)
+        if not is_baseline:
             continue
         ev = r.get("evaluation", {})
         key = (r.get("model", ""), r.get("error_type", ""))

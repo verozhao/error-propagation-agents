@@ -44,10 +44,27 @@ def main():
 
     rows = []
     for r in raw_records:
+        # P0-1: normalize step for compound records (list -> first step),
+        # track is_baseline explicitly.
+        es = r["error_step"]
+        is_baseline = r.get("is_baseline")
+        if is_baseline is None:
+            is_baseline = (es is None and r.get("compound_steps") is None)
+        if is_baseline:
+            step_norm = -1
+        elif isinstance(es, list):
+            step_norm = es[0] if es else -1
+        elif es is None:
+            # legacy bad record; skip
+            continue
+        else:
+            step_norm = es
         rows.append({
             "etype": r["error_type"],
             "sev": r["severity"],
-            "step": r["error_step"] if r["error_step"] is not None else -1,
+            "step": step_norm,
+            "is_baseline": is_baseline,
+            "is_compound": isinstance(es, list),
             "score": r["evaluation"]["combined_score"],
             "quality_score": r["evaluation"].get("quality_score"),
             "combined_score_legacy": r["evaluation"].get("combined_score_legacy"),
@@ -86,7 +103,7 @@ def main():
             print(f"PASS P0-2: {etype} severity_physical = {phys.round(3).to_dict()}")
 
     # Check 3: baseline means stable across severity
-    base = df_single[df_single["step"] == -1]
+    base = df_single[df_single["is_baseline"] == True]
     if not base.empty:
         stability = base.groupby(["etype", "sev"])["score"].mean().unstack()
         max_spread = (stability.max(axis=1) - stability.min(axis=1)).max()
