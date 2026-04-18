@@ -227,8 +227,17 @@ def _write_outputs(records: list[dict], base_mean: dict):
                 )
                 if pre:
                     f.write(f"\n**Pre-injection output at injected step**:\n\n```\n{pre[:1500]}\n```\n")
-            final = steps[-1]["output_text"] if steps else ""
-            f.write(f"\n**Final pipeline output**:\n\n```\n{final[:2000]}\n```\n\n")
+            # P0-18: show compose (index -2, the main recommendation content)
+            # and verify (index -1, the VALID/INVALID self-judgment) separately.
+            # Automated metrics are computed on compose, not verify.
+            if len(steps) >= 2:
+                compose_out = steps[-2].get("output_text", "") or ""
+                verify_out = steps[-1].get("output_text", "") or ""
+                f.write(f"\n**Recommendation (compose step — primary content)**:\n\n```\n{compose_out[:2000]}\n```\n")
+                f.write(f"\n**Self-verification (verify step)**:\n\n```\n{verify_out[:500]}\n```\n\n")
+            elif steps:
+                final = steps[-1].get("output_text", "") or ""
+                f.write(f"\n**Final pipeline output**:\n\n```\n{final[:2000]}\n```\n\n")
 
 
 def _kappa(a: list[int], b: list[int]) -> float:

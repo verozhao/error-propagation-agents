@@ -225,7 +225,13 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     n_sentences_affected = 0
 
     if has_traces:
-        final_text = step_outputs[-1].get("output_text", "")
+        # P0-18: the pipeline's actual content output is at compose (index -2).
+        # The last step (verify) only produces a short VALID/INVALID
+        # meta-comment and must NOT be used for content evaluation.
+        if len(step_outputs) >= 2:
+            final_text = step_outputs[-2].get("output_text", "")
+        else:
+            final_text = step_outputs[-1].get("output_text", "")
         for so in step_outputs:
             if so.get("error_injected"):
                 pre_inj_text = so.get("pre_injection_output", "") or ""
@@ -249,7 +255,7 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     pre_words = len(pre_inj_text.split()) if pre_inj_text else 0
     post_words = len(post_inj_text.split()) if post_inj_text else 0
 
-    # baseline for TF-IDF and retention
+    # baseline for TF-IDF and retention (uses compose-step text on both sides)
     bl_key = (model, query)
     bl_text = baselines.get(bl_key, "")
 
@@ -269,10 +275,14 @@ def extract_record_features(record: dict, baselines: dict) -> dict:
     n_steps_propagated = sum(1 for v in efs.values() if v.get("propagated", False))
 
     # self-correction: did verify detect the error?
+    # P0-17: use startswith to avoid the INVALID-contains-VALID substring bug
+    # in the opposite direction (a response that happens to contain the word
+    # "invalid" somewhere should only count if it's actually the verdict).
     verify_detected = False
     if has_traces:
         verify_text = step_outputs[-1].get("output_text", "")
-        verify_detected = "INVALID" in verify_text.upper()
+        verify_upper = verify_text.strip().upper()
+        verify_detected = verify_upper.startswith("INVALID")
 
     # per-step information compression: how much does each step change its input?
     step_compression = []
@@ -365,7 +375,10 @@ def load_all_records(results_dir="results"):
                 if so and isinstance(so[0], dict) and "output_text" in so[0]:
                     key = (d.get("model", ""), d.get("task_query", ""))
                     if key not in baselines:
-                        baselines[key] = so[-1].get("output_text", "")
+                        # P0-18: compose (index -2) is the pipeline's actual
+                        # content; verify (index -1) is a meta-comment.
+                        content_idx = -2 if len(so) >= 2 else -1
+                        baselines[key] = so[content_idx].get("output_text", "")
 
     return records, baselines
 
