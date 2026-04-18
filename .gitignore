@@ -2,7 +2,22 @@ __pycache__
 .env
 .DS_Store
 .claude
+.venv/
+
+# Experiment raw outputs — too large for git, regenerable by re-running
+results/**/*.jsonl
+results/**/*.json
+results/archive_phase2/
+results/archive_pre_diagnostic/
+
+# Pre-P0A archive (local only)
+results_archive_pre_p0a_fix/
+
+# Derived stats / figures that the pipeline regenerates
 results/stats/
 results/sanity_checks/
 results/trace_analysis/
 figures/error_bars/
+
+# Stray figures at repo root (leftover from old exploratory scripts)
+/*.png
