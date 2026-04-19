@@ -159,6 +159,29 @@ def run_significance(
     if "is_compound" in df.columns:
         df = df[~df["is_compound"].fillna(False)].copy()
 
+    # D3 FIX: for semantic error type, exclude yes/no-answer queries.
+    # The semantic injector's answer-targeted swap produces no meaningful
+    # perturbation when the answer is "yes" or "no" (nothing to swap).
+    # Including these queries adds noise that dilutes real signal.
+    _yn_queries = set()
+    try:
+        from factual_accuracy import load_ground_truth
+        _gt = load_ground_truth()
+        for q, entry in _gt.items():
+            ans = entry.get("answer", "").strip().lower()
+            if ans in ("yes", "no"):
+                _yn_queries.add(q)
+        if _yn_queries:
+            _before = len(df)
+            df = df[~((df["error_type"] == "semantic")
+                       & (df["task_query"].isin(_yn_queries)))].copy()
+            _dropped = _before - len(df)
+            if _dropped > 0:
+                print(f"D3: dropped {_dropped} semantic rows from "
+                      f"{len(_yn_queries)} yes/no queries")
+    except Exception:
+        pass  # ground truth unavailable — skip filter gracefully
+
     out = []
     for (model, etype), sub in df.groupby(["model", "error_type"]):
         base = sub[sub["error_step"] == -1].set_index(["task_query", "trial"])["combined_score"]
@@ -328,6 +351,25 @@ def main():
         return
     print(f"Loaded {len(df)} trial records across {df['model'].nunique()} models, "
           f"{df['error_type'].nunique()} error types.")
+
+    # D3 FIX: globally exclude yes/no queries from semantic error analysis.
+    # Applied here so both significance tests and failure-rate CIs are
+    # consistent. The filter is also inside run_significance() for safety
+    # when called from other scripts.
+    try:
+        from factual_accuracy import load_ground_truth
+        _gt = load_ground_truth()
+        _yn = {q for q, e in _gt.items()
+               if e.get("answer", "").strip().lower() in ("yes", "no")}
+        if _yn and "task_query" in df.columns:
+            _mask = (df["error_type"] == "semantic") & (df["task_query"].isin(_yn))
+            _n_drop = _mask.sum()
+            if _n_drop > 0:
+                df = df[~_mask].copy()
+                print(f"D3: excluded {_n_drop} semantic rows "
+                      f"from {len(_yn)} yes/no queries")
+    except Exception:
+        pass
 
     sig = run_significance(df, args.conditions_per_family, correction=args.correction)
     sig.to_csv(os.path.join(args.out, "significance.csv"), index=False)

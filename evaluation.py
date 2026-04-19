@@ -208,37 +208,70 @@ def evaluate_workflow_output(
             assertion_score = hits / total
 
     # ------------------------------------------------------------------
-    # P0-2 FIX: combined_score rewrite.
+    # D1 FIX: preserved_component rewrite.
     #
-    # The old formula (0.3·is_valid + 0.3·keyword_score + 0.4·factual) had
-    # keyword_score and factual.preserved (assertion coverage) measuring
-    # nearly the same thing — for our 3 queries, 6/7 assertion keywords
-    # overlap with the expected_keywords list. That made ~64% of the score
-    # a single redundant signal ("are the query keywords still present").
+    # The old formula used assertion keyword matching for preserved_component.
+    # Problem: for HotpotQA auto-generated entries, assertion keywords are
+    # often trivially matchable (e.g. ["yes"], or entity names that appear
+    # in the query itself). This made preserved_component ≈ 1.0 for ~70%
+    # of queries regardless of injection → 40% of combined_score was
+    # dead weight with zero discriminative power.
     #
-    # The new formula separates the two orthogonal signals the experiment
-    # actually cares about:
+    # Fix: two-tier preserved_component:
+    #   Tier 1 (preferred): answer exact match. If the GT entry has an
+    #          "answer" field, check whether it appears in the compose
+    #          output. This is the purest preservation signal — did the
+    #          pipeline produce the correct answer despite injection?
+    #   Tier 2 (fallback):  non-trivial assertion matching. For manual
+    #          entries without an "answer" field, use only assertions
+    #          whose keywords are NOT already in the query text and are
+    #          not degenerate ("yes"/"no"). This filters out the ~14/50
+    #          trivially-matching assertions.
     #
-    #   preserved      (factual_accuracy_score's "assertions_present/total")
-    #                  = did the GOOD information survive?
-    #   1 - survival   (1 - claim_survival_score of injected content)
-    #                  = did the BAD information fail to propagate?
-    #   is_valid       = did verify flag the output as valid?
-    #
-    # Weights: 0.4 preserved + 0.4 (1 - survival) + 0.2 is_valid.
-    # A contradiction-penalty is already folded into factual.factual_accuracy_score
-    # via the factual_accuracy module; we retrieve `preserved` and `survival`
-    # directly from the FactualAccuracyResult to keep the formula transparent.
-    #
-    # keyword_score is still reported in the output dict for diagnostic
-    # purposes, but it is no longer a direct term in combined_score.
+    # Weights unchanged: 0.4 preserved + 0.4 (1-survival) + 0.2 is_valid.
     # ------------------------------------------------------------------
-    # Recover preserved and survival components (they are already computed
-    # inside `factual`).
-    if factual.assertions_total > 0:
-        preserved_component = factual.assertions_present / factual.assertions_total
+    # Compute preserved_component with discriminative power
+    _gt_answer = gt_entry.get("answer", "") if gt_entry else ""
+    _query_lower = original_query.lower()
+
+    if (_gt_answer
+            and _gt_answer.strip().lower() not in ("", "n/a", "yes", "no")
+            and len(_gt_answer.strip()) > 2):
+        # Tier 1: answer exact match (case-insensitive substring)
+        # Excludes yes/no because LLMs answer "Both are American" not "yes"
+        preserved_component = 1.0 if _gt_answer.lower() in content_text.lower() else 0.0
+    elif factual.assertions_total > 0:
+        # Tier 2: non-trivial assertions only
+        _nontrivial_present = 0
+        _nontrivial_total = 0
+        for _a in (gt_entry.get("assertions", []) if gt_entry else []):
+            _kws = [k.lower() for k in _a.get("keywords", [])]
+            # Skip degenerate assertions
+            if not _kws:
+                continue
+            if _kws == ["yes"] or _kws == ["no"]:
+                continue
+            if all(kw in _query_lower for kw in _kws):
+                continue  # keywords all from query text → trivially matchable
+            _nontrivial_total += 1
+            _out_lower = content_text.lower()
+            if all(kw in _out_lower for kw in _kws):
+                _nontrivial_present += 1
+                continue
+            for _alias in _a.get("aliases", []):
+                if _alias.lower() in _out_lower:
+                    _nontrivial_present += 1
+                    break
+        if _nontrivial_total > 0:
+            preserved_component = _nontrivial_present / _nontrivial_total
+        else:
+            # All assertions were trivial → fall back to original
+            preserved_component = (
+                factual.assertions_present / factual.assertions_total
+            )
     else:
         preserved_component = 1.0  # no assertions defined → neutral
+
     survival_component = factual.error_survival_score  # 0 if no injection
 
     # Contradiction penalty is reused from factual module (small, bounded)
