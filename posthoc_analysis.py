@@ -518,6 +518,15 @@ def correlation_analysis(df: pd.DataFrame, target: str = "failure_rate"):
         print(f"\nSaved: figures/posthoc_correlations.png")
         plt.close()
 
+        # Save CSV for generate_paper_figures.py (Fig 6)
+        corr_df = pd.DataFrame([
+            {"feature": k, "correlation": round(v, 4)}
+            for k, v in sorted(corrs.items(), key=lambda x: abs(x[1]), reverse=True)
+        ])
+        os.makedirs("results/stats", exist_ok=True)
+        corr_df.to_csv("results/stats/correlation_analysis.csv", index=False)
+        print(f"Saved: results/stats/correlation_analysis.csv")
+
     return corrs
 
 

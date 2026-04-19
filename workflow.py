@@ -96,6 +96,8 @@ class StepResult:
     injected_content: Optional[str] = None
     pre_injection_output: Optional[str] = None
     injection_meta: Optional[dict] = None
+    retry_attempted: bool = False
+    retry_recovered: bool = False
 
 # --- 2. Grounded Tool Usage (Real Web Search WITH CACHE) ---
 SEARCH_CACHE_FILE = "search_cache.json"
@@ -208,13 +210,20 @@ def run_workflow(
         error_step_set = set(error_step)
 
     # Mitigation Loop
+    #
+    # CRITICAL: always return the FIRST attempt's results (which contain
+    # the injection). Retry outcome is stored as metadata on the first
+    # attempt's StepResults, NOT as a replacement.
+    #
+    # Before this fix, `results = []` on attempt=1 overwrote attempt=0,
+    # causing 78% of injected records to lose their injection data.
+    first_attempt_results = None
+
     for attempt in range(max_retries + 1):
         results = []
-        # Contextual retry prompt if verification failed
         current_input = query if attempt == 0 else f"{query}\n(SYSTEM LOG: Your previous pipeline run was flagged as INVALID by the verify step. Please re-execute and correct any factual or logical errors.)"
 
         for i, step_name in enumerate(steps):
-            # print(f"    [DEBUG] Running Task: '{query[:20]}...' | Step: {step_name}")
             if step_name == "verify":
                 output = STEP_FUNCTIONS[step_name](current_input, query, model_fn)
             else:
@@ -225,7 +234,6 @@ def run_workflow(
             pre_injection_output = None
             injection_meta = None
 
-            # Only inject error on the FIRST attempt to measure if the cyclic loop can mitigate it
             if attempt == 0 and error_injection_fn and i in error_step_set:
                 pre_injection_output = output
                 try:
@@ -255,6 +263,10 @@ def run_workflow(
             )
             current_input = output
 
+        # Save first attempt (the one with injection)
+        if attempt == 0:
+            first_attempt_results = results
+
         # Check cyclic routing condition
         verify_text = results[-1].output_text
         first_token = ""
@@ -263,8 +275,14 @@ def run_workflow(
 
         is_valid = (first_token == "VALID")
         
-        # If valid, or we exhausted retries, exit cycle.
         if is_valid or attempt == max_retries:
-            return results
+            # Always return the FIRST attempt's results (with injection data).
+            # Append retry metadata so downstream analysis knows what happened.
+            if first_attempt_results is not None and attempt > 0:
+                # Tag first attempt results with retry outcome
+                for sr in first_attempt_results:
+                    sr.retry_attempted = True
+                    sr.retry_recovered = is_valid
+            return first_attempt_results if first_attempt_results is not None else results
 
-    return results
+    return first_attempt_results if first_attempt_results is not None else results

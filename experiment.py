@@ -181,6 +181,12 @@ def run_single_experiment(
         "max_retries": max_retries,
     }
 
+    # Capture retry metadata from StepResult (set by workflow.py)
+    retry_attempted = any(getattr(r, 'retry_attempted', False) for r in results)
+    retry_recovered = any(getattr(r, 'retry_recovered', False) for r in results)
+    record["retry_attempted"] = retry_attempted
+    record["retry_recovered"] = retry_recovered
+
     if save_traces:
         record["step_outputs"] = [
             {
