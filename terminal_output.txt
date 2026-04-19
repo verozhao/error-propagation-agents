@@ -1,0 +1,616 @@
+(base) test@veronicas-mbp-3 error-propagation-agents % python statistical_tests.py && python severity_analysis.py && python compound_analysis.py && python claim_survival_analysis.py && python posthoc_analysis.py && python metric_sensitivity.py && python retry_ablation_analysis.py && python generate_paper_figures.py && python generate_paper_tables.py
+Loaded 2217 trial records across 1 models, 3 error types.
+D3: excluded 151 semantic rows from 9 yes/no queries
+Wrote 12 significance rows (correction=holm).
+Wrote 12 failure-rate rows with 95% CIs.
+Loaded 2217 records: 3 severities, 1 models, 3 error types
+
+=== VULNERABILITY SCORES ===
+         model error_type step_name  vulnerability  max_failure_rate  n_severities
+claude-3-haiku    factual   compose       0.304737          0.349917             2
+claude-3-haiku    factual    filter       0.000000          0.000000             2
+claude-3-haiku    factual    search       0.000000          0.000000             2
+claude-3-haiku    factual summarize       0.000000          0.000000             2
+claude-3-haiku   omission    filter       0.000000          0.000000             1
+claude-3-haiku   omission    search       0.000000          0.000000             1
+claude-3-haiku   omission summarize       0.000000          0.000000             1
+claude-3-haiku   semantic   compose       0.000000          0.000000             1
+claude-3-haiku   semantic    filter       0.000000          0.000000             1
+claude-3-haiku   semantic    search       0.000000          0.000000             1
+claude-3-haiku   semantic summarize       0.000000          0.000000             1
+
+=== ATTENUATION FACTORS ===
+error_type step_name  mean_attenuation
+   factual   compose              -1.0
+   factual    filter               0.0
+   factual summarize               0.0
+  omission    filter               0.0
+  omission summarize               0.0
+  semantic   compose               0.0
+  semantic    filter               0.0
+  semantic summarize               0.0
+
+CSVs saved to results/stats/
+Saved: figures/factual_severity_curves.png
+Saved: figures/omission_severity_curves.png
+Saved: figures/semantic_severity_curves.png
+Saved: figures/factual_severity_heatmap.png
+Saved: figures/omission_severity_heatmap.png
+Saved: figures/semantic_severity_heatmap.png
+Saved: figures/vulnerability_ranking.png
+error_type  super_additive
+factual     False             56
+            True              18
+omission    False             98
+            True              39
+semantic    False             89
+            True              28
+dtype: int64
+
+Mean interaction delta by error_type:
+error_type
+factual     0.009527
+omission    0.067461
+semantic    0.053926
+Name: interaction_delta, dtype: float64
+Loaded 8830 records
+Saved: results/stats/claim_survival_matrix.csv
+Saved: figures/survival_matrices/semantic_sev3.png
+Saved: figures/survival_matrices/semantic_sev2.png
+Saved: figures/survival_matrices/semantic_sev1.png
+Saved: figures/survival_matrices/factual_sev1.png
+Saved: figures/survival_matrices/factual_sev3.png
+Saved: figures/survival_matrices/factual_sev2.png
+Saved: figures/survival_matrices/omission_sev2.png
+Saved: figures/survival_matrices/omission_sev3.png
+Saved: figures/survival_matrices/omission_sev1.png
+Loading experiment results...
+Found 8830 total records, 12 baseline outputs
+Extracting features...
+
+Analysis dataset: 1675 records
+  Models: ['claude-3-haiku']
+  Error types: ['factual', 'omission', 'semantic']
+  Severities: [1, 2, 3]
+  Saved: results/stats/posthoc_features.csv
+
+============================================================
+FAILURE RATE SANITY CHECK
+============================================================
+  n=1675  mean=0.063  std=0.118  min=0.000  max=0.841  unique=198
+  P10=0.000  P25=0.000  P50=0.000  P75=0.160  P90=0.235
+
+  By error type:
+    factual       n= 515  mean=0.089  std=0.152  unique=102
+    omission      n= 548  mean=0.067  std=0.107  unique=88
+    semantic      n= 612  mean=0.039  std=0.087  unique=10
+
+  Score component variation:
+    is_valid                   mean=0.996  std=0.065  unique=2
+    keyword_score              mean=0.625  std=0.484  unique=2
+    combined_score             mean=0.835  std=0.185  unique=435
+
+============================================================
+PER-QUERY ANALYSIS
+============================================================
+
+  Query: "2014 S/S is the debut album of a South Korean boy group that was formed by who?" (n=419)
+    failure_rate: mean=0.031  std=0.091
+    Top correlations with failure_rate:
+      error_step                 r = +0.290
+      severity_physical_normalized  r = +0.203
+      n_adjs                     r = -0.053
+      delta_word_count           r = +0.031
+      n_nouns                    r = +0.022
+    Mean failure rate by error type:
+      factual       mean=0.022  std=0.099  n=143
+      omission      mean=0.056  std=0.104  n=175
+      semantic      mean=0.000  std=0.000  n=101
+    Mean failure rate by severity:
+      sev=1  mean=0.013  n=114
+      sev=2  mean=0.041  n=209
+      sev=3  mean=0.031  n=96
+
+  Query: "Are Local H and For Against both from the United States?" (n=18)
+    failure_rate: mean=0.033  std=0.067
+    Top correlations with failure_rate:
+      n_adjs                     r = -0.413
+      delta_word_count           r = -0.383
+      n_nouns                    r = -0.358
+      n_words_changed            r = -0.337
+      severity_physical_normalized  r = +0.107
+    Mean failure rate by error type:
+      factual       mean=0.050  std=0.087  n=4
+      omission      mean=0.033  std=0.068  n=12
+      semantic      mean=0.000  std=0.000  n=2
+    Mean failure rate by severity:
+      sev=1  mean=0.091  n=2
+      sev=2  mean=0.006  n=8
+      sev=3  mean=0.046  n=8
+
+  Query: "Are the Laleli Mosque and Esma Sultan Mansion located in the same neighborhood?" (n=7)
+    failure_rate: mean=0.175  std=0.223
+    Top correlations with failure_rate:
+      n_adjs                     r = -0.453
+      n_nouns                    r = -0.331
+      delta_word_count           r = -0.300
+      n_words_changed            r = -0.298
+      error_step                 r = +0.261
+    Mean failure rate by error type:
+      factual       mean=0.200  std=0.233  n=6
+      omission      mean=0.027  std=nan  n=1
+    Mean failure rate by severity:
+      sev=1  mean=0.340  n=1
+      sev=2  mean=0.172  n=5
+      sev=3  mean=0.027  n=1
+
+  Query: "The arena where the Lewiston Maineiacs played their home games can seat how many people?" (n=6)
+    failure_rate: mean=0.192  std=0.012
+/Users/test/anaconda3/lib/python3.10/site-packages/numpy/lib/function_base.py:2897: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[:, None]
+/Users/test/anaconda3/lib/python3.10/site-packages/numpy/lib/function_base.py:2898: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[None, :]
+    Top correlations with failure_rate:
+      error_step                 r = +nan
+      n_adjs                     r = -0.901
+      severity_physical_normalized  r = -0.866
+      n_nouns                    r = -0.811
+      delta_word_count           r = -0.791
+    Mean failure rate by error type:
+      omission      mean=0.192  std=0.012  n=6
+    Mean failure rate by severity:
+      sev=2  mean=0.213  n=1
+      sev=3  mean=0.188  n=5
+
+  Query: "The director of the romantic comedy "Big Stone Gap" is based in what New York city?" (n=31)
+    failure_rate: mean=0.257  std=0.227
+    Top correlations with failure_rate:
+      error_step                 r = +0.448
+      n_words_changed            r = -0.165
+      n_adjs                     r = -0.153
+      severity_physical_normalized  r = +0.147
+      delta_word_count           r = -0.117
+    Mean failure rate by error type:
+      factual       mean=0.294  std=0.320  n=15
+      omission      mean=0.251  std=0.072  n=10
+      semantic      mean=0.174  std=0.000  n=6
+    Mean failure rate by severity:
+      sev=1  mean=0.372  n=5
+      sev=2  mean=0.241  n=19
+      sev=3  mean=0.216  n=7
+
+  Query: "Were Scott Derrickson and Ed Wood of the same nationality?" (n=253)
+    failure_rate: mean=0.026  std=0.085
+    Top correlations with failure_rate:
+      error_step                 r = +0.303
+      n_adjs                     r = +0.165
+      delta_word_count           r = +0.120
+      severity_physical_normalized  r = +0.115
+      n_words_changed            r = +0.054
+    Mean failure rate by error type:
+      factual       mean=0.073  std=0.131  n=89
+      omission      mean=0.003  std=0.021  n=60
+      semantic      mean=0.000  std=0.000  n=104
+    Mean failure rate by severity:
+      sev=1  mean=0.035  n=92
+      sev=2  mean=0.015  n=112
+      sev=3  mean=0.036  n=49
+
+  Query: "What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?" (n=367)
+    failure_rate: mean=0.013  std=0.065
+    Top correlations with failure_rate:
+      severity_physical_normalized  r = +0.318
+      error_step                 r = +0.274
+      n_nouns                    r = +0.154
+      n_words_changed            r = +0.141
+      delta_word_count           r = +0.137
+    Mean failure rate by error type:
+      factual       mean=0.039  std=0.109  n=88
+      omission      mean=0.013  std=0.061  n=112
+      semantic      mean=0.000  std=0.000  n=167
+    Mean failure rate by severity:
+      sev=1  mean=0.016  n=126
+      sev=2  mean=0.010  n=177
+      sev=3  mean=0.017  n=64
+
+  Query: "What is the name of the fight song of the university whose main campus is in Lawrence, Kansas and whose branch campuses are in the Kansas City metropolitan area?" (n=261)
+    failure_rate: mean=0.229  std=0.061
+    Top correlations with failure_rate:
+      error_step                 r = +0.356
+      n_nouns                    r = -0.093
+      n_words_changed            r = -0.088
+      delta_word_count           r = -0.067
+      n_adjs                     r = -0.048
+    Mean failure rate by error type:
+      factual       mean=0.238  std=0.078  n=87
+      omission      mean=0.227  std=0.046  n=75
+      semantic      mean=0.223  std=0.054  n=99
+    Mean failure rate by severity:
+      sev=1  mean=0.226  n=86
+      sev=2  mean=0.233  n=116
+      sev=3  mean=0.226  n=59
+
+  Query: "What science fantasy young adult series, told in first person, has a set of companion books narrating the stories of enslaved worlds and alien species?" (n=17)
+    failure_rate: mean=0.181  std=0.170
+    Top correlations with failure_rate:
+      n_adjs                     r = -0.446
+      error_step                 r = +0.348
+      delta_word_count           r = -0.277
+      n_words_changed            r = -0.233
+      n_nouns                    r = -0.187
+    Mean failure rate by error type:
+      factual       mean=0.180  std=0.239  n=9
+      omission      mean=0.184  std=0.044  n=6
+      semantic      mean=0.174  std=0.000  n=2
+    Mean failure rate by severity:
+      sev=1  mean=0.248  n=2
+      sev=2  mean=0.243  n=7
+      sev=3  mean=0.109  n=8
+
+  Query: "What screenwriter with credits for "Evolution" co-wrote a film starring Nicolas Cage and Téa Leoni?" (n=291)
+    failure_rate: mean=0.025  std=0.082
+    Top correlations with failure_rate:
+      delta_word_count           r = +0.296
+      n_nouns                    r = +0.294
+      n_words_changed            r = +0.286
+      n_adjs                     r = +0.222
+      severity_physical_normalized  r = +0.168
+    Mean failure rate by error type:
+      factual       mean=0.053  std=0.130  n=72
+      omission      mean=0.035  std=0.078  n=88
+      semantic      mean=0.004  std=0.026  n=131
+    Mean failure rate by severity:
+      sev=1  mean=0.020  n=87
+      sev=2  mean=0.028  n=145
+      sev=3  mean=0.028  n=59
+
+  Query: "Who is older, Annie Morton or Terry Richardson?" (n=3)
+    failure_rate: mean=0.000  std=0.000
+    Top correlations with failure_rate:
+    Mean failure rate by error type:
+      omission      mean=0.000  std=0.000  n=3
+    Mean failure rate by severity:
+      sev=2  mean=0.000  n=1
+      sev=3  mean=0.000  n=2
+
+  Query: "Who was known by his stage name Aladin and helped organizations improve their performance as a consultant?" (n=2)
+    failure_rate: mean=0.329  std=0.466
+    Top correlations with failure_rate:
+    Mean failure rate by error type:
+      factual       mean=0.329  std=0.466  n=2
+    Mean failure rate by severity:
+      sev=1  mean=0.658  n=1
+      sev=3  mean=0.000  n=1
+
+  Cross-query vulnerability ranking:
+    0.329  Who was known by his stage name Aladin and helped organizations improve their performance as a consultant?  (n=2)
+    0.257  The director of the romantic comedy "Big Stone Gap" is based in what New York city?  (n=31)
+    0.229  What is the name of the fight song of the university whose main campus is in Lawrence, Kansas and whose branch campuses are in the Kansas City metropolitan area?  (n=261)
+    0.192  The arena where the Lewiston Maineiacs played their home games can seat how many people?  (n=6)
+    0.181  What science fantasy young adult series, told in first person, has a set of companion books narrating the stories of enslaved worlds and alien species?  (n=17)
+    0.175  Are the Laleli Mosque and Esma Sultan Mansion located in the same neighborhood?  (n=7)
+    0.033  Are Local H and For Against both from the United States?  (n=18)
+    0.031  2014 S/S is the debut album of a South Korean boy group that was formed by who?  (n=419)
+    0.026  Were Scott Derrickson and Ed Wood of the same nationality?  (n=253)
+    0.025  What screenwriter with credits for "Evolution" co-wrote a film starring Nicolas Cage and Téa Leoni?  (n=291)
+    0.013  What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?  (n=367)
+    0.000  Who is older, Annie Morton or Terry Richardson?  (n=3)
+
+============================================================
+CORRELATION ANALYSIS (target: failure_rate)
+============================================================
+  [EVAL] precision                       r = -0.454
+  [EVAL] f1                              r = -0.382
+  [EVAL] recall                          r = -0.258
+  [INJ] error_step                      r = +0.180
+  [INJ] text_length_before              r = -0.146
+  [INJ] severity_physical_normalized    r = +0.110
+  [EVAL] survival_at_final               r = +0.074
+  [EVAL] unigram_retention               r = -0.060
+  [INJ] n_verbs                         r = +0.057
+  [EVAL] bigram_retention                r = -0.054
+  [EVAL] n_steps_propagated              r = +0.049
+  [INJ] n_advs                          r = +0.046
+  [INJ] injection_position              r = +0.040
+  [INJ] delta_word_count                r = +0.032
+  [INJ] n_entities                      r = +0.032
+  [INJ] n_sentences_affected            r = +0.031
+  [INJ] n_nouns                         r = +0.024
+  [EVAL] tfidf_similarity                r = +0.022
+  [INJ] n_words_changed                 r = +0.020
+  [INJ] length_change_ratio             r = +0.011
+  [INJ] n_adjs                          r = -0.004
+
+Saved: figures/posthoc_correlations.png
+
+============================================================
+NEW EVALUATION METRICS SUMMARY
+============================================================
+
+  factual:
+    tfidf_similarity           mean=0.688  std=0.235  n=515
+    precision                  mean=0.947  std=0.149  n=515
+    recall                     mean=0.903  std=0.185  n=515
+    f1                         mean=0.907  std=0.160  n=515
+    unigram_retention          mean=0.773  std=0.218  n=515
+    bigram_retention           mean=0.641  std=0.250  n=515
+
+  omission:
+    tfidf_similarity           mean=0.646  std=0.242  n=548
+    precision                  mean=1.000  std=0.000  n=548
+    recall                     mean=0.844  std=0.253  n=548
+    f1                         mean=0.887  std=0.208  n=548
+    unigram_retention          mean=0.693  std=0.240  n=548
+    bigram_retention           mean=0.554  std=0.269  n=548
+
+  semantic:
+    tfidf_similarity           mean=0.765  std=0.227  n=612
+    precision                  mean=1.000  std=0.000  n=612
+    recall                     mean=0.929  std=0.150  n=612
+    f1                         mean=0.955  std=0.105  n=612
+    unigram_retention          mean=0.830  std=0.190  n=612
+    bigram_retention           mean=0.734  std=0.229  n=612
+  Saved: figures/posthoc_tfidf_similarity_heatmap.png
+  Saved: figures/posthoc_f1_heatmap.png
+  Saved: figures/posthoc_recall_heatmap.png
+
+============================================================
+PER-ERROR-TYPE REGRESSION FORMULAS
+============================================================
+
+--- factual (n=515) ---
+  Linear   R²_train=0.200  R²_cv=-0.032 ± 0.286
+  Poly+int R²_train=0.340  R²_cv=-0.455 ± 0.772
+  FR = 0.0885 + 0.2031·delta_word_count - 0.1443·n_words_changed + 0.1337·n_sentences_affected - 0.0980·n_nouns - 0.0930·n_adjs + 0.0645·n_entities + 0.0486·error_step - 0.0443·n_advs - 0.0417·n_verbs + 0.0215·severity_physical + 0.0096·injection_position
+  Coefficients (95% CI):
+      delta_word_count           β=+0.2031  [-0.0223, +0.4078]
+    * n_words_changed            β=-0.1443  [-0.2400, -0.0568]
+    * n_sentences_affected       β=+0.1337  [+0.0434, +0.2474]
+      n_nouns                    β=-0.0980  [-0.2019, +0.0105]
+    * n_adjs                     β=-0.0930  [-0.1387, -0.0523]
+    * n_entities                 β=+0.0645  [+0.0413, +0.0848]
+    * error_step                 β=+0.0486  [+0.0341, +0.0658]
+      n_advs                     β=-0.0443  [-0.0942, +0.0061]
+      n_verbs                    β=-0.0417  [-0.1119, +0.0210]
+      severity_physical          β=+0.0215  [-0.0500, +0.0844]
+      injection_position         β=+0.0096  [-0.0122, +0.0289]
+
+--- omission (n=548) ---
+  Linear   R²_train=0.156  R²_cv=-0.135 ± 0.066
+  Poly+int R²_train=0.347  R²_cv=-1.733 ± 3.097
+  FR = 0.0671 - 0.0793·n_sentences_affected + 0.0678·severity_physical + 0.0598·delta_word_count + 0.0590·n_nouns - 0.0452·n_verbs - 0.0435·n_entities - 0.0401·n_words_changed + 0.0372·n_advs - 0.0190·injection_position + 0.0040·error_step
+  Coefficients (95% CI):
+    * n_sentences_affected       β=-0.0793  [-0.1095, -0.0480]
+    * severity_physical          β=+0.0678  [+0.0512, +0.0819]
+      delta_word_count           β=+0.0598  [-0.0612, +0.2045]
+      n_nouns                    β=+0.0590  [-0.0274, +0.1310]
+    * n_verbs                    β=-0.0452  [-0.0857, -0.0067]
+    * n_entities                 β=-0.0435  [-0.0814, -0.0045]
+      n_words_changed            β=-0.0401  [-0.1180, +0.0147]
+    * n_advs                     β=+0.0372  [+0.0190, +0.0598]
+    * injection_position         β=-0.0190  [-0.0285, -0.0086]
+      error_step                 β=+0.0040  [-0.0069, +0.0155]
+      n_adjs                     β=-0.0004  [-0.0279, +0.0272]
+
+--- semantic (n=612) ---
+  Linear   R²_train=0.082  R²_cv=-0.164 ± 0.177
+  Poly+int R²_train=0.327  R²_cv=-0.388 ± 0.442
+  FR = 0.0392 + 0.0194·delta_word_count - 0.0185·n_entities - 0.0144·n_nouns + 0.0128·n_adjs - 0.0096·n_words_changed - 0.0079·severity_physical - 0.0073·injection_position + 0.0025·n_advs - 0.0025·error_step
+  Coefficients (95% CI):
+      delta_word_count           β=+0.0194  [-0.0077, +0.0546]
+    * n_entities                 β=-0.0185  [-0.0276, -0.0100]
+      n_nouns                    β=-0.0144  [-0.0370, +0.0075]
+    * n_adjs                     β=+0.0128  [+0.0015, +0.0241]
+    * n_words_changed            β=-0.0096  [-0.0227, -0.0038]
+      severity_physical          β=-0.0079  [-0.0235, +0.0063]
+      injection_position         β=-0.0073  [-0.0167, +0.0018]
+      n_advs                     β=+0.0025  [-0.0100, +0.0134]
+      error_step                 β=-0.0025  [-0.0102, +0.0053]
+      n_verbs                    β=-0.0000  [-0.0112, +0.0099]
+      n_sentences_affected       β=-0.0000  [-0.0000, +0.0000]
+
+============================================================
+UNIVERSAL FORMULA (all error types combined)
+============================================================
+  n = 1675
+  Linear   R²_train=0.085  R²_cv=-0.193 ± 0.351
+  Poly+int R²_train=0.280  R²_cv=-1.489 ± 1.962
+  FR = 0.0635 + 0.0436·delta_word_count - 0.0358·etype_semantic - 0.0255·n_adjs - 0.0228·n_words_changed - 0.0216·etype_omission - 0.0156·n_sentences_affected + 0.0150·n_advs + 0.0145·severity_physical_normalized + 0.0143·error_step - 0.0136·n_verbs + 0.0064·n_entities + 0.0030·n_nouns + 0.0013·injection_position
+
+  Top 5 predictors:
+    delta_word_count                β = +0.0436
+    etype_semantic                  β = -0.0358
+    n_adjs                          β = -0.0255
+    n_words_changed                 β = -0.0228
+    etype_omission                  β = -0.0216
+
+============================================================
+STEP ATTENUATION FACTORS
+============================================================
+  A > 0 = error buffer (good), A < 0 = error amplifier (bad)
+
+  Mean attenuation by error type and step:
+step        filter  summarize  compose
+error_type                            
+factual     -0.539      0.348   -2.000
+omission    -0.474     -0.185   -0.883
+semantic    -0.340      0.446   -0.256
+  Saved: figures/posthoc_attenuation.png
+
+Saved: figures/posthoc_severity_curves.png
+
+============================================================
+DISTRIBUTIONAL ANALYSIS
+============================================================
+
+  Percentile table (failure_rate):
+  condition                            P50  P75  P90  P95   mean    n
+  ---------------------------------------------------------------------
+  factual sev=1                        0.000  0.180  0.307  0.453  0.099   190
+  factual sev=2                        0.000  0.198  0.255  0.315  0.086   207
+  factual sev=3                        0.000  0.180  0.225  0.257  0.075   118
+  omission sev=1                       0.000  0.000  0.183  0.281  0.042   145
+  omission sev=2                       0.000  0.183  0.247  0.286  0.066   314
+  omission sev=3                       0.160  0.196  0.224  0.243  0.111    89
+  semantic sev=1                       0.000  0.000  0.174  0.174  0.035   181
+  semantic sev=2                       0.000  0.000  0.215  0.256  0.042   279
+  semantic sev=3                       0.000  0.000  0.208  0.215  0.039   152
+
+  P(failure_rate > threshold):
+  condition                            >05%  >10%  >20%  >30%  >50%
+  -------------------------------------------------------------------
+  factual sev=1                        0.34   0.34   0.24   0.11   0.03 
+  factual sev=2                        0.31   0.29   0.25   0.06   0.03 
+  factual sev=3                        0.31   0.30   0.23   0.03   0.03 
+  omission sev=1                       0.21   0.19   0.10   0.00   0.00 
+  omission sev=2                       0.27   0.27   0.21   0.04   0.00 
+  omission sev=3                       0.54   0.54   0.22   0.04   0.00 
+  semantic sev=1                       0.17   0.17   0.04   0.04   0.00 
+  semantic sev=2                       0.19   0.19   0.10   0.01   0.00 
+  semantic sev=3                       0.17   0.17   0.14   0.02   0.00 
+
+  Saved: figures/posthoc_degradation_pdf.png
+  Saved: figures/posthoc_degradation_cdf.png
+
+  Per-step percentiles (P50 / P90):
+  error_type   sev            search          filter       summarize         compose          verify
+  factual        1    0.00/0.18      0.00/0.27      0.00/0.23      0.25/0.54                  --
+  factual        2    0.00/0.25      0.00/0.27      0.00/0.21      0.21/0.74                  --
+  factual        3    0.00/0.22      0.00/0.20      0.00/0.21      0.24/0.57                  --
+  omission       1    0.00/0.19      0.00/0.07      0.00/0.23                  --              --
+  omission       2    0.00/0.21      0.00/0.26      0.00/0.24      0.19/0.29                  --
+  omission       3    0.00/0.20      0.17/0.31      0.16/0.21      0.19/0.23                  --
+  semantic       1    0.00/0.17      0.00/0.17      0.00/0.00      0.00/0.34                  --
+  semantic       2    0.00/0.20      0.00/0.26      0.00/0.17      0.00/0.00                  --
+  semantic       3    0.00/0.20      0.00/0.21      0.00/0.26      0.00/0.00                  --
+
+============================================================
+SELF-CORRECTION & ACTION SPACE ANALYSIS
+============================================================
+
+  Step Action Spaces:
+    search        observes: original query only
+                  detects:  none (generates from scratch)
+                  corrects: no prior step to correct
+    filter        observes: search results
+                  detects:  irrelevant/low-quality results
+                  corrects: remove suspicious entries
+    summarize     observes: filtered results
+                  detects:  contradictions within results
+                  corrects: omit conflicting claims
+    compose       observes: summary only
+                  detects:  incoherence, off-topic content
+                  corrects: rephrase, reframe
+    verify        observes: recommendation + original query
+                  detects:  factual issues, query mismatch
+                  corrects: flag INVALID (but does not rewrite)
+
+  Verify Detection Rate (did verify flag INVALID?):
+step_name   search  filter  summarize  compose
+error_type                                    
+factual      0.012   0.007      0.014    0.036
+omission     0.000   0.000      0.000    0.000
+semantic     0.000   0.000      0.000    0.000
+
+  Failure Rate: verify detected vs. not detected:
+    error_type      detected    not_detected     delta   n_det   n_not
+    factual            0.218           0.087    +0.131       7     508
+
+  Verify Detection Rate by Severity:
+severity      1    2      3
+error_type                 
+factual     0.0  0.0  0.059
+omission    0.0  0.0  0.000
+semantic    0.0  0.0  0.000
+
+  Error Survival Decay Across Steps (mean survival_score):
+observed_at  search  filter  summarize  compose  verify
+error_type                                             
+factual       0.055   0.059      0.064    0.029   0.012
+omission      0.103   0.072      0.056    0.035   0.029
+semantic      0.024   0.024      0.017    0.009   0.001
+
+  Saved: figures/posthoc_self_correction.png
+  Saved: figures/posthoc_survival_decay.png
+
+  Regression with self-correction variable:
+    R²_train=0.059  R²_cv=-0.348 ± 0.382
+      n_words_changed            beta=-0.0329
+      delta_word_count           beta=+0.0219
+      error_step                 beta=+0.0214
+      n_verbs                    beta=+0.0203
+      n_entities                 beta=+0.0195
+    (verify_detected beta=+0.0073)
+
+  Saved: results/stats/regression_formulas.json
+
+Done.
+    w_preserved  w_survival  w_valid  mean_failure_rate  bl_mean  inj_mean
+0           0.2         0.3      0.5             0.0000   0.7330    0.9069
+1           0.2         0.4      0.4             0.0000   0.7720    0.8952
+2           0.2         0.5      0.3             0.0000   0.8109    0.8836
+3           0.2         0.6      0.2             0.0000   0.8498    0.8721
+4           0.3         0.2      0.5             0.0000   0.6969    0.8965
+5           0.3         0.3      0.4             0.0000   0.7358    0.8848
+6           0.3         0.4      0.3             0.0000   0.7747    0.8733
+7           0.3         0.5      0.2             0.0000   0.8137    0.8617
+9           0.4         0.2      0.4             0.0000   0.6996    0.8745
+10          0.4         0.3      0.3             0.0000   0.7386    0.8629
+11          0.4         0.4      0.2             0.0000   0.7775    0.8515
+12          0.4         0.5      0.1             0.0000   0.8164    0.8404
+14          0.5         0.3      0.2             0.0000   0.7413    0.8413
+13          0.5         0.2      0.3             0.0000   0.7024    0.8526
+15          0.5         0.4      0.1             0.0000   0.7803    0.8302
+16          0.6         0.2      0.2             0.0000   0.7052    0.8311
+17          0.6         0.3      0.1             0.0000   0.7441    0.8201
+8           0.3         0.6      0.1             0.0024   0.8526    0.8505
+Records loaded: 17660 total
+  retry-on:  17640
+  retry-off: 20
+
+=== Verify Detection Rate ===
+         model error_type  n_trials  n_flagged  detection_rate
+claude-3-haiku    factual      1030         14        0.013592
+claude-3-haiku   omission      1096          0        0.000000
+claude-3-haiku   semantic      1224          0        0.000000
+
+=== Retry Ablation Results ===
+         model error_type  fr_with_retry  fr_without_retry  delta  pct_reduction  n_retry_on  n_retry_off
+claude-3-haiku    factual              0            0.1822 0.1822          100.0        1014           16
+claude-3-haiku   semantic              0               NaN    NaN            NaN        1224            0
+claude-3-haiku   omission              0               NaN    NaN            NaN        1096            0
+
+Mean failure rate reduction from single retry: 100.0%
+  Wrote figures/paper/fig1_propagation_curves.pdf
+  Wrote figures/paper/fig2_severity_dose_response.pdf
+Traceback (most recent call last):
+  File "/Users/test/error-propagation-agents/generate_paper_figures.py", line 265, in <module>
+    main()
+  File "/Users/test/error-propagation-agents/generate_paper_figures.py", line 257, in main
+    fig3_survival_heatmap()
+  File "/Users/test/error-propagation-agents/generate_paper_figures.py", line 154, in fig3_survival_heatmap
+    sns.heatmap(pivot, annot=True, fmt=".2f", cmap="YlOrRd", ax=ax,
+  File "/Users/test/anaconda3/lib/python3.10/site-packages/seaborn/matrix.py", line 446, in heatmap
+    plotter = _HeatMapper(data, vmin, vmax, cmap, center, robust, annot, fmt,
+  File "/Users/test/anaconda3/lib/python3.10/site-packages/seaborn/matrix.py", line 163, in __init__
+    self._determine_cmap_params(plot_data, vmin, vmax,
+  File "/Users/test/anaconda3/lib/python3.10/site-packages/seaborn/matrix.py", line 197, in _determine_cmap_params
+    calc_data = plot_data.astype(float).filled(np.nan)
+ValueError: could not convert string to float: 'search'
+(base) test@veronicas-mbp-3 error-propagation-agents % python generate_paper_figures.py
+  Wrote figures/paper/fig1_propagation_curves.pdf
+  Wrote figures/paper/fig2_severity_dose_response.pdf
+  Wrote figures/paper/fig3_survival_heatmap.pdf
+  Wrote figures/paper/fig4_compound_interaction.pdf
+  Wrote figures/paper/fig5_attenuation_factors.pdf
+Skipping Fig 6: no correlation CSV found
+
+All figures saved to figures/paper/
+(base) test@veronicas-mbp-3 error-propagation-agents % python generate_paper_tables.py
+Wrote paper/tables/table1_propagation.tex
+Wrote paper/tables/table2_significance.tex
+Wrote paper/tables/table3_compound.tex
+Wrote paper/tables/table4_severity.tex
+Skipping Table 5: results/stats/langchain_comparison.csv not found
+Wrote paper/tables/table6_verify_detection.tex
+Wrote paper/tables/table7_metric_sensitivity.tex
