@@ -70,7 +70,7 @@ class LocalModel:
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
     
-    def generate(self, prompt: str, max_tokens: int = 256, temperature: float = 0.7) -> str:
+    def generate(self, prompt: str, max_tokens: int = 256, temperature: float = 0.0) -> str:
         messages = [{"role": "user", "content": prompt}]
         text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = self.tokenizer(text, return_tensors="pt").to(self.model.device)

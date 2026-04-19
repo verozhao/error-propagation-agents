@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from config import WORKFLOW_STEPS
+from record_utils import is_baseline, injection_is_valid
 
 RESULTS_DIR = "results"
 MODEL = "gpt-4o-mini"
@@ -27,8 +28,20 @@ def load_error_type(error_type_dir: str) -> pd.DataFrame:
         for r in data:
             if "error" in r:
                 continue
+            if is_baseline(r):
+                step = -1
+            else:
+                if injection_is_valid(r) is False:
+                    continue  # drop no-op injections
+                es = r.get("error_step")
+                if isinstance(es, list):
+                    step = es[0] if es else -1
+                elif es is None:
+                    continue  # legacy compound misclassified as non-baseline
+                else:
+                    step = es
             rows.append({
-                "error_step": r["error_step"] if r["error_step"] is not None else -1,
+                "error_step": step,
                 "combined_score": r["evaluation"].get("combined_score") or r["evaluation"].get("combined", 0),
                 "error_type": error_type_dir,
             })

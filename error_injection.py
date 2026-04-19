@@ -304,18 +304,131 @@ ERROR_SUBSTITUTIONS = {
     "signal": "smoke signal",
     "encryption": "decoration",
     "network": "cobweb",
+    # --- Generic cross-domain expansions (Phase 7) ---
+    # Common adjectives/adverbs appearing in any factual text
+    "important": "trivial", "significant": "negligible",
+    "major": "minor", "primary": "secondary",
+    "correct": "incorrect", "true": "false",
+    "known": "obscure", "famous": "unknown",
+    "successful": "failed", "first": "last",
+    "largest": "smallest", "oldest": "newest",
+    "original": "derivative", "independent": "dependent",
+    "official": "unofficial", "direct": "indirect",
+    "complete": "incomplete", "modern": "ancient",
+    "positive": "negative", "active": "inactive",
+    "public": "private", "common": "rare",
+    "standard": "nonstandard", "typical": "atypical",
+    "central": "peripheral", "native": "foreign",
+    "genuine": "counterfeit", "permanent": "temporary",
+    "essential": "optional", "dominant": "subordinate",
+    # Common verbs in factual prose
+    "won": "lost", "founded": "dissolved",
+    "created": "destroyed", "discovered": "concealed",
+    "established": "abolished", "confirmed": "denied",
+    "increased": "decreased", "expanded": "contracted",
+    "accepted": "rejected", "supported": "opposed",
+    "succeeded": "failed", "led": "followed",
+    "introduced": "withdrew", "published": "retracted",
+    # Relationship/quantity words critical for multi-hop QA
+    "both": "neither", "same": "different",
+    "also": "however", "together": "separately",
+    "similar": "dissimilar", "equal": "unequal",
+    "before": "after", "above": "below",
+    "more": "fewer", "most": "least",
+    "all": "none", "always": "never",
 }
 
+# ---------------------------------------------------------------------------
+# Answer-targeted injection (Phase 7): builds per-query swap tables from
+# ground_truth.json so that semantic corruptions attack answer-critical
+# words rather than relying on a domain-specific static dictionary.
+# Zero API cost — uses pre-existing ground truth data.
+# ---------------------------------------------------------------------------
+
+# Category-aware swap pools for answer-targeted injection
+_NATIONALITY_SWAPS = {
+    "american": "British", "british": "American", "canadian": "Australian",
+    "australian": "Canadian", "french": "German", "german": "French",
+    "japanese": "Korean", "korean": "Japanese", "chinese": "Indian",
+    "indian": "Chinese", "italian": "Spanish", "spanish": "Italian",
+    "russian": "Polish", "mexican": "Brazilian", "brazilian": "Mexican",
+    "swedish": "Norwegian", "dutch": "Belgian", "irish": "Scottish",
+}
+_BOOLEAN_SWAPS = {"yes": "no", "no": "yes", "both": "neither",
+                   "same": "different", "different": "same"}
+_TEMPORAL_JITTER = 7  # shift years by ±7 to create plausible wrong dates
+
+
+def _build_answer_targeted_swaps(query: str, ground_truth: dict,
+                                  text: str) -> dict:
+    """Build a per-query swap table from ground_truth answer keywords.
+
+    Returns a dict {original_lower: replacement} that targets words
+    critical to the correct answer. Swaps are chosen to be plausible
+    but wrong — e.g. nationality flips, boolean negations, entity
+    replacements from the same category.
+    """
+    if not ground_truth:
+        return {}
+    gt_entry = ground_truth.get(query)
+    if not gt_entry:
+        return {}
+
+    table = {}
+    text_lower = text.lower()
+
+    for assertion in gt_entry.get("assertions", []):
+        for kw in assertion.get("keywords", []):
+            kw_lower = kw.lower()
+            if len(kw_lower) < 3 or kw_lower not in text_lower:
+                continue  # skip short words and words not in text
+            # Nationality swap
+            if kw_lower in _NATIONALITY_SWAPS:
+                table[kw_lower] = _NATIONALITY_SWAPS[kw_lower]
+            # Boolean swap
+            elif kw_lower in _BOOLEAN_SWAPS:
+                table[kw_lower] = _BOOLEAN_SWAPS[kw_lower]
+            # Year/number swap
+            elif kw_lower.isdigit() and len(kw_lower) == 4:
+                table[kw_lower] = str(int(kw_lower) - _TEMPORAL_JITTER)
+
+    return table
+
+
+# Domain-neutral fake facts (replace product-specific originals)
 FAKE_FACTS = [
-    "According to recent studies, this has been discontinued.",
-    "Note: This product was recalled in 2023.",
-    "Warning: Multiple reports indicate quality issues.",
-    "A 2024 lawsuit found this option to be unsafe.",
-    "This option has been banned in several regions.",
-    "Independent reviewers have flagged this as fraudulent.",
-    "Recent benchmarks show this performs worst in its category.",
-    "Manufacturer announced an end-of-life notice for this product.",
+    "However, recent scholarship has called this claim into question.",
+    "Note: Several peer-reviewed sources dispute this information.",
+    "According to a 2024 correction, the above contains factual errors.",
+    "Warning: This assertion has been flagged as potentially inaccurate.",
+    "An independent review found significant discrepancies in these details.",
+    "Updated records indicate the above information may be outdated.",
+    "Contrary to the above, multiple authoritative sources disagree.",
+    "A recent fact-check rated this claim as misleading.",
+    "This account has been contradicted by primary source documents.",
+    "Subsequent investigations revealed errors in the original reporting.",
 ]
+
+
+def _get_query_fake_facts(query: str, ground_truth: dict, rng) -> list[str]:
+    """Return fake facts tailored to the query. Uses ground_truth
+    contradictions when available, padded with domain-neutral facts
+    to ensure enough material for higher severity levels (k up to 8)."""
+    pool = []
+    if ground_truth:
+        gt_entry = ground_truth.get(query)
+        if gt_entry:
+            contras = list(gt_entry.get("contradictions", []))
+            if contras:
+                rng.shuffle(contras)
+                pool.extend(contras)
+    # Pad with generic facts to ensure pool >= 10 for severity 3
+    generic = list(FAKE_FACTS)
+    rng.shuffle(generic)
+    for g in generic:
+        if g not in pool:
+            pool.append(g)
+    return pool
 
 
 def _maybe_return(modified, delta, return_delta, meta=None):
@@ -328,7 +441,8 @@ def _maybe_return(modified, delta, return_delta, meta=None):
 
 def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
                           pos_target: str | None = None, tfidf_target: str | None = None,
-                          rng=None):
+                          rng=None, query: str | None = None,
+                          ground_truth: dict | None = None):
     rng = rng or random
     max_subs = SEMANTIC_SUB_COUNT.get(int(severity), 1)
 
@@ -342,18 +456,39 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
     elif tfidf_target in ("high", "low"):
         modified, delta = _apply_tfidf_targeted_swap(text, tfidf_target, ERROR_SUBSTITUTIONS)
     else:
-        # Default: iterate dictionary, each match counts toward max_subs, ONE occurrence per match
         swaps = []
-        items = list(ERROR_SUBSTITUTIONS.items())
-        rng.shuffle(items)  # avoid dictionary-order bias
-        for original, replacement in items:
-            if len(swaps) >= max_subs:
-                break
-            pat = re.compile(re.escape(original), re.IGNORECASE)
-            new_modified, n = pat.subn(replacement, modified, count=1)
-            if n > 0:
-                modified = new_modified
-                swaps.append((original, replacement))
+
+        # Layer 1: answer-targeted swaps (highest priority — attacks answer-
+        # critical words using ground_truth). These fire reliably on any
+        # query domain because the swap table is built from the query's own
+        # answer keywords, not from a fixed domain dictionary.
+        if query and ground_truth:
+            targeted_table = _build_answer_targeted_swaps(query, ground_truth, text)
+            items = list(targeted_table.items())
+            rng.shuffle(items)
+            for original, replacement in items:
+                if len(swaps) >= max_subs:
+                    break
+                pat = re.compile(re.escape(original), re.IGNORECASE)
+                new_modified, n = pat.subn(replacement, modified, count=1)
+                if n > 0:
+                    modified = new_modified
+                    swaps.append((original, replacement))
+
+        # Layer 2: generic dictionary (fills remaining quota if answer-
+        # targeted swaps didn't exhaust max_subs)
+        if len(swaps) < max_subs:
+            items = list(ERROR_SUBSTITUTIONS.items())
+            rng.shuffle(items)
+            for original, replacement in items:
+                if len(swaps) >= max_subs:
+                    break
+                pat = re.compile(re.escape(original), re.IGNORECASE)
+                new_modified, n = pat.subn(replacement, modified, count=1)
+                if n > 0:
+                    modified = new_modified
+                    swaps.append((original, replacement))
+
         if swaps:
             delta = "; ".join(f"{o}->{r}" for o, r in swaps)
 
@@ -378,14 +513,17 @@ def inject_semantic_error(text: str, step_name: str, severity: int = 1, return_d
 
 
 def inject_factual_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
-                         rng=None):
+                         rng=None, query: str | None = None,
+                         ground_truth: dict | None = None):
     rng = rng or random
     k = FACTUAL_INSERT_COUNT.get(int(severity), 1)
     sentences = _split_sents(text)
     if not sentences:
         return _maybe_return(text, "", return_delta, meta={"n_inserts": 0, "severity_physical": 0})
 
-    chosen = rng.sample(FAKE_FACTS, k=min(k, len(FAKE_FACTS)))
+    # Use query-specific contradictions when available, else domain-neutral
+    fact_pool = _get_query_fake_facts(query, ground_truth, rng) if query else list(FAKE_FACTS)
+    chosen = rng.sample(fact_pool, k=min(k, len(fact_pool)))
     # insert at evenly-spaced positions, back-to-front so indices stay valid
     n = len(sentences)
     positions = sorted({max(1, round((i + 1) * n / (k + 1))) for i in range(k)}, reverse=True)
@@ -398,7 +536,8 @@ def inject_factual_error(text: str, step_name: str, severity: int = 1, return_de
 
 
 def inject_omission_error(text: str, step_name: str, severity: int = 1, return_delta: bool = False,
-                          rng=None):
+                          rng=None, query: str | None = None,
+                          ground_truth: dict | None = None):
     rng = rng or random
     rho = OMISSION_FRACTION.get(int(severity), 0.10)
     sentences = _split_sents(text)

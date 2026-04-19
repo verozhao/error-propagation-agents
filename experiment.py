@@ -89,6 +89,10 @@ def run_single_experiment(
         error_kwargs["pos_target"] = pos_target
     if error_fn and tfidf_target:
         error_kwargs["tfidf_target"] = tfidf_target
+    # Pass query + ground_truth for answer-targeted injection (Phase 7)
+    if error_fn:
+        error_kwargs["query"] = task["query"]
+        error_kwargs["ground_truth"] = ground_truth
 
     results = run_workflow(
         query=task["query"],
