@@ -7,13 +7,13 @@ Per-trial token estimates derived from midterm data:
 
 GATEWAY_PRICING = {
     "gpt-4.1-mini": {"in": 0.40, "out": 1.60},
-    "gpt-4o-mini-2024-07-18": {"in": 0.18, "out": 0.73},
+    "gpt-4o-mini-2024-07-18": {"in": 0.15, "out": 0.60},
     "claude-3-haiku-20240307": {"in": 0.25, "out": 1.25},
     "claude-3-5-sonnet-20241022": {"in": 3.00, "out": 15.00},
     "claude-sonnet-4-20250514-v1:0": {"in": 3.00, "out": 15.00},
     "claude-haiku-4-5-20251001-v1:0": {"in": 1.00, "out": 5.00},
-    "gemini-2.5-flash": {"in": 0.15, "out": 0.60},
-    "gemini-2.5-pro": {"in": 1.25, "out": 5.00},
+    "gemini-2.5-flash": {"in": 0.07, "out": 0.30},
+    "gemini-2.5-pro": {"in": 3.50, "out": 10.50},
 }
 
 INPUT_TOK_PER_TRIAL = 10_000

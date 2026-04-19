@@ -36,14 +36,14 @@ API_MODELS = {
 
 # CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
 CMU_GATEWAY_MODELS = {
-    "gpt-4o": "gpt-4.1-mini",
-    "gpt-4o-mini": "gpt-4.1-mini",
+    "gpt-4o": "gpt-4o-2024-08-06",
+    "gpt-4o-mini": "gpt-4o-mini-2024-07-18",
     "claude-sonnet-4-20250514": "claude-sonnet-4-20250514-v1:0",
     "claude-haiku-4-20250414": "claude-haiku-4-5-20251001-v1:0",
     "claude-3-haiku-20240307": "claude-3-haiku-20240307",
     "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
-    "gemini-1.5-pro": "gemini-2.5-pro",
-    "gemini-1.5-flash": "gemini-2.5-flash",
+    "gemini-1.5-pro": "gemini-1.5-pro-002",
+    "gemini-1.5-flash": "gemini-1.5-flash-002",
 }
 
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
