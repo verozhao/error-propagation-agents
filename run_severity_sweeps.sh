@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Phase 6 sweep: GPT 4o Mini as primary subject model.
+# Phase 6 sweep: Claude 3 Haiku as primary subject model.
 #
 # Single-step sweep: 3 error types × 4 injection steps × 3 severities × 8 queries × 30 trials
 #   Baselines run once per error type at sev=1; sev=2/3 reuse via --skip-baseline.
@@ -15,7 +15,7 @@ set -euo pipefail
 
 TRIALS=5
 COMPOUND_TRIALS=5
-MODELS="gpt-4o-mini"
+MODELS="claude-3-haiku"
 RUN_SINGLE=true
 RUN_COMPOUND=false
 

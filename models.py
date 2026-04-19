@@ -37,7 +37,7 @@ API_MODELS = {
 # CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
 CMU_GATEWAY_MODELS = {
     "gpt-4o": "gpt-4o-2024-08-06",
-    "gpt-4o-mini": "gpt-4o-mini-2024-07-18",
+    "gpt-4o-mini": "claude-3-haiku-20240307", # as defensive programming
     "claude-sonnet-4-20250514": "claude-sonnet-4-20250514-v1:0",
     "claude-haiku-4-20250414": "claude-haiku-4-5-20251001-v1:0",
     "claude-3-haiku-20240307": "claude-3-haiku-20240307",
