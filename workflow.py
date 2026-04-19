@@ -1,4 +1,6 @@
 import os
+import json
+import time
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
@@ -35,21 +37,51 @@ class StepResult:
     pre_injection_output: Optional[str] = None
     injection_meta: Optional[dict] = None
 
-# --- 2. Grounded Tool Usage (Real Web Search) ---
+# --- 2. Grounded Tool Usage (Real Web Search WITH CACHE) ---
+SEARCH_CACHE_FILE = "search_cache.json"
+
+def load_search_cache():
+    if os.path.exists(SEARCH_CACHE_FILE):
+        with open(SEARCH_CACHE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def save_search_cache(cache):
+    with open(SEARCH_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, ensure_ascii=False)
+
+# Globally load the cache
+_GLOBAL_SEARCH_CACHE = load_search_cache()
+
 def step_search(query: str, model_fn: Callable) -> str:
-    try:
-        # from duckduckgo_search import DDGS
-        from ddgs import DDGS
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=5))
-        if results:
-            formatted = "\n".join([f"{i+1}. {r['title']}: {r['body']}" for i, r in enumerate(results)])
-            return f"Real web search results for '{query}':\n{formatted}"
-    except Exception:
-        pass # Fallback if API rate-limited
+    # 1. If cache hit, return the strictly consistent real search results
+    # (ensures absolute variable control across 39 experimental conditions)
+    if query in _GLOBAL_SEARCH_CACHE:
+        return _GLOBAL_SEARCH_CACHE[query]
     
-    prompt = f"You are a search engine. Return 5 relevant results for: '{query}'. Format: numbered list with title and one-sentence description."
-    return model_fn(prompt)
+    # 2. If cache miss, call the real API (with retries and anti-ban delay)
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            from ddgs import DDGS
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=5))
+            if results:
+                formatted = "\n".join([f"{i+1}. {r['title']}: {r['body']}" for i, r in enumerate(results)])
+                final_text = f"Real web search results for '{query}':\n{formatted}"
+                
+                # Write to cache and save
+                _GLOBAL_SEARCH_CACHE[query] = final_text
+                save_search_cache(_GLOBAL_SEARCH_CACHE)
+                time.sleep(1) # Polite delay to prevent DuckDuckGo rate limiting
+                return final_text
+        except Exception as e:
+            print(f"Search API wait... attempt {attempt+1}/{max_retries} for query: '{query}'")
+            time.sleep(5 * (attempt + 1)) # Exponential backoff
+            
+    # 3. Fatal error: If real search fails completely, raise an exception to halt the trial. 
+    # NEVER let the LLM hallucinate fake data to preserve experimental validity!
+    raise RuntimeError(f"Grounded Search Failed for query: {query}. Halting to preserve experimental validity.")
 
 def step_filter(search_results: str, model_fn: Callable) -> str:
     prompt = f"Filter the following search results to keep only the top 3 most relevant and high-quality results:\n\n{search_results}\n\nReturn only the filtered list."
