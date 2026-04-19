@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "status": "DRAFT \u2014 8 queries across 8 domains, needs human review",
+    "status": "DRAFT — 58 queries (8 manual + 50 auto-generated from HotpotQA)",
     "drafted_by": "Claude, 2026-04-06",
     "schema": {
       "assertions": "facts a correct answer should preserve. `keywords` are the minimal set of tokens that must co-occur (case-insensitive) for the assertion to count as 'present' via lexical match. `aliases` are alternative surface forms.",
       "contradictions": "claims that, if present in the output, indicate the model has been led astray (e.g. by an injected error)."
     },
-    "n_queries": 8
+    "n_queries": 58
   },
   "queries": [
     {
@@ -807,6 +807,1766 @@
         "was recalled in 2023",
         "end-of-life notice"
       ]
+    },
+    {
+      "query": "Were Scott Derrickson and Ed Wood of the same nationality?",
+      "source": "hotpotqa_auto",
+      "answer": "yes",
+      "assertions": [
+        {
+          "text": "The answer to 'Were Scott Derrickson and Ed Wood of the same nationality?' is yes",
+          "keywords": [
+            "yes"
+          ],
+          "aliases": [
+            "yes"
+          ]
+        },
+        {
+          "text": "References Were Scott Derrickson (from query context)",
+          "keywords": [
+            "scott",
+            "derrickson"
+          ],
+          "aliases": [
+            "Were Scott Derrickson"
+          ]
+        },
+        {
+          "text": "References Ed Wood (from query context)",
+          "keywords": [
+            "ed",
+            "wood"
+          ],
+          "aliases": [
+            "Ed Wood"
+          ]
+        },
+        {
+          "text": "References Scott Derrickson (from query context)",
+          "keywords": [
+            "scott",
+            "derrickson"
+          ],
+          "aliases": [
+            "Scott Derrickson"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is no"
+      ]
+    },
+    {
+      "query": "What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?",
+      "source": "hotpotqa_auto",
+      "answer": "Chief of Protocol",
+      "assertions": [
+        {
+          "text": "The answer includes: Chief of Protocol",
+          "keywords": [
+            "chief",
+            "protocol"
+          ],
+          "aliases": [
+            "Chief of Protocol"
+          ]
+        },
+        {
+          "text": "References Corliss Archer (from query context)",
+          "keywords": [
+            "corliss",
+            "archer"
+          ],
+          "aliases": [
+            "Corliss Archer"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What science fantasy young adult series, told in first person, has a set of companion books narrating the stories of enslaved worlds and alien species?",
+      "source": "hotpotqa_auto",
+      "answer": "Animorphs",
+      "assertions": [
+        {
+          "text": "The answer includes: Animorphs",
+          "keywords": [
+            "animorphs"
+          ],
+          "aliases": [
+            "Animorphs"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are the Laleli Mosque and Esma Sultan Mansion located in the same neighborhood?",
+      "source": "hotpotqa_auto",
+      "answer": "no",
+      "assertions": [
+        {
+          "text": "The answer to 'Are the Laleli Mosque and Esma Sultan Mansion located in the same neighborhood?' is no",
+          "keywords": [
+            "no"
+          ],
+          "aliases": [
+            "no"
+          ]
+        },
+        {
+          "text": "References Laleli Mosque (from query context)",
+          "keywords": [
+            "laleli",
+            "mosque"
+          ],
+          "aliases": [
+            "Laleli Mosque"
+          ]
+        },
+        {
+          "text": "References Esma Sultan Mansion (from query context)",
+          "keywords": [
+            "esma",
+            "sultan",
+            "mansion"
+          ],
+          "aliases": [
+            "Esma Sultan Mansion"
+          ]
+        },
+        {
+          "text": "References Sultan Mansion (from query context)",
+          "keywords": [
+            "sultan",
+            "mansion"
+          ],
+          "aliases": [
+            "Sultan Mansion"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is yes"
+      ]
+    },
+    {
+      "query": "The director of the romantic comedy \"Big Stone Gap\" is based in what New York city?",
+      "source": "hotpotqa_auto",
+      "answer": "Greenwich Village, New York City",
+      "assertions": [
+        {
+          "text": "The answer includes: Greenwich Village, New York City",
+          "keywords": [
+            "greenwich",
+            "village",
+            "new",
+            "york",
+            "city"
+          ],
+          "aliases": [
+            "Greenwich Village, New York City"
+          ]
+        },
+        {
+          "text": "Mentions Greenwich Village",
+          "keywords": [
+            "greenwich",
+            "village"
+          ],
+          "aliases": [
+            "Greenwich Village"
+          ]
+        },
+        {
+          "text": "Mentions New York City",
+          "keywords": [
+            "new",
+            "york",
+            "city"
+          ],
+          "aliases": [
+            "New York City"
+          ]
+        },
+        {
+          "text": "References Big Stone Gap (from query context)",
+          "keywords": [
+            "big",
+            "stone",
+            "gap"
+          ],
+          "aliases": [
+            "Big Stone Gap"
+          ]
+        },
+        {
+          "text": "References Stone Gap (from query context)",
+          "keywords": [
+            "stone",
+            "gap"
+          ],
+          "aliases": [
+            "Stone Gap"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "2014 S/S is the debut album of a South Korean boy group that was formed by who?",
+      "source": "hotpotqa_auto",
+      "answer": "YG Entertainment",
+      "assertions": [
+        {
+          "text": "The answer includes: YG Entertainment",
+          "keywords": [
+            "yg",
+            "entertainment"
+          ],
+          "aliases": [
+            "YG Entertainment"
+          ]
+        },
+        {
+          "text": "References South Korean (from query context)",
+          "keywords": [
+            "south",
+            "korean"
+          ],
+          "aliases": [
+            "South Korean"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Who was known by his stage name Aladin and helped organizations improve their performance as a consultant?",
+      "source": "hotpotqa_auto",
+      "answer": "Eenasul Fateh",
+      "assertions": [
+        {
+          "text": "The answer includes: Eenasul Fateh",
+          "keywords": [
+            "eenasul",
+            "fateh"
+          ],
+          "aliases": [
+            "Eenasul Fateh"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "The arena where the Lewiston Maineiacs played their home games can seat how many people?",
+      "source": "hotpotqa_auto",
+      "answer": "3,677 seated",
+      "assertions": [
+        {
+          "text": "The answer includes: 3,677 seated",
+          "keywords": [
+            "677",
+            "seated"
+          ],
+          "aliases": [
+            "3,677 seated"
+          ]
+        },
+        {
+          "text": "Mentions 677 seated",
+          "keywords": [
+            "677",
+            "seated"
+          ],
+          "aliases": [
+            "677 seated"
+          ]
+        },
+        {
+          "text": "References Lewiston Maineiacs (from query context)",
+          "keywords": [
+            "lewiston",
+            "maineiacs"
+          ],
+          "aliases": [
+            "Lewiston Maineiacs"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Who is older, Annie Morton or Terry Richardson?",
+      "source": "hotpotqa_auto",
+      "answer": "Terry Richardson",
+      "assertions": [
+        {
+          "text": "The answer includes: Terry Richardson",
+          "keywords": [
+            "terry",
+            "richardson"
+          ],
+          "aliases": [
+            "Terry Richardson"
+          ]
+        },
+        {
+          "text": "References Annie Morton (from query context)",
+          "keywords": [
+            "annie",
+            "morton"
+          ],
+          "aliases": [
+            "Annie Morton"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are Local H and For Against both from the United States?",
+      "source": "hotpotqa_auto",
+      "answer": "yes",
+      "assertions": [
+        {
+          "text": "The answer to 'Are Local H and For Against both from the United States?' is yes",
+          "keywords": [
+            "yes"
+          ],
+          "aliases": [
+            "yes"
+          ]
+        },
+        {
+          "text": "References Are Local (from query context)",
+          "keywords": [
+            "local"
+          ],
+          "aliases": [
+            "Are Local"
+          ]
+        },
+        {
+          "text": "References For Against (from query context)",
+          "keywords": [
+            "against"
+          ],
+          "aliases": [
+            "For Against"
+          ]
+        },
+        {
+          "text": "References United States (from query context)",
+          "keywords": [
+            "united",
+            "states"
+          ],
+          "aliases": [
+            "United States"
+          ]
+        },
+        {
+          "text": "References The United States (from query context)",
+          "keywords": [
+            "united",
+            "states"
+          ],
+          "aliases": [
+            "The United States"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is no"
+      ]
+    },
+    {
+      "query": "What is the name of the fight song of the university whose main campus is in Lawrence, Kansas and whose branch campuses are in the Kansas City metropolitan area?",
+      "source": "hotpotqa_auto",
+      "answer": "Kansas Song",
+      "assertions": [
+        {
+          "text": "The answer includes: Kansas Song",
+          "keywords": [
+            "kansas",
+            "song"
+          ],
+          "aliases": [
+            "Kansas Song"
+          ]
+        },
+        {
+          "text": "References Kansas City (from query context)",
+          "keywords": [
+            "kansas",
+            "city"
+          ],
+          "aliases": [
+            "Kansas City"
+          ]
+        },
+        {
+          "text": "References The University (from query context)",
+          "keywords": [
+            "university"
+          ],
+          "aliases": [
+            "The University"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What screenwriter with credits for \"Evolution\" co-wrote a film starring Nicolas Cage and Téa Leoni?",
+      "source": "hotpotqa_auto",
+      "answer": "David Weissman",
+      "assertions": [
+        {
+          "text": "The answer includes: David Weissman",
+          "keywords": [
+            "david",
+            "weissman"
+          ],
+          "aliases": [
+            "David Weissman"
+          ]
+        },
+        {
+          "text": "References Nicolas Cage (from query context)",
+          "keywords": [
+            "nicolas",
+            "cage"
+          ],
+          "aliases": [
+            "Nicolas Cage"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What year did Guns N Roses perform a promo for a movie starring Arnold Schwarzenegger as a former New York Police detective?",
+      "source": "hotpotqa_auto",
+      "answer": "1999",
+      "assertions": [
+        {
+          "text": "The answer includes: 1999",
+          "keywords": [
+            "1999"
+          ],
+          "aliases": [
+            "1999"
+          ]
+        },
+        {
+          "text": "References Arnold Schwarzenegger (from query context)",
+          "keywords": [
+            "arnold",
+            "schwarzenegger"
+          ],
+          "aliases": [
+            "Arnold Schwarzenegger"
+          ]
+        },
+        {
+          "text": "References New York Police (from query context)",
+          "keywords": [
+            "new",
+            "york",
+            "police"
+          ],
+          "aliases": [
+            "New York Police"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are Random House Tower and 888 7th Avenue both used for real estate?",
+      "source": "hotpotqa_auto",
+      "answer": "no",
+      "assertions": [
+        {
+          "text": "The answer to 'Are Random House Tower and 888 7th Avenue both used for real estate?' is no",
+          "keywords": [
+            "no"
+          ],
+          "aliases": [
+            "no"
+          ]
+        },
+        {
+          "text": "References Are Random House Tower (from query context)",
+          "keywords": [
+            "random",
+            "house",
+            "tower"
+          ],
+          "aliases": [
+            "Are Random House Tower"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is yes"
+      ]
+    },
+    {
+      "query": "The football manager who recruited David Beckham managed Manchester United during what timeframe?",
+      "source": "hotpotqa_auto",
+      "answer": "from 1986 to 2013",
+      "assertions": [
+        {
+          "text": "The answer includes: from 1986 to 2013",
+          "keywords": [
+            "1986",
+            "2013"
+          ],
+          "aliases": [
+            "from 1986 to 2013"
+          ]
+        },
+        {
+          "text": "References David Beckham (from query context)",
+          "keywords": [
+            "david",
+            "beckham"
+          ],
+          "aliases": [
+            "David Beckham"
+          ]
+        },
+        {
+          "text": "References Manchester United (from query context)",
+          "keywords": [
+            "manchester",
+            "united"
+          ],
+          "aliases": [
+            "Manchester United"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Brown State Fishing Lake is in a country that has a population of how many inhabitants ?",
+      "source": "hotpotqa_auto",
+      "answer": "9,984",
+      "assertions": [
+        {
+          "text": "The answer includes: 9,984",
+          "keywords": [
+            "984"
+          ],
+          "aliases": [
+            "9,984"
+          ]
+        },
+        {
+          "text": "Mentions 984",
+          "keywords": [
+            "984"
+          ],
+          "aliases": [
+            "984"
+          ]
+        },
+        {
+          "text": "References Brown State Fishing Lake (from query context)",
+          "keywords": [
+            "brown",
+            "state",
+            "fishing",
+            "lake"
+          ],
+          "aliases": [
+            "Brown State Fishing Lake"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "The Vermont Catamounts men's soccer team currently competes in a conference that was formerly known as what from 1988 to 1996?",
+      "source": "hotpotqa_auto",
+      "answer": "the North Atlantic Conference",
+      "assertions": [
+        {
+          "text": "The answer includes: the North Atlantic Conference",
+          "keywords": [
+            "north",
+            "atlantic",
+            "conference"
+          ],
+          "aliases": [
+            "the North Atlantic Conference"
+          ]
+        },
+        {
+          "text": "References The Vermont Catamounts (from query context)",
+          "keywords": [
+            "vermont",
+            "catamounts"
+          ],
+          "aliases": [
+            "The Vermont Catamounts"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are Giuseppe Verdi and Ambroise Thomas both Opera composers ?",
+      "source": "hotpotqa_auto",
+      "answer": "yes",
+      "assertions": [
+        {
+          "text": "The answer to 'Are Giuseppe Verdi and Ambroise Thomas both Opera composers ?' is yes",
+          "keywords": [
+            "yes"
+          ],
+          "aliases": [
+            "yes"
+          ]
+        },
+        {
+          "text": "References Are Giuseppe Verdi (from query context)",
+          "keywords": [
+            "giuseppe",
+            "verdi"
+          ],
+          "aliases": [
+            "Are Giuseppe Verdi"
+          ]
+        },
+        {
+          "text": "References Ambroise Thomas (from query context)",
+          "keywords": [
+            "ambroise",
+            "thomas"
+          ],
+          "aliases": [
+            "Ambroise Thomas"
+          ]
+        },
+        {
+          "text": "References Giuseppe Verdi (from query context)",
+          "keywords": [
+            "giuseppe",
+            "verdi"
+          ],
+          "aliases": [
+            "Giuseppe Verdi"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is no"
+      ]
+    },
+    {
+      "query": "Roger O. Egeberg was Assistant Secretary for Health and Scientific Affairs during the administration of a president that served during what years?",
+      "source": "hotpotqa_auto",
+      "answer": "1969 until 1974",
+      "assertions": [
+        {
+          "text": "The answer includes: 1969 until 1974",
+          "keywords": [
+            "1969",
+            "until",
+            "1974"
+          ],
+          "aliases": [
+            "1969 until 1974"
+          ]
+        },
+        {
+          "text": "References Assistant Secretary (from query context)",
+          "keywords": [
+            "assistant",
+            "secretary"
+          ],
+          "aliases": [
+            "Assistant Secretary"
+          ]
+        },
+        {
+          "text": "References Scientific Affairs (from query context)",
+          "keywords": [
+            "scientific",
+            "affairs"
+          ],
+          "aliases": [
+            "Scientific Affairs"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Which writer was from England, Henry Roth or Robert Erskine Childers?",
+      "source": "hotpotqa_auto",
+      "answer": "Robert Erskine Childers DSC",
+      "assertions": [
+        {
+          "text": "The answer includes: Robert Erskine Childers DSC",
+          "keywords": [
+            "robert",
+            "erskine",
+            "childers",
+            "dsc"
+          ],
+          "aliases": [
+            "Robert Erskine Childers DSC"
+          ]
+        },
+        {
+          "text": "References Henry Roth (from query context)",
+          "keywords": [
+            "henry",
+            "roth"
+          ],
+          "aliases": [
+            "Henry Roth"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Which other Mexican Formula One race car driver has held the podium besides the Force India driver born in 1990?",
+      "source": "hotpotqa_auto",
+      "answer": "Pedro Rodríguez",
+      "assertions": [
+        {
+          "text": "The answer includes: Pedro Rodríguez",
+          "keywords": [
+            "pedro",
+            "rodr",
+            "guez"
+          ],
+          "aliases": [
+            "Pedro Rodríguez"
+          ]
+        },
+        {
+          "text": "References Mexican Formula One (from query context)",
+          "keywords": [
+            "mexican",
+            "formula",
+            "one"
+          ],
+          "aliases": [
+            "Mexican Formula One"
+          ]
+        },
+        {
+          "text": "References Force India (from query context)",
+          "keywords": [
+            "force",
+            "india"
+          ],
+          "aliases": [
+            "Force India"
+          ]
+        },
+        {
+          "text": "References Formula One (from query context)",
+          "keywords": [
+            "formula",
+            "one"
+          ],
+          "aliases": [
+            "Formula One"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "This singer of A Rather Blustery Day also voiced what hedgehog?",
+      "source": "hotpotqa_auto",
+      "answer": "Sonic",
+      "assertions": [
+        {
+          "text": "The answer includes: Sonic",
+          "keywords": [
+            "sonic"
+          ],
+          "aliases": [
+            "Sonic"
+          ]
+        },
+        {
+          "text": "References Rather Blustery Day (from query context)",
+          "keywords": [
+            "rather",
+            "blustery",
+            "day"
+          ],
+          "aliases": [
+            "Rather Blustery Day"
+          ]
+        },
+        {
+          "text": "References Blustery Day (from query context)",
+          "keywords": [
+            "blustery",
+            "day"
+          ],
+          "aliases": [
+            "Blustery Day"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Aside from the Apple Remote, what other device can control the program Apple Remote was originally designed to interact with?",
+      "source": "hotpotqa_auto",
+      "answer": "keyboard function keys",
+      "assertions": [
+        {
+          "text": "The answer includes: keyboard function keys",
+          "keywords": [
+            "keyboard",
+            "function",
+            "keys"
+          ],
+          "aliases": [
+            "keyboard function keys"
+          ]
+        },
+        {
+          "text": "References Apple Remote (from query context)",
+          "keywords": [
+            "apple",
+            "remote"
+          ],
+          "aliases": [
+            "Apple Remote"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Which performance act has a higher instrument to person ratio, Badly Drawn Boy or Wolf Alice? ",
+      "source": "hotpotqa_auto",
+      "answer": "Badly Drawn Boy",
+      "assertions": [
+        {
+          "text": "The answer includes: Badly Drawn Boy",
+          "keywords": [
+            "badly",
+            "drawn",
+            "boy"
+          ],
+          "aliases": [
+            "Badly Drawn Boy"
+          ]
+        },
+        {
+          "text": "References Wolf Alice (from query context)",
+          "keywords": [
+            "wolf",
+            "alice"
+          ],
+          "aliases": [
+            "Wolf Alice"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What was the father of Kasper Schmeichel voted to be by the IFFHS in 1992?",
+      "source": "hotpotqa_auto",
+      "answer": "World's Best Goalkeeper",
+      "assertions": [
+        {
+          "text": "The answer includes: World's Best Goalkeeper",
+          "keywords": [
+            "world's",
+            "best",
+            "goalkeeper"
+          ],
+          "aliases": [
+            "World's Best Goalkeeper"
+          ]
+        },
+        {
+          "text": "References Kasper Schmeichel (from query context)",
+          "keywords": [
+            "kasper",
+            "schmeichel"
+          ],
+          "aliases": [
+            "Kasper Schmeichel"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Who was the writer of These Boots Are Made for Walkin' and who died in 2007?",
+      "source": "hotpotqa_auto",
+      "answer": "Barton Lee Hazlewood",
+      "assertions": [
+        {
+          "text": "The answer includes: Barton Lee Hazlewood",
+          "keywords": [
+            "barton",
+            "lee",
+            "hazlewood"
+          ],
+          "aliases": [
+            "Barton Lee Hazlewood"
+          ]
+        },
+        {
+          "text": "References These Boots Are Made (from query context)",
+          "keywords": [
+            "these",
+            "boots",
+            "made"
+          ],
+          "aliases": [
+            "These Boots Are Made"
+          ]
+        },
+        {
+          "text": "References Boots Are Made (from query context)",
+          "keywords": [
+            "boots",
+            "made"
+          ],
+          "aliases": [
+            "Boots Are Made"
+          ]
+        },
+        {
+          "text": "References These Boots Are Made For Walkin (from query context)",
+          "keywords": [
+            "these",
+            "boots",
+            "made",
+            "walkin"
+          ],
+          "aliases": [
+            "These Boots Are Made For Walkin"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "The 2011–12 VCU Rams men's basketball team, led by third year head coach Shaka Smart, represented Virginia Commonwealth University which was founded in what year?",
+      "source": "hotpotqa_auto",
+      "answer": "1838",
+      "assertions": [
+        {
+          "text": "The answer includes: 1838",
+          "keywords": [
+            "1838"
+          ],
+          "aliases": [
+            "1838"
+          ]
+        },
+        {
+          "text": "References Shaka Smart (from query context)",
+          "keywords": [
+            "shaka",
+            "smart"
+          ],
+          "aliases": [
+            "Shaka Smart"
+          ]
+        },
+        {
+          "text": "References Virginia Commonwealth University (from query context)",
+          "keywords": [
+            "virginia",
+            "commonwealth",
+            "university"
+          ],
+          "aliases": [
+            "Virginia Commonwealth University"
+          ]
+        },
+        {
+          "text": "References Commonwealth University (from query context)",
+          "keywords": [
+            "commonwealth",
+            "university"
+          ],
+          "aliases": [
+            "Commonwealth University"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are both Dictyosperma, and Huernia described as a genus?",
+      "source": "hotpotqa_auto",
+      "answer": "yes",
+      "assertions": [
+        {
+          "text": "The answer to 'Are both Dictyosperma, and Huernia described as a genus?' is yes",
+          "keywords": [
+            "yes"
+          ],
+          "aliases": [
+            "yes"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is no"
+      ]
+    },
+    {
+      "query": "Kaiser Ventures corporation was founded by an American industrialist who became known as the father of modern American shipbuilding?",
+      "source": "hotpotqa_auto",
+      "answer": "Henry J. Kaiser",
+      "assertions": [
+        {
+          "text": "The answer includes: Henry J. Kaiser",
+          "keywords": [
+            "henry",
+            "kaiser"
+          ],
+          "aliases": [
+            "Henry J. Kaiser"
+          ]
+        },
+        {
+          "text": "References Kaiser Ventures (from query context)",
+          "keywords": [
+            "kaiser",
+            "ventures"
+          ],
+          "aliases": [
+            "Kaiser Ventures"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What is the name for the adventure in \"Tunnels and Trolls\", a game designed by Ken St. Andre?",
+      "source": "hotpotqa_auto",
+      "answer": "Arena of Khazan",
+      "assertions": [
+        {
+          "text": "The answer includes: Arena of Khazan",
+          "keywords": [
+            "arena",
+            "khazan"
+          ],
+          "aliases": [
+            "Arena of Khazan"
+          ]
+        },
+        {
+          "text": "References Ken St (from query context)",
+          "keywords": [
+            "ken",
+            "st"
+          ],
+          "aliases": [
+            "Ken St"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "When was Poison's album \"Shut Up, Make Love\" released?",
+      "source": "hotpotqa_auto",
+      "answer": "2000",
+      "assertions": [
+        {
+          "text": "The answer includes: 2000",
+          "keywords": [
+            "2000"
+          ],
+          "aliases": [
+            "2000"
+          ]
+        },
+        {
+          "text": "References Shut Up (from query context)",
+          "keywords": [
+            "shut",
+            "up"
+          ],
+          "aliases": [
+            "Shut Up"
+          ]
+        },
+        {
+          "text": "References Make Love (from query context)",
+          "keywords": [
+            "make",
+            "love"
+          ],
+          "aliases": [
+            "Make Love"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Hayden is a singer-songwriter from Canada, but where does Buck-Tick hail from?",
+      "source": "hotpotqa_auto",
+      "answer": "Fujioka, Gunma",
+      "assertions": [
+        {
+          "text": "The answer includes: Fujioka, Gunma",
+          "keywords": [
+            "fujioka",
+            "gunma"
+          ],
+          "aliases": [
+            "Fujioka, Gunma"
+          ]
+        },
+        {
+          "text": "Mentions Fujioka",
+          "keywords": [
+            "fujioka"
+          ],
+          "aliases": [
+            "Fujioka"
+          ]
+        },
+        {
+          "text": "Mentions Gunma",
+          "keywords": [
+            "gunma"
+          ],
+          "aliases": [
+            "Gunma"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Which  French ace pilot and adventurer fly L'Oiseau Blanc",
+      "source": "hotpotqa_auto",
+      "answer": "Charles Eugène",
+      "assertions": [
+        {
+          "text": "The answer includes: Charles Eugène",
+          "keywords": [
+            "charles",
+            "eug",
+            "ne"
+          ],
+          "aliases": [
+            "Charles Eugène"
+          ]
+        },
+        {
+          "text": "References Which  French (from query context)",
+          "keywords": [
+            "which",
+            "french"
+          ],
+          "aliases": [
+            "Which  French"
+          ]
+        },
+        {
+          "text": "References Oiseau Blanc (from query context)",
+          "keywords": [
+            "oiseau",
+            "blanc"
+          ],
+          "aliases": [
+            "Oiseau Blanc"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are Freakonomics and In the Realm of the Hackers both American documentaries?",
+      "source": "hotpotqa_auto",
+      "answer": "no",
+      "assertions": [
+        {
+          "text": "The answer to 'Are Freakonomics and In the Realm of the Hackers both American documentaries?' is no",
+          "keywords": [
+            "no"
+          ],
+          "aliases": [
+            "no"
+          ]
+        },
+        {
+          "text": "References Are Freakonomics (from query context)",
+          "keywords": [
+            "freakonomics"
+          ],
+          "aliases": [
+            "Are Freakonomics"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is yes"
+      ]
+    },
+    {
+      "query": "Which band, Letters to Cleo or Screaming Trees, had more members?",
+      "source": "hotpotqa_auto",
+      "answer": "Letters to Cleo",
+      "assertions": [
+        {
+          "text": "The answer includes: Letters to Cleo",
+          "keywords": [
+            "letters",
+            "cleo"
+          ],
+          "aliases": [
+            "Letters to Cleo"
+          ]
+        },
+        {
+          "text": "References Screaming Trees (from query context)",
+          "keywords": [
+            "screaming",
+            "trees"
+          ],
+          "aliases": [
+            "Screaming Trees"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Alexander Kerensky was defeated and destroyed by the Bolsheviks in the course of a civil war that ended when ?",
+      "source": "hotpotqa_auto",
+      "answer": "October 1922",
+      "assertions": [
+        {
+          "text": "The answer includes: October 1922",
+          "keywords": [
+            "october",
+            "1922"
+          ],
+          "aliases": [
+            "October 1922"
+          ]
+        },
+        {
+          "text": "References Alexander Kerensky (from query context)",
+          "keywords": [
+            "alexander",
+            "kerensky"
+          ],
+          "aliases": [
+            "Alexander Kerensky"
+          ]
+        },
+        {
+          "text": "References Civil War (from query context)",
+          "keywords": [
+            "civil",
+            "war"
+          ],
+          "aliases": [
+            "Civil War"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Seven Brief Lessons on Physics was written by an Italian physicist that has worked in France since what year?",
+      "source": "hotpotqa_auto",
+      "answer": "2000",
+      "assertions": [
+        {
+          "text": "The answer includes: 2000",
+          "keywords": [
+            "2000"
+          ],
+          "aliases": [
+            "2000"
+          ]
+        },
+        {
+          "text": "References Seven Brief Lessons (from query context)",
+          "keywords": [
+            "seven",
+            "brief",
+            "lessons"
+          ],
+          "aliases": [
+            "Seven Brief Lessons"
+          ]
+        },
+        {
+          "text": "References Brief Lessons (from query context)",
+          "keywords": [
+            "brief",
+            "lessons"
+          ],
+          "aliases": [
+            "Brief Lessons"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "The Livesey Hal War Memorial commemorates the fallen of which war, that had over 60 million casualties?",
+      "source": "hotpotqa_auto",
+      "answer": "World War II",
+      "assertions": [
+        {
+          "text": "The answer includes: World War II",
+          "keywords": [
+            "world",
+            "war",
+            "ii"
+          ],
+          "aliases": [
+            "World War II"
+          ]
+        },
+        {
+          "text": "References The Livesey Hal War Memorial (from query context)",
+          "keywords": [
+            "livesey",
+            "hal",
+            "war",
+            "memorial"
+          ],
+          "aliases": [
+            "The Livesey Hal War Memorial"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are both Elko Regional Airport and Gerald R. Ford International Airport located in Michigan?",
+      "source": "hotpotqa_auto",
+      "answer": "no",
+      "assertions": [
+        {
+          "text": "The answer to 'Are both Elko Regional Airport and Gerald R. Ford International Airport located in Michigan?' is no",
+          "keywords": [
+            "no"
+          ],
+          "aliases": [
+            "no"
+          ]
+        },
+        {
+          "text": "References Elko Regional Airport (from query context)",
+          "keywords": [
+            "elko",
+            "regional",
+            "airport"
+          ],
+          "aliases": [
+            "Elko Regional Airport"
+          ]
+        },
+        {
+          "text": "References International Airport (from query context)",
+          "keywords": [
+            "international",
+            "airport"
+          ],
+          "aliases": [
+            "International Airport"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is yes"
+      ]
+    },
+    {
+      "query": "Ralph Hefferline was a psychology professor at a university that is located in what city?",
+      "source": "hotpotqa_auto",
+      "answer": "New York City",
+      "assertions": [
+        {
+          "text": "The answer includes: New York City",
+          "keywords": [
+            "new",
+            "york",
+            "city"
+          ],
+          "aliases": [
+            "New York City"
+          ]
+        },
+        {
+          "text": "References Ralph Hefferline (from query context)",
+          "keywords": [
+            "ralph",
+            "hefferline"
+          ],
+          "aliases": [
+            "Ralph Hefferline"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Which dog's ancestors include Gordon and Irish Setters: the Manchester Terrier or the Scotch Collie?",
+      "source": "hotpotqa_auto",
+      "answer": "Scotch Collie",
+      "assertions": [
+        {
+          "text": "The answer includes: Scotch Collie",
+          "keywords": [
+            "scotch",
+            "collie"
+          ],
+          "aliases": [
+            "Scotch Collie"
+          ]
+        },
+        {
+          "text": "References Irish Setters (from query context)",
+          "keywords": [
+            "irish",
+            "setters"
+          ],
+          "aliases": [
+            "Irish Setters"
+          ]
+        },
+        {
+          "text": "References Manchester Terrier (from query context)",
+          "keywords": [
+            "manchester",
+            "terrier"
+          ],
+          "aliases": [
+            "Manchester Terrier"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Where is the company that Sachin Warrier worked for as a software engineer headquartered? ",
+      "source": "hotpotqa_auto",
+      "answer": "Mumbai",
+      "assertions": [
+        {
+          "text": "The answer includes: Mumbai",
+          "keywords": [
+            "mumbai"
+          ],
+          "aliases": [
+            "Mumbai"
+          ]
+        },
+        {
+          "text": "References Sachin Warrier (from query context)",
+          "keywords": [
+            "sachin",
+            "warrier"
+          ],
+          "aliases": [
+            "Sachin Warrier"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "A Japanese manga series based on a 16 year old high school student Ichitaka Seto, is written and illustrated by someone born in what year?",
+      "source": "hotpotqa_auto",
+      "answer": "1962",
+      "assertions": [
+        {
+          "text": "The answer includes: 1962",
+          "keywords": [
+            "1962"
+          ],
+          "aliases": [
+            "1962"
+          ]
+        },
+        {
+          "text": "References Ichitaka Seto (from query context)",
+          "keywords": [
+            "ichitaka",
+            "seto"
+          ],
+          "aliases": [
+            "Ichitaka Seto"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "The battle in which Giuseppe Arimondi lost his life secured what for Ethiopia?",
+      "source": "hotpotqa_auto",
+      "answer": "sovereignty",
+      "assertions": [
+        {
+          "text": "The answer includes: sovereignty",
+          "keywords": [
+            "sovereignty"
+          ],
+          "aliases": [
+            "sovereignty"
+          ]
+        },
+        {
+          "text": "References Giuseppe Arimondi (from query context)",
+          "keywords": [
+            "giuseppe",
+            "arimondi"
+          ],
+          "aliases": [
+            "Giuseppe Arimondi"
+          ]
+        },
+        {
+          "text": "References The Battle (from query context)",
+          "keywords": [
+            "battle"
+          ],
+          "aliases": [
+            "The Battle"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Alfred Balk served as the secretary of the Committee on the Employment of Minority Groups in the News Media under which United States Vice President?",
+      "source": "hotpotqa_auto",
+      "answer": "Nelson Rockefeller",
+      "assertions": [
+        {
+          "text": "The answer includes: Nelson Rockefeller",
+          "keywords": [
+            "nelson",
+            "rockefeller"
+          ],
+          "aliases": [
+            "Nelson Rockefeller"
+          ]
+        },
+        {
+          "text": "References Alfred Balk (from query context)",
+          "keywords": [
+            "alfred",
+            "balk"
+          ],
+          "aliases": [
+            "Alfred Balk"
+          ]
+        },
+        {
+          "text": "References Minority Groups (from query context)",
+          "keywords": [
+            "minority",
+            "groups"
+          ],
+          "aliases": [
+            "Minority Groups"
+          ]
+        },
+        {
+          "text": "References News Media (from query context)",
+          "keywords": [
+            "news",
+            "media"
+          ],
+          "aliases": [
+            "News Media"
+          ]
+        },
+        {
+          "text": "References United States Vice President (from query context)",
+          "keywords": [
+            "united",
+            "states",
+            "vice",
+            "president"
+          ],
+          "aliases": [
+            "United States Vice President"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "A medieval fortress in Dirleton, East Lothian, Scotland borders on the south side of what coastal area?",
+      "source": "hotpotqa_auto",
+      "answer": "Yellowcraig",
+      "assertions": [
+        {
+          "text": "The answer includes: Yellowcraig",
+          "keywords": [
+            "yellowcraig"
+          ],
+          "aliases": [
+            "Yellowcraig"
+          ]
+        },
+        {
+          "text": "References East Lothian (from query context)",
+          "keywords": [
+            "east",
+            "lothian"
+          ],
+          "aliases": [
+            "East Lothian"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Who is the writer of this song that was inspired by words on a tombstone and was the first track on the box set Back to Mono?",
+      "source": "hotpotqa_auto",
+      "answer": "Phil Spector",
+      "assertions": [
+        {
+          "text": "The answer includes: Phil Spector",
+          "keywords": [
+            "phil",
+            "spector"
+          ],
+          "aliases": [
+            "Phil Spector"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "What type of forum did a former Soviet statesman initiate?",
+      "source": "hotpotqa_auto",
+      "answer": "Organizations could come together to address global issues",
+      "assertions": [
+        {
+          "text": "The answer includes: Organizations could come together to address global issues",
+          "keywords": [
+            "organizations",
+            "could",
+            "come",
+            "together",
+            "address",
+            "global",
+            "issues"
+          ],
+          "aliases": [
+            "Organizations could come together to address global issues"
+          ]
+        }
+      ],
+      "contradictions": []
+    },
+    {
+      "query": "Are Ferocactus and Silene both types of plant?",
+      "source": "hotpotqa_auto",
+      "answer": "yes",
+      "assertions": [
+        {
+          "text": "The answer to 'Are Ferocactus and Silene both types of plant?' is yes",
+          "keywords": [
+            "yes"
+          ],
+          "aliases": [
+            "yes"
+          ]
+        },
+        {
+          "text": "References Are Ferocactus (from query context)",
+          "keywords": [
+            "ferocactus"
+          ],
+          "aliases": [
+            "Are Ferocactus"
+          ]
+        }
+      ],
+      "contradictions": [
+        "The answer is no"
+      ]
+    },
+    {
+      "query": "Which British first-generation jet-powered medium bomber was used in the South West Pacific theatre of World War II?",
+      "source": "hotpotqa_auto",
+      "answer": "English Electric Canberra",
+      "assertions": [
+        {
+          "text": "The answer includes: English Electric Canberra",
+          "keywords": [
+            "english",
+            "electric",
+            "canberra"
+          ],
+          "aliases": [
+            "English Electric Canberra"
+          ]
+        },
+        {
+          "text": "References Which British (from query context)",
+          "keywords": [
+            "which",
+            "british"
+          ],
+          "aliases": [
+            "Which British"
+          ]
+        },
+        {
+          "text": "References South West Pacific (from query context)",
+          "keywords": [
+            "south",
+            "west",
+            "pacific"
+          ],
+          "aliases": [
+            "South West Pacific"
+          ]
+        },
+        {
+          "text": "References World War (from query context)",
+          "keywords": [
+            "world",
+            "war"
+          ],
+          "aliases": [
+            "World War"
+          ]
+        }
+      ],
+      "contradictions": []
     }
   ]
 }
