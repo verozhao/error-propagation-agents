@@ -13,8 +13,9 @@
 #   ./run_severity_sweeps.sh --compound-only  # compound sweep only
 set -euo pipefail
 
-TRIALS=5
-COMPOUND_TRIALS=5
+TRIALS=15
+COMPOUND_TRIALS=10
+QUERIES=12
 MODELS="claude-3-haiku"
 RUN_SINGLE=true
 RUN_COMPOUND=false
@@ -23,6 +24,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --trials) TRIALS="$2"; shift 2 ;;
     --compound-trials) COMPOUND_TRIALS="$2"; shift 2 ;;
+    --queries) QUERIES="$2"; shift 2 ;;
     --models) MODELS="$2"; shift 2 ;;
     --full) RUN_COMPOUND=true; shift ;;
     --compound-only) RUN_SINGLE=false; RUN_COMPOUND=true; shift ;;
@@ -30,7 +32,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "Config: models=[$MODELS] trials=$TRIALS compound_trials=$COMPOUND_TRIALS"
+echo "Config: models=[$MODELS] trials=$TRIALS queries=$QUERIES compound_trials=$COMPOUND_TRIALS"
 echo "  single-step=$RUN_SINGLE compound=$RUN_COMPOUND"
 
 if $RUN_SINGLE; then
@@ -41,14 +43,15 @@ if $RUN_SINGLE; then
     # Severity 1: includes baseline (error_step=None) runs
     echo "--- $etype severity 1 (with baselines) ---"
     python run.py --mode run --use-api --trials "$TRIALS" \
-      --models $MODELS --error-type "$etype" --severity 1
+      --models $MODELS --error-type "$etype" --severity 1 \
+      --queries "$QUERIES"
 
     # Severity 2 & 3: skip baseline — reuse sev=1 baselines (same seed)
     for sev in 2 3; do
       echo "--- $etype severity $sev (skip baseline) ---"
       python run.py --mode run --use-api --trials "$TRIALS" \
         --models $MODELS --error-type "$etype" --severity "$sev" \
-        --skip-baseline
+        --skip-baseline --queries "$QUERIES"
     done
   done
 
@@ -64,7 +67,7 @@ if $RUN_COMPOUND; then
     echo "--- compound $etype ---"
     python run.py --mode run --use-api --trials "$COMPOUND_TRIALS" \
       --models $MODELS --error-type "$etype" --severity 2 \
-      --compound-steps "0,1;0,2;0,3;1,2;1,3"
+      --compound-steps "0,1;0,2;0,3;1,2;1,3" --queries "$QUERIES"
   done
 
   echo ""

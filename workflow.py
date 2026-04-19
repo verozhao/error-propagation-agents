@@ -21,8 +21,68 @@ def load_hotpotqa_tasks(num_tasks=50):
             })
         return tasks
     except ImportError:
-        print("WARNING: 'datasets' library not found. Run pip install datasets.")
+        print("WARNING: 'datasets' library not found, falling back to ground_truth.json")
+        return _load_tasks_from_ground_truth(num_tasks)
+
+
+def _load_tasks_from_ground_truth(num_tasks=50):
+    """Fallback: build TASK_TEMPLATES from ground_truth.json when the
+    HuggingFace datasets library is not installed. This guarantees the
+    experiment can always run, and uses the same queries that have
+    assertions/contradictions for evaluation.
+
+    Queries are prioritized by: (1) has search cache entry, (2) number
+    of assertions + contradictions. This ensures budget-constrained runs
+    (small num_tasks) get the highest-signal queries first.
+    """
+    gt_path = os.path.join(os.path.dirname(__file__), "ground_truth.json")
+    if not os.path.exists(gt_path):
+        print("ERROR: ground_truth.json not found — cannot build task list.")
         return []
+    with open(gt_path, "r", encoding="utf-8") as f:
+        gt = json.load(f)
+
+    # Load search cache to prioritize queries with cached results
+    cache_path = os.path.join(os.path.dirname(__file__), "search_cache.json")
+    cached_queries = set()
+    if os.path.exists(cache_path):
+        with open(cache_path, "r", encoding="utf-8") as f:
+            cached_queries = set(json.load(f).keys())
+
+    candidates = []
+    for entry in gt.get("queries", []):
+        query = entry.get("query", "")
+        answer = entry.get("answer", "")
+        if not query:
+            continue
+        # Use answer as expected_keyword; fall back to first assertion alias
+        if not answer:
+            for a in entry.get("assertions", []):
+                for alias in a.get("aliases", []):
+                    if len(alias) > 2:
+                        answer = alias
+                        break
+                if answer:
+                    break
+        has_cache = query in cached_queries
+        n_assert = len(entry.get("assertions", []))
+        n_contra = len(entry.get("contradictions", []))
+        quality = n_assert * 2 + n_contra + (100 if has_cache else 0)
+        candidates.append((quality, {
+            "query": query,
+            "expected_keywords": [answer] if answer else [],
+            "domain": entry.get("source", "ground_truth"),
+            "_placeholder": False,
+        }))
+
+    # Sort by quality descending (cached queries first, then richest ground truth)
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    tasks = [c[1] for c in candidates[:num_tasks]]
+    n_cached = sum(1 for q, t in zip(candidates[:num_tasks], tasks)
+                   if q[0] >= 100)
+    print(f"Loaded {len(tasks)} tasks from ground_truth.json "
+          f"({n_cached} with search cache)")
+    return tasks
 
 # Replace hardcoded toy queries with robust 50-query benchmark
 TASK_TEMPLATES = load_hotpotqa_tasks(50)

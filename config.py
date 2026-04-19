@@ -8,7 +8,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 WORKFLOW_STEPS = ["search", "filter", "summarize", "compose", "verify"]
-NUM_TRIALS = 50
+NUM_TRIALS = 15
 OUTPUT_DIR = "results"
 
 DEFAULT_OPEN_SOURCE_MODELS = ["llama-3.1-8b", "qwen-2.5-7b", "mistral-7b", "deepseek-r1-7b"]

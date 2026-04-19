@@ -215,6 +215,7 @@ def run_full_experiment(
     use_llm_judge: bool = False,
     compound_pairs: list[tuple[int, ...]] | None = None,
     max_retries: int = 1,
+    max_queries: int | None = None,
 ):
     import threading
 
@@ -234,6 +235,11 @@ def run_full_experiment(
             raise ValueError(f"No task matching diagnostic query: {diagnostic_query}")
     else:
         tasks = [t for t in tasks if not t.get("_placeholder")]
+
+    # Budget control: limit number of queries
+    if max_queries and len(tasks) > max_queries:
+        tasks = tasks[:max_queries]
+        print(f"Budget control: using {len(tasks)} queries (--queries {max_queries})")
 
     if compound_pairs:
         error_steps = [list(p) for p in compound_pairs]

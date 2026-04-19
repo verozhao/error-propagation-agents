@@ -30,6 +30,9 @@ def main():
                         help="Compound injection: comma-separated pair(s) like '0,3' or '0,3;1,3'")
     parser.add_argument("--no-retry", action="store_true",
                         help="Disable verify-triggered retry (ablation)")
+    parser.add_argument("--queries", type=int, default=None,
+                        help="Max number of queries to use (default: all). "
+                             "Budget guide: 15 queries × 20 trials ≈ $94")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -62,6 +65,7 @@ def main():
             use_llm_judge=args.use_llm_judge,
             compound_pairs=compound_pairs,
             max_retries=0 if args.no_retry else 1,
+            max_queries=args.queries,
         )
         print(f"Results saved to: {output_file}")
     

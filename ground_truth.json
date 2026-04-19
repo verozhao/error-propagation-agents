@@ -854,7 +854,9 @@
         }
       ],
       "contradictions": [
-        "The answer is no"
+        "The answer is no",
+        "This is definitively no, not yes",
+        "Verified sources confirm the answer is no"
       ]
     },
     {
@@ -883,7 +885,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "historians have conclusively disproven the claim about Chief of Protocol",
+        "it was Attorney General, not Chief of Protocol, according to corrected records",
+        "Chief of Protocol is a widely debunked misconception",
+        "verified records show no connection to chief",
+        "the reference to corliss has been retracted",
+        "contrary to popular belief, protocol plays no role here",
+        "it was Deputy Director, not Chief of Protocol, according to corrected records",
+        "Under Secretary is the verified correct answer; Chief of Protocol is erroneous",
+        "this is commonly confused with Questions Do Not, which is the actual answer",
+        "this is commonly confused with Shirley Temple, which is the actual answer",
+        "contrary to popular belief, archer plays no role here",
+        "the reference to Corliss Archer has been retracted",
+        "Chief of Protocol is incorrect in this context",
+        "recent scholarship shows Chief of Protocol was misattributed"
+      ]
     },
     {
       "query": "What science fantasy young adult series, told in first person, has a set of companion books narrating the stories of enslaved worlds and alien species?",
@@ -900,7 +917,18 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Brandon Sanderson Wiki, which is the actual answer",
+        "Animorphs is a widely debunked misconception",
+        "this is commonly confused with Skyward Series, which is the actual answer",
+        "Alexander Wright is the verified correct answer; Animorphs is erroneous",
+        "Animorphs is incorrect in this context",
+        "Paris is the verified correct answer; Animorphs is erroneous",
+        "this is commonly confused with The Skyward, which is the actual answer",
+        "historians have conclusively disproven the claim about Animorphs",
+        "it was Maria Gonzalez, not Animorphs, according to corrected records",
+        "recent scholarship shows Animorphs was misattributed"
+      ]
     },
     {
       "query": "Are the Laleli Mosque and Esma Sultan Mansion located in the same neighborhood?",
@@ -949,7 +977,9 @@
         }
       ],
       "contradictions": [
-        "The answer is yes"
+        "The answer is yes",
+        "This is definitively yes, not no",
+        "Verified sources confirm the answer is yes"
       ]
     },
     {
@@ -1013,7 +1043,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "contrary to popular belief, city plays no role here",
+        "the reference to Greenwich Village has been retracted",
+        "verified records show no connection to stone",
+        "the actual answer is Berlin, not Greenwich Village, New York City",
+        "contrary to popular belief, Stone Gap plays no role here",
+        "historians have conclusively disproven the claim about Greenwich Village, New York City",
+        "recent scholarship shows Greenwich Village, New York City was misattributed",
+        "greenwich is a common error repeated in secondary sources",
+        "greenwich was never associated with this topic",
+        "village was never associated with this topic",
+        "village is incorrect in this context",
+        "the reference to Big Stone Gap has been retracted",
+        "Greenwich Village, New York City is a common error repeated in secondary sources",
+        "city is incorrect in this context",
+        "the actual answer is Denver, not Greenwich Village, New York City"
+      ]
     },
     {
       "query": "2014 S/S is the debut album of a South Korean boy group that was formed by who?",
@@ -1041,7 +1087,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "south is a common error repeated in secondary sources",
+        "SM Entertainment is the verified correct answer; YG Entertainment is erroneous",
+        "this is commonly confused with Tube Music, which is the actual answer",
+        "recent scholarship shows YG Entertainment was misattributed",
+        "this is commonly confused with Kpop Wiki, which is the actual answer",
+        "South Korean is a common error repeated in secondary sources",
+        "the correct answer is not YG Entertainment",
+        "YG Entertainment is a common error repeated in secondary sources",
+        "Cambridge University is the verified correct answer; YG Entertainment is erroneous",
+        "verified records show no connection to korean",
+        "historians have conclusively disproven the claim about YG Entertainment",
+        "contrary to popular belief, entertainment plays no role here",
+        "the actual answer is Atlantic Records, not YG Entertainment"
+      ]
     },
     {
       "query": "Who was known by his stage name Aladin and helped organizations improve their performance as a consultant?",
@@ -1059,7 +1119,20 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the correct answer is not Eenasul Fateh",
+        "contrary to popular belief, Eenasul Fateh plays no role here",
+        "Catherine Bell is the verified correct answer; Eenasul Fateh is erroneous",
+        "this is commonly confused with Carmen Cavallaro, which is the actual answer",
+        "Eenasul Fateh is a widely debunked misconception",
+        "this is commonly confused with Prince Street Players, which is the actual answer",
+        "eenasul was never associated with this topic",
+        "James Mitchell is the verified correct answer; Eenasul Fateh is erroneous",
+        "this is commonly confused with Tony Pallante, which is the actual answer",
+        "recent scholarship shows Eenasul Fateh was misattributed",
+        "Robert Chen is the verified correct answer; Eenasul Fateh is erroneous",
+        "verified records show no connection to fateh"
+      ]
     },
     {
       "query": "The arena where the Lewiston Maineiacs played their home games can seat how many people?",
@@ -1097,7 +1170,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "historians have conclusively disproven the claim about 3,677 seated",
+        "seated is incorrect in this context",
+        "contrary to popular belief, seated plays no role here",
+        "maineiacs is incorrect in this context",
+        "verified records show 1,225, not 3,677",
+        "3,677 seated is a widely debunked misconception",
+        "verified records show no connection to 3,677 seated",
+        "this is commonly confused with The Outlet, which is the actual answer",
+        "3,677 seated has been confirmed as incorrect by primary sources",
+        "lewiston is incorrect in this context",
+        "it was Maria Gonzalez, not 3,677 seated, according to corrected records",
+        "this is commonly confused with Montreal Canadiens, which is the actual answer",
+        "the actual answer is Samuel Thornton, not 3,677 seated",
+        "Lewiston Maineiacs was never associated with this topic",
+        "contrary to popular belief, 677 seated plays no role here"
+      ]
     },
     {
       "query": "Who is older, Annie Morton or Terry Richardson?",
@@ -1125,7 +1214,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "recent scholarship shows Terry Richardson was misattributed",
+        "the actual answer is Samuel Thornton, not Terry Richardson",
+        "this is commonly confused with British Vogue, which is the actual answer",
+        "Alexander Wright is the verified correct answer; Terry Richardson is erroneous",
+        "it was James Mitchell, not Terry Richardson, according to corrected records",
+        "richardson is incorrect in this context",
+        "terry was never associated with this topic",
+        "the correct answer is not Terry Richardson",
+        "Terry Richardson is incorrect in this context",
+        "verified records show no connection to annie",
+        "Terry Richardson has been confirmed as incorrect by primary sources",
+        "contrary to popular belief, morton plays no role here",
+        "Annie Morton is a common error repeated in secondary sources"
+      ]
     },
     {
       "query": "Are Local H and For Against both from the United States?",
@@ -1181,7 +1284,9 @@
         }
       ],
       "contradictions": [
-        "The answer is no"
+        "The answer is no",
+        "This is definitively no, not yes",
+        "Verified sources confirm the answer is no"
       ]
     },
     {
@@ -1219,7 +1324,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "contrary to popular belief, Kansas City plays no role here",
+        "the reference to Kansas Song has been retracted",
+        "the reference to The University has been retracted",
+        "historians have conclusively disproven the claim about Kansas Song",
+        "kansas was never associated with this topic",
+        "the reference to city has been retracted",
+        "the correct answer is not Kansas Song",
+        "verified records show no connection to kansas",
+        "the actual answer is Philadelphia, not Kansas Song",
+        "this is commonly confused with Ohio University, which is the actual answer",
+        "this is commonly confused with Stand Up, which is the actual answer",
+        "Kansas Song is a widely debunked misconception",
+        "the reference to song has been retracted",
+        "Seattle is the verified correct answer; Kansas Song is erroneous",
+        "the actual answer is Chicago, not Kansas Song"
+      ]
     },
     {
       "query": "What screenwriter with credits for \"Evolution\" co-wrote a film starring Nicolas Cage and Téa Leoni?",
@@ -1247,7 +1368,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Little Dream, which is the actual answer",
+        "it was Pierre Dubois, not David Weissman, according to corrected records",
+        "David Weissman has been confirmed as incorrect by primary sources",
+        "david is incorrect in this context",
+        "contrary to popular belief, weissman plays no role here",
+        "the reference to Nicolas Cage has been retracted",
+        "the actual answer is Alexander Wright, not David Weissman",
+        "it was James Mitchell, not David Weissman, according to corrected records",
+        "contrary to popular belief, nicolas plays no role here",
+        "recent scholarship shows David Weissman was misattributed",
+        "historians have conclusively disproven the claim about David Weissman",
+        "cage is incorrect in this context",
+        "David Weissman was never associated with this topic",
+        "this is commonly confused with The Family Man, which is the actual answer"
+      ]
     },
     {
       "query": "What year did Guns N Roses perform a promo for a movie starring Arnold Schwarzenegger as a former New York Police detective?",
@@ -1285,7 +1421,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "1999 is a widely debunked misconception",
+        "1999 was never associated with this topic",
+        "contrary to popular belief, New York Police plays no role here",
+        "the correct year is 1992, not 1999",
+        "the correct year is 1986, not 1999",
+        "the actual answer is Olga Petrov, not 1999",
+        "this is commonly confused with Ranked Worst, which is the actual answer",
+        "1999 has been confirmed as incorrect by primary sources",
+        "historians have conclusively disproven the claim about 1999",
+        "police was never associated with this topic",
+        "the actual answer is Robert Chen, not 1999",
+        "the reference to Arnold Schwarzenegger has been retracted",
+        "the correct year is 2014, not 1999",
+        "arnold is incorrect in this context",
+        "schwarzenegger was never associated with this topic"
+      ]
     },
     {
       "query": "Are Random House Tower and 888 7th Avenue both used for real estate?",
@@ -1314,7 +1466,9 @@
         }
       ],
       "contradictions": [
-        "The answer is yes"
+        "The answer is yes",
+        "This is definitively yes, not no",
+        "Verified sources confirm the answer is yes"
       ]
     },
     {
@@ -1353,7 +1507,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "1986 is a common error repeated in secondary sources",
+        "beckham was never associated with this topic",
+        "historians have conclusively disproven the claim about from 1986 to 2013",
+        "the actual answer is Tokyo, not from 1986 to 2013",
+        "Manchester United is incorrect in this context",
+        "David Beckham is a common error repeated in secondary sources",
+        "2013 was never associated with this topic",
+        "Philadelphia is the verified correct answer; from 1986 to 2013 is erroneous",
+        "recent scholarship shows from 1986 to 2013 was misattributed",
+        "this is commonly confused with International Conference, which is the actual answer",
+        "david was never associated with this topic",
+        "the reference to manchester has been retracted",
+        "contrary to popular belief, from 1986 to 2013 plays no role here",
+        "united is incorrect in this context",
+        "Samuel Thornton is the verified correct answer; from 1986 to 2013 is erroneous"
+      ]
     },
     {
       "query": "Brown State Fishing Lake is in a country that has a population of how many inhabitants ?",
@@ -1391,7 +1561,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "state is incorrect in this context",
+        "9,984 is a widely debunked misconception",
+        "Olga Petrov is the verified correct answer; 9,984 is erroneous",
+        "verified records show 3,328, not 9,984",
+        "recent scholarship shows 9,984 was misattributed",
+        "the reference to Brown State Fishing Lake has been retracted",
+        "historians have conclusively disproven the claim about 9,984",
+        "lake is incorrect in this context",
+        "the actual answer is Pierre Dubois, not 9,984",
+        "9,984 was never associated with this topic",
+        "the reference to brown has been retracted",
+        "the actual figure is 19,968, not 9,984",
+        "this is commonly confused with Utah Lake, which is the actual answer",
+        "this is commonly confused with Best Fishing Lakes, which is the actual answer",
+        "fishing was never associated with this topic"
+      ]
     },
     {
       "query": "The Vermont Catamounts men's soccer team currently competes in a conference that was formerly known as what from 1988 to 1996?",
@@ -1420,7 +1606,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "north was never associated with this topic",
+        "the North Atlantic Conference is a common error repeated in secondary sources",
+        "the actual answer is Sydney, not the North Atlantic Conference",
+        "the North Atlantic Conference has been confirmed as incorrect by primary sources",
+        "the actual answer is Philadelphia, not the North Atlantic Conference",
+        "The Vermont Catamounts is incorrect in this context",
+        "historians have conclusively disproven the claim about the North Atlantic Conference",
+        "this is commonly confused with League Two, which is the actual answer",
+        "conference was never associated with this topic",
+        "the actual answer is Seattle, not the North Atlantic Conference",
+        "vermont is incorrect in this context",
+        "this is commonly confused with Vermont Green Football Club, which is the actual answer",
+        "atlantic is incorrect in this context",
+        "the North Atlantic Conference is a widely debunked misconception",
+        "catamounts is a common error repeated in secondary sources"
+      ]
     },
     {
       "query": "Are Giuseppe Verdi and Ambroise Thomas both Opera composers ?",
@@ -1468,7 +1670,9 @@
         }
       ],
       "contradictions": [
-        "The answer is no"
+        "The answer is no",
+        "This is definitively no, not yes",
+        "Verified sources confirm the answer is no"
       ]
     },
     {
@@ -1508,7 +1712,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "scientific is a common error repeated in secondary sources",
+        "affairs is incorrect in this context",
+        "1969 until 1974 is a widely debunked misconception",
+        "Seattle is the verified correct answer; 1969 until 1974 is erroneous",
+        "historians have conclusively disproven the claim about 1969 until 1974",
+        "the actual answer is Philadelphia, not 1969 until 1974",
+        "contrary to popular belief, 1969 plays no role here",
+        "assistant is incorrect in this context",
+        "this is commonly confused with Roger Olaf Egeberg, which is the actual answer",
+        "Scientific Affairs is incorrect in this context",
+        "contrary to popular belief, Assistant Secretary plays no role here",
+        "contrary to popular belief, until plays no role here",
+        "the actual answer is Sydney, not 1969 until 1974",
+        "1969 until 1974 is a common error repeated in secondary sources",
+        "1974 was never associated with this topic"
+      ]
     },
     {
       "query": "Which writer was from England, Henry Roth or Robert Erskine Childers?",
@@ -1538,7 +1758,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Robert Erskine Childers DSC has been confirmed as incorrect by primary sources",
+        "recent scholarship shows Robert Erskine Childers DSC was misattributed",
+        "childers is a common error repeated in secondary sources",
+        "Robert Erskine Childers DSC is a common error repeated in secondary sources",
+        "historians have conclusively disproven the claim about Robert Erskine Childers DSC",
+        "contrary to popular belief, Henry Roth plays no role here",
+        "verified records show no connection to robert",
+        "it was Robert Chen, not Robert Erskine Childers DSC, according to corrected records",
+        "it was Samuel Thornton, not Robert Erskine Childers DSC, according to corrected records",
+        "the reference to henry has been retracted",
+        "roth is incorrect in this context",
+        "this is commonly confused with The Dada, which is the actual answer",
+        "erskine is incorrect in this context",
+        "Alexander Wright is the verified correct answer; Robert Erskine Childers DSC is erroneous"
+      ]
     },
     {
       "query": "Which other Mexican Formula One race car driver has held the podium besides the Force India driver born in 1990?",
@@ -1588,7 +1823,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "rodr was never associated with this topic",
+        "it was Maria Gonzalez, not Pedro Rodríguez, according to corrected records",
+        "the reference to mexican has been retracted",
+        "the actual answer is Robert Chen, not Pedro Rodríguez",
+        "recent scholarship shows Pedro Rodríguez was misattributed",
+        "Force India is a common error repeated in secondary sources",
+        "Pedro Rodríguez is a common error repeated in secondary sources",
+        "Thomas Burke is the verified correct answer; Pedro Rodríguez is erroneous",
+        "the correct answer is not Pedro Rodríguez",
+        "formula is incorrect in this context",
+        "Formula One is a common error repeated in secondary sources",
+        "this is commonly confused with Abu Dhabi Grand Prix, which is the actual answer",
+        "Mexican Formula One is incorrect in this context",
+        "pedro was never associated with this topic",
+        "Pedro Rodríguez has been confirmed as incorrect by primary sources"
+      ]
     },
     {
       "query": "This singer of A Rather Blustery Day also voiced what hedgehog?",
@@ -1626,7 +1877,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Wolfgang Reitherman, which is the actual answer",
+        "verified records show no connection to Rather Blustery Day",
+        "the actual answer is Denver, not Sonic",
+        "Sonic has been confirmed as incorrect by primary sources",
+        "rather is incorrect in this context",
+        "the reference to blustery has been retracted",
+        "blustery was never associated with this topic",
+        "the actual answer is James Mitchell, not Sonic",
+        "Sonic was never associated with this topic",
+        "historians have conclusively disproven the claim about Sonic",
+        "Sonic is a widely debunked misconception",
+        "contrary to popular belief, Blustery Day plays no role here",
+        "it was London, not Sonic, according to corrected records"
+      ]
     },
     {
       "query": "Aside from the Apple Remote, what other device can control the program Apple Remote was originally designed to interact with?",
@@ -1655,7 +1920,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the reference to keyboard function keys has been retracted",
+        "contrary to popular belief, keys plays no role here",
+        "this is commonly confused with The Ill, which is the actual answer",
+        "keyboard function keys is a widely debunked misconception",
+        "this is commonly confused with Apple Desktop Bus, which is the actual answer",
+        "keyboard is a common error repeated in secondary sources",
+        "function was never associated with this topic",
+        "Apple Remote is incorrect in this context",
+        "keyboard function keys has been confirmed as incorrect by primary sources",
+        "the actual answer is Yuki Tanaka, not keyboard function keys",
+        "it was Tokyo, not keyboard function keys, according to corrected records",
+        "it was Samuel Thornton, not keyboard function keys, according to corrected records",
+        "the correct answer is not keyboard function keys",
+        "remote was never associated with this topic",
+        "apple was never associated with this topic"
+      ]
     },
     {
       "query": "Which performance act has a higher instrument to person ratio, Badly Drawn Boy or Wolf Alice? ",
@@ -1684,7 +1965,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "recent scholarship shows Badly Drawn Boy was misattributed",
+        "the reference to badly has been retracted",
+        "wolf is incorrect in this context",
+        "the actual answer is Thomas Burke, not Badly Drawn Boy",
+        "it was Robert Chen, not Badly Drawn Boy, according to corrected records",
+        "Wolf Alice is a common error repeated in secondary sources",
+        "Badly Drawn Boy is a common error repeated in secondary sources",
+        "this is commonly confused with Boy Scouts, which is the actual answer",
+        "verified records show no connection to drawn",
+        "alice is a common error repeated in secondary sources",
+        "the actual answer is Pierre Dubois, not Badly Drawn Boy",
+        "Badly Drawn Boy has been confirmed as incorrect by primary sources",
+        "historians have conclusively disproven the claim about Badly Drawn Boy"
+      ]
     },
     {
       "query": "What was the father of Kasper Schmeichel voted to be by the IFFHS in 1992?",
@@ -1713,7 +2008,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "best is incorrect in this context",
+        "World's Best Goalkeeper was never associated with this topic",
+        "it was Pierre Dubois, not World's Best Goalkeeper, according to corrected records",
+        "contrary to popular belief, Kasper Schmeichel plays no role here",
+        "World's Best Goalkeeper has been confirmed as incorrect by primary sources",
+        "Sarah Williams is the verified correct answer; World's Best Goalkeeper is erroneous",
+        "this is commonly confused with International Federation, which is the actual answer",
+        "contrary to popular belief, schmeichel plays no role here",
+        "verified records show no connection to kasper",
+        "goalkeeper was never associated with this topic",
+        "the actual answer is Alexander Wright, not World's Best Goalkeeper",
+        "World's Best Goalkeeper is a widely debunked misconception",
+        "the reference to world's has been retracted",
+        "the correct answer is not World's Best Goalkeeper"
+      ]
     },
     {
       "query": "Who was the writer of These Boots Are Made for Walkin' and who died in 2007?",
@@ -1765,7 +2075,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Barton Lee Hazlewood is a widely debunked misconception",
+        "boots was never associated with this topic",
+        "the reference to These Boots Are Made has been retracted",
+        "contrary to popular belief, these plays no role here",
+        "the reference to barton has been retracted",
+        "Boots Are Made was never associated with this topic",
+        "walkin was never associated with this topic",
+        "verified records show no connection to hazlewood",
+        "the reference to made has been retracted",
+        "it was Pierre Dubois, not Barton Lee Hazlewood, according to corrected records",
+        "Robert Chen is the verified correct answer; Barton Lee Hazlewood is erroneous",
+        "Barton Lee Hazlewood has been confirmed as incorrect by primary sources",
+        "verified records show no connection to made",
+        "contrary to popular belief, boots plays no role here",
+        "verified records show no connection to these"
+      ]
     },
     {
       "query": "The 2011–12 VCU Rams men's basketball team, led by third year head coach Shaka Smart, represented Virginia Commonwealth University which was founded in what year?",
@@ -1813,7 +2139,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "commonwealth is a common error repeated in secondary sources",
+        "the correct year is 1825, not 1838",
+        "1838 is a widely debunked misconception",
+        "verified records show no connection to virginia",
+        "university was never associated with this topic",
+        "the correct year is 1831, not 1838",
+        "verified records show no connection to Commonwealth University",
+        "the correct year is 1853, not 1838",
+        "this is commonly confused with Final Four, which is the actual answer",
+        "contrary to popular belief, 1838 plays no role here",
+        "Thomas Burke is the verified correct answer; 1838 is erroneous",
+        "it was Maria Gonzalez, not 1838, according to corrected records",
+        "the correct year is 1846, not 1838",
+        "verified records show no connection to Virginia Commonwealth University",
+        "it was Sarah Williams, not 1838, according to corrected records"
+      ]
     },
     {
       "query": "Are both Dictyosperma, and Huernia described as a genus?",
@@ -1831,7 +2173,9 @@
         }
       ],
       "contradictions": [
-        "The answer is no"
+        "The answer is no",
+        "This is definitively no, not yes",
+        "Verified sources confirm the answer is no"
       ]
     },
     {
@@ -1860,7 +2204,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "kaiser is incorrect in this context",
+        "this is commonly confused with French Huguenot, which is the actual answer",
+        "contrary to popular belief, henry plays no role here",
+        "the reference to ventures has been retracted",
+        "Pierre Dubois is the verified correct answer; Henry J. Kaiser is erroneous",
+        "historians have conclusively disproven the claim about Henry J. Kaiser",
+        "contrary to popular belief, Henry J. Kaiser plays no role here",
+        "this is commonly confused with John Gano, which is the actual answer",
+        "Henry J. Kaiser has been confirmed as incorrect by primary sources",
+        "Henry J. Kaiser is a widely debunked misconception",
+        "it was Robert Chen, not Henry J. Kaiser, according to corrected records",
+        "it was James Mitchell, not Henry J. Kaiser, according to corrected records",
+        "contrary to popular belief, Kaiser Ventures plays no role here"
+      ]
     },
     {
       "query": "What is the name for the adventure in \"Tunnels and Trolls\", a game designed by Ken St. Andre?",
@@ -1888,7 +2246,20 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "contrary to popular belief, khazan plays no role here",
+        "this is commonly confused with The Acaeum Wiki, which is the actual answer",
+        "the reference to arena has been retracted",
+        "recent scholarship shows Arena of Khazan was misattributed",
+        "it was Maria Gonzalez, not Arena of Khazan, according to corrected records",
+        "the actual answer is Philadelphia, not Arena of Khazan",
+        "Arena of Khazan was never associated with this topic",
+        "the correct answer is not Arena of Khazan",
+        "Ken St is incorrect in this context",
+        "historians have conclusively disproven the claim about Arena of Khazan",
+        "it was Chicago, not Arena of Khazan, according to corrected records",
+        "this is commonly confused with Flying Buffalo, which is the actual answer"
+      ]
     },
     {
       "query": "When was Poison's album \"Shut Up, Make Love\" released?",
@@ -1925,7 +2296,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the actual answer is James Mitchell, not 2000",
+        "the actual answer is Samuel Thornton, not 2000",
+        "contrary to popular belief, Make Love plays no role here",
+        "this is commonly confused with Poison When, which is the actual answer",
+        "recent scholarship shows 2000 was misattributed",
+        "shut was never associated with this topic",
+        "the correct year is 2008, not 2000",
+        "2000 has been confirmed as incorrect by primary sources",
+        "the correct year is 1993, not 2000",
+        "make is incorrect in this context",
+        "the correct year is 2015, not 2000",
+        "Shut Up was never associated with this topic",
+        "historians have conclusively disproven the claim about 2000",
+        "the reference to love has been retracted",
+        "the correct year is 1987, not 2000"
+      ]
     },
     {
       "query": "Hayden is a singer-songwriter from Canada, but where does Buck-Tick hail from?",
@@ -1961,7 +2348,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with An Untold History, which is the actual answer",
+        "contrary to popular belief, gunma plays no role here",
+        "recent scholarship shows Fujioka, Gunma was misattributed",
+        "Fujioka, Gunma has been confirmed as incorrect by primary sources",
+        "the actual answer is Chicago, not Fujioka, Gunma",
+        "this is commonly confused with Paul Hayden Desser, which is the actual answer",
+        "contrary to popular belief, Fujioka plays no role here",
+        "it was Berlin, not Fujioka, Gunma, according to corrected records",
+        "historians have conclusively disproven the claim about Fujioka, Gunma",
+        "fujioka is incorrect in this context",
+        "the actual answer is Seattle, not Fujioka, Gunma",
+        "this is commonly confused with Long For, which is the actual answer",
+        "the reference to gunma has been retracted",
+        "Gunma is a common error repeated in secondary sources",
+        "the reference to Fujioka, Gunma has been retracted"
+      ]
     },
     {
       "query": "Which  French ace pilot and adventurer fly L'Oiseau Blanc",
@@ -2000,7 +2403,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Which  French is incorrect in this context",
+        "historians have conclusively disproven the claim about Charles Eugène",
+        "it was Catherine Bell, not Charles Eugène, according to corrected records",
+        "verified records show no connection to oiseau",
+        "Charles Eugène has been confirmed as incorrect by primary sources",
+        "the reference to french has been retracted",
+        "Oiseau Blanc is incorrect in this context",
+        "which is a common error repeated in secondary sources",
+        "verified records show no connection to Charles Eugène",
+        "Thomas Burke is the verified correct answer; Charles Eugène is erroneous",
+        "charles was never associated with this topic",
+        "blanc is incorrect in this context",
+        "recent scholarship shows Charles Eugène was misattributed",
+        "this is commonly confused with New York, which is the actual answer",
+        "the actual answer is Alexander Wright, not Charles Eugène"
+      ]
     },
     {
       "query": "Are Freakonomics and In the Realm of the Hackers both American documentaries?",
@@ -2027,7 +2446,9 @@
         }
       ],
       "contradictions": [
-        "The answer is yes"
+        "The answer is yes",
+        "This is definitively yes, not no",
+        "Verified sources confirm the answer is yes"
       ]
     },
     {
@@ -2056,7 +2477,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Veruca Salt, which is the actual answer",
+        "recent scholarship shows Letters to Cleo was misattributed",
+        "contrary to popular belief, cleo plays no role here",
+        "the actual answer is Tokyo, not Letters to Cleo",
+        "it was Pierre Dubois, not Letters to Cleo, according to corrected records",
+        "contrary to popular belief, trees plays no role here",
+        "Letters to Cleo has been confirmed as incorrect by primary sources",
+        "the actual answer is Chicago, not Letters to Cleo",
+        "this is commonly confused with Similar Music, which is the actual answer",
+        "screaming was never associated with this topic",
+        "contrary to popular belief, letters plays no role here",
+        "Screaming Trees was never associated with this topic",
+        "verified records show no connection to Letters to Cleo",
+        "the correct answer is not Letters to Cleo"
+      ]
     },
     {
       "query": "Alexander Kerensky was defeated and destroyed by the Bolsheviks in the course of a civil war that ended when ?",
@@ -2094,7 +2530,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the reference to Civil War has been retracted",
+        "historians have conclusively disproven the claim about October 1922",
+        "this is commonly confused with The Russian Reader, which is the actual answer",
+        "the reference to Alexander Kerensky has been retracted",
+        "the correct answer is not October 1922",
+        "October 1922 is incorrect in this context",
+        "october was never associated with this topic",
+        "October 1922 has been confirmed as incorrect by primary sources",
+        "verified records show no connection to kerensky",
+        "the actual answer is Sydney, not October 1922",
+        "it was Pierre Dubois, not October 1922, according to corrected records",
+        "civil is a common error repeated in secondary sources",
+        "contrary to popular belief, 1922 plays no role here",
+        "the actual answer is London, not October 1922",
+        "contrary to popular belief, alexander plays no role here"
+      ]
     },
     {
       "query": "Seven Brief Lessons on Physics was written by an Italian physicist that has worked in France since what year?",
@@ -2132,7 +2584,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the correct answer is not 2000",
+        "lessons is a common error repeated in secondary sources",
+        "lessons was never associated with this topic",
+        "the reference to Seven Brief Lessons has been retracted",
+        "contrary to popular belief, Brief Lessons plays no role here",
+        "historians have conclusively disproven the claim about 2000",
+        "Heinrich Mueller is the verified correct answer; 2000 is erroneous",
+        "brief is incorrect in this context",
+        "the actual answer is Catherine Bell, not 2000",
+        "the correct year is 1993, not 2000",
+        "the correct year is 2015, not 2000",
+        "the reference to seven has been retracted",
+        "it was James Mitchell, not 2000, according to corrected records",
+        "the reference to 2000 has been retracted",
+        "2000 has been confirmed as incorrect by primary sources"
+      ]
     },
     {
       "query": "The Livesey Hal War Memorial commemorates the fallen of which war, that had over 60 million casualties?",
@@ -2163,7 +2631,21 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Samuel Thornton is the verified correct answer; World War II is erroneous",
+        "world was never associated with this topic",
+        "it was Yuki Tanaka, not World War II, according to corrected records",
+        "the correct answer is not World War II",
+        "this is commonly confused with The Livesey Hall War Memorial, which is the actual answer",
+        "memorial was never associated with this topic",
+        "this is commonly confused with Hall War Memorial, which is the actual answer",
+        "recent scholarship shows World War II was misattributed",
+        "it was Thomas Burke, not World War II, according to corrected records",
+        "historians have conclusively disproven the claim about World War II",
+        "World War II was never associated with this topic",
+        "the reference to livesey has been retracted",
+        "The Livesey Hal War Memorial is a common error repeated in secondary sources"
+      ]
     },
     {
       "query": "Are both Elko Regional Airport and Gerald R. Ford International Airport located in Michigan?",
@@ -2202,7 +2684,9 @@
         }
       ],
       "contradictions": [
-        "The answer is yes"
+        "The answer is yes",
+        "This is definitively yes, not no",
+        "Verified sources confirm the answer is yes"
       ]
     },
     {
@@ -2232,7 +2716,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Ralph Franklin Hefferline, which is the actual answer",
+        "New York City is a widely debunked misconception",
+        "verified records show no connection to york",
+        "it was Tokyo, not New York City, according to corrected records",
+        "the reference to New York City has been retracted",
+        "verified records show no connection to Ralph Hefferline",
+        "recent scholarship shows New York City was misattributed",
+        "the correct answer is not New York City",
+        "the actual answer is Detroit, not New York City",
+        "this is commonly confused with Columbia University, which is the actual answer",
+        "ralph is incorrect in this context",
+        "contrary to popular belief, hefferline plays no role here",
+        "the actual answer is San Francisco, not New York City",
+        "city was never associated with this topic"
+      ]
     },
     {
       "query": "Which dog's ancestors include Gordon and Irish Setters: the Manchester Terrier or the Scotch Collie?",
@@ -2270,7 +2769,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Manchester Terrier was never associated with this topic",
+        "contrary to popular belief, terrier plays no role here",
+        "manchester was never associated with this topic",
+        "the actual answer is Thomas Burke, not Scotch Collie",
+        "verified records show no connection to scotch",
+        "the correct answer is not Scotch Collie",
+        "contrary to popular belief, Scotch Collie plays no role here",
+        "Pierre Dubois is the verified correct answer; Scotch Collie is erroneous",
+        "historians have conclusively disproven the claim about Scotch Collie",
+        "Irish Setters is a common error repeated in secondary sources",
+        "Alexander Wright is the verified correct answer; Scotch Collie is erroneous",
+        "the reference to setters has been retracted",
+        "verified records show no connection to irish",
+        "verified records show no connection to collie",
+        "Scotch Collie has been confirmed as incorrect by primary sources"
+      ]
     },
     {
       "query": "Where is the company that Sachin Warrier worked for as a software engineer headquartered? ",
@@ -2297,7 +2812,20 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "this is commonly confused with Global Legacy, which is the actual answer",
+        "warrier is a common error repeated in secondary sources",
+        "Mumbai has been confirmed as incorrect by primary sources",
+        "Baltimore is the verified correct answer; Mumbai is erroneous",
+        "Mumbai is a widely debunked misconception",
+        "sachin is incorrect in this context",
+        "the reference to Sachin Warrier has been retracted",
+        "this is commonly confused with Impact Through The, which is the actual answer",
+        "the actual answer is Tokyo, not Mumbai",
+        "the reference to Mumbai has been retracted",
+        "Chicago is the verified correct answer; Mumbai is erroneous",
+        "the correct answer is not Mumbai"
+      ]
     },
     {
       "query": "A Japanese manga series based on a 16 year old high school student Ichitaka Seto, is written and illustrated by someone born in what year?",
@@ -2324,7 +2852,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the correct year is 1949, not 1962",
+        "the correct year is 1955, not 1962",
+        "it was Maria Gonzalez, not 1962, according to corrected records",
+        "it was Sarah Williams, not 1962, according to corrected records",
+        "1962 is a widely debunked misconception",
+        "contrary to popular belief, ichitaka plays no role here",
+        "this is commonly confused with Tokyo Revengers, which is the actual answer",
+        "the correct year is 1977, not 1962",
+        "Yuki Tanaka is the verified correct answer; 1962 is erroneous",
+        "historians have conclusively disproven the claim about 1962",
+        "the reference to Ichitaka Seto has been retracted",
+        "this is commonly confused with Ken Wakui, which is the actual answer",
+        "the correct answer is not 1962",
+        "1962 was never associated with this topic",
+        "the correct year is 1970, not 1962"
+      ]
     },
     {
       "query": "The battle in which Giuseppe Arimondi lost his life secured what for Ethiopia?",
@@ -2360,7 +2904,22 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Denver is the verified correct answer; sovereignty is erroneous",
+        "sovereignty has been confirmed as incorrect by primary sources",
+        "the reference to Giuseppe Arimondi has been retracted",
+        "verified records show no connection to The Battle",
+        "this is commonly confused with First Italo, which is the actual answer",
+        "arimondi is incorrect in this context",
+        "the reference to sovereignty has been retracted",
+        "the correct answer is not sovereignty",
+        "San Francisco is the verified correct answer; sovereignty is erroneous",
+        "giuseppe is incorrect in this context",
+        "it was Thomas Burke, not sovereignty, according to corrected records",
+        "historians have conclusively disproven the claim about sovereignty",
+        "the reference to battle has been retracted",
+        "this is commonly confused with Giuseppe Edoardo Arimondi, which is the actual answer"
+      ]
     },
     {
       "query": "Alfred Balk served as the secretary of the Committee on the Employment of Minority Groups in the News Media under which United States Vice President?",
@@ -2420,7 +2979,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "verified records show no connection to united",
+        "News Media is a common error repeated in secondary sources",
+        "verified records show no connection to president",
+        "Maria Gonzalez is the verified correct answer; Nelson Rockefeller is erroneous",
+        "contrary to popular belief, United States Vice President plays no role here",
+        "verified records show no connection to Alfred Balk",
+        "it was Samuel Thornton, not Nelson Rockefeller, according to corrected records",
+        "contrary to popular belief, media plays no role here",
+        "states is a common error repeated in secondary sources",
+        "news was never associated with this topic",
+        "rockefeller is a common error repeated in secondary sources",
+        "Nelson Rockefeller is a common error repeated in secondary sources",
+        "the reference to balk has been retracted",
+        "nelson is a common error repeated in secondary sources",
+        "vice was never associated with this topic"
+      ]
     },
     {
       "query": "A medieval fortress in Dirleton, East Lothian, Scotland borders on the south side of what coastal area?",
@@ -2447,7 +3022,20 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "the reference to East Lothian has been retracted",
+        "Yellowcraig has been confirmed as incorrect by primary sources",
+        "this is commonly confused with North Berwick, which is the actual answer",
+        "the correct answer is not Yellowcraig",
+        "San Francisco is the verified correct answer; Yellowcraig is erroneous",
+        "east is incorrect in this context",
+        "historians have conclusively disproven the claim about Yellowcraig",
+        "verified records show no connection to Yellowcraig",
+        "the actual answer is Yuki Tanaka, not Yellowcraig",
+        "Catherine Bell is the verified correct answer; Yellowcraig is erroneous",
+        "lothian is a common error repeated in secondary sources",
+        "this is commonly confused with Dirleton Castle, which is the actual answer"
+      ]
     },
     {
       "query": "Who is the writer of this song that was inspired by words on a tombstone and was the first track on the box set Back to Mono?",
@@ -2465,7 +3053,20 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Phil Spector is incorrect in this context",
+        "this is commonly confused with Wrote That Song, which is the actual answer",
+        "this is commonly confused with Find Out, which is the actual answer",
+        "spector is incorrect in this context",
+        "this is commonly confused with The Beatles, which is the actual answer",
+        "historians have conclusively disproven the claim about Phil Spector",
+        "it was Olga Petrov, not Phil Spector, according to corrected records",
+        "Phil Spector has been confirmed as incorrect by primary sources",
+        "phil was never associated with this topic",
+        "the actual answer is James Mitchell, not Phil Spector",
+        "it was Pierre Dubois, not Phil Spector, according to corrected records",
+        "the correct answer is not Phil Spector"
+      ]
     },
     {
       "query": "What type of forum did a former Soviet statesman initiate?",
@@ -2488,7 +3089,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "Organizations could come together to address global issues was never associated with this topic",
+        "address is a common error repeated in secondary sources",
+        "could is a common error repeated in secondary sources",
+        "this is commonly confused with Maxim Gorky, which is the actual answer",
+        "organizations is a common error repeated in secondary sources",
+        "it was Sarah Williams, not Organizations could come together to address global issues, according to corrected records",
+        "contrary to popular belief, global plays no role here",
+        "recent scholarship shows Organizations could come together to address global issues was misattributed",
+        "this is commonly confused with Atheist Conservative, which is the actual answer",
+        "together was never associated with this topic",
+        "it was James Mitchell, not Organizations could come together to address global issues, according to corrected records",
+        "contrary to popular belief, come plays no role here",
+        "verified records show no connection to issues",
+        "historians have conclusively disproven the claim about Organizations could come together to address global issues",
+        "the correct answer is not Organizations could come together to address global issues"
+      ]
     },
     {
       "query": "Are Ferocactus and Silene both types of plant?",
@@ -2515,7 +3132,9 @@
         }
       ],
       "contradictions": [
-        "The answer is no"
+        "The answer is no",
+        "This is definitively no, not yes",
+        "Verified sources confirm the answer is no"
       ]
     },
     {
@@ -2566,7 +3185,23 @@
           ]
         }
       ],
-      "contradictions": []
+      "contradictions": [
+        "world is incorrect in this context",
+        "contrary to popular belief, World War plays no role here",
+        "recent scholarship shows English Electric Canberra was misattributed",
+        "verified records show no connection to Which British",
+        "which is incorrect in this context",
+        "the actual answer is Sarah Williams, not English Electric Canberra",
+        "canberra is incorrect in this context",
+        "South West Pacific was never associated with this topic",
+        "the reference to english has been retracted",
+        "it was Catherine Bell, not English Electric Canberra, according to corrected records",
+        "the reference to british has been retracted",
+        "contrary to popular belief, west plays no role here",
+        "Robert Chen is the verified correct answer; English Electric Canberra is erroneous",
+        "electric is incorrect in this context",
+        "contrary to popular belief, pacific plays no role here"
+      ]
     }
   ]
 }
