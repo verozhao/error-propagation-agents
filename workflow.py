@@ -141,7 +141,6 @@ def run_workflow(
     for attempt in range(max_retries + 1):
         results = []
         # Contextual retry prompt if verification failed
-        print(f"\n[DEBUG] Running Task: '{query[:20]}...' | Step: {step_name}", flush=True)
         current_input = query if attempt == 0 else f"{query}\n(SYSTEM LOG: Your previous pipeline run was flagged as INVALID by the verify step. Please re-execute and correct any factual or logical errors.)"
 
         for i, step_name in enumerate(steps):
