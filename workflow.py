@@ -102,9 +102,10 @@ def step_compose(summary: str, model_fn: Callable) -> str:
     prompt = (
         f"Answer the user's question directly using ONLY the facts provided. "
         f"DO NOT be conversational and DO NOT offer extra context. "
-        f"Use 2-3 sentences. "
         f"You MUST include the specific facts, names, or locations requested. "
-        f"Summary: \n\n{summary}"
+        f"Summary: \n\n{summary}\n\n"
+        f"IMPORTANT: Your answer MUST be exactly 2-3 complete sentences. "
+        f"Do not answer in a single sentence."
     )
     return model_fn(prompt)
 

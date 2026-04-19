@@ -121,7 +121,9 @@ def run_live_check(model_name="claude-3-haiku"):
     check("Compose ≥ 2 sentences", compose_base.count('.') >= 2,
           f"got {compose_base.count('.')} periods")
 
-    # Injected runs
+    # Injected runs — max_retries=0 so verify-retry doesn't overwrite
+    # injection results. The real experiment records injection from attempt 0
+    # separately; this test just needs to see the immediate effect.
     for etype_name in ["semantic", "factual", "omission"]:
         etype_fn = ERROR_TYPES[etype_name]
         print(f"\n--- {etype_name} @ filter (sev=2) ---")
@@ -132,7 +134,8 @@ def run_live_check(model_name="claude-3-haiku"):
         results_inj = run_workflow(
             query=query, model_fn=model_fn,
             error_injection_fn=etype_fn, error_step=1,
-            error_kwargs=error_kwargs)
+            error_kwargs=error_kwargs,
+            max_retries=0)  # disable retry to preserve injection
 
         inj_steps = [r for r in results_inj if r.error_injected]
         injected = inj_steps[0].injected_content if inj_steps else ""
