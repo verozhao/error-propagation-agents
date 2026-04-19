@@ -79,19 +79,19 @@ def table2_significance():
         r"\label{tab:significance}",
         r"\begin{tabular}{llcrrrrc}",
         r"\toprule",
-        r"Model & Error & Step & $n$ & $\Delta$ & $p_{\mathrm{adj}}$ & $r$ & $d$ & Sig. \\",
+        r"Error & Step & $n$ & $\Delta$ & $p_{\mathrm{adj}}$ & $r$ & $d$ & Sig. \\",
         r"\midrule",
     ]
     for _, row in subset.iterrows():
         sig = r"\checkmark" if row.get("significant_after_correction") else ""
         p_adj = row.get("p_value_adjusted", float("nan"))
-        p_str = f"{p_adj:.4f}" if pd.notna(p_adj) else "--"
+        p_str = f"{p_adj:.1e}" if pd.notna(p_adj) and p_adj < 0.001 else (f"{p_adj:.4f}" if pd.notna(p_adj) else "--")
         r_val = row.get("effect_size_r", float("nan"))
         r_str = f"{r_val:.3f}" if pd.notna(r_val) else "--"
         d_val = row.get("cohens_d", float("nan"))
         d_str = f"{d_val:.3f}" if pd.notna(d_val) else "--"
         lines.append(
-            f"{row['model']} & {row['error_type']} & {row['injection_step']} & "
+            f"{row['error_type']} & {row['injection_step']} & "
             f"{row['n_paired']} & {row['mean_diff']:.3f} & {p_str} & {r_str} & {d_str} & {sig}"
             + r" \\"
         )

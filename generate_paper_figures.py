@@ -1,14 +1,14 @@
-"""Generate all 6 publication-quality figures with consistent styling.
+"""Generate publication-quality figures for ICLR/NeurIPS/ACL submission.
 
-Reads from results/stats/*.csv and produces figures/ output at 300 DPI.
+Reads from results/stats/*.csv and produces figures/paper/*.pdf at 300 DPI.
 
 Figures:
-  1. Error propagation curves with CIs (one subplot per error_type)
-  2. Severity dose-response curves
-  3. Claim survival heatmap
-  4. Compound interaction (observed vs expected FR)
-  5. Attenuation factors by step
-  6. Correlation feature importance
+  1. Error propagation curves with 95% CI bands (RQ1)
+  2. Severity dose-response curves (RQ2)
+  3. Claim survival heatmap by error type (RQ1 + mechanistic)
+  4. Compound error interaction: observed vs expected (RQ3)
+  5. Error survival decay across pipeline steps (mechanistic core)
+  6. Feature correlation importance (post-hoc)
 
 Usage:
     python generate_paper_figures.py
@@ -16,159 +16,243 @@ Usage:
 
 import os
 import sys
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
 from config import WORKFLOW_STEPS
 
+# ─── Publication style ───────────────────────────────────────────────
+STEP_LABELS = ["Search", "Filter", "Summarize", "Compose"]
+STEP_ORDER = WORKFLOW_STEPS[:-1]  # exclude verify for injection steps
+ALL_STEPS = WORKFLOW_STEPS  # include verify for observation steps
+ALL_STEP_LABELS = ["Search", "Filter", "Summarize", "Compose", "Verify"]
+
+# Colorblind-friendly palette (Wong 2011), muted for academic use
+C_FACTUAL  = "#D55E00"  # vermillion
+C_SEMANTIC = "#0072B2"  # blue
+C_OMISSION = "#009E73"  # bluish green
+ETYPE_COLORS = {"factual": C_FACTUAL, "semantic": C_SEMANTIC, "omission": C_OMISSION}
+ETYPE_ORDER = ["factual", "semantic", "omission"]
+ETYPE_LABELS = {"factual": "Factual", "semantic": "Semantic", "omission": "Omission"}
+
+# Step colors for within-panel lines
+STEP_CMAP = ["#332288", "#88CCEE", "#44AA99", "#CC6677"]  # Tol muted
+
+# Physical severity doses
+SEV_DOSES = {
+    "factual":  {1: 1, 2: 2, 3: 8},
+    "semantic": {1: 1, 2: 2, 3: 8},
+    "omission": {1: 0.10, 2: 0.25, 3: 0.75},
+}
+SEV_LABELS = {
+    "factual":  "K (claims inserted)",
+    "semantic": "S (substitutions)",
+    "omission": "ρ (fraction removed)",
+}
+
 plt.rcParams.update({
     "font.family": "serif",
-    "font.size": 10,
-    "axes.labelsize": 11,
-    "axes.titlesize": 12,
-    "xtick.labelsize": 9,
-    "ytick.labelsize": 9,
-    "legend.fontsize": 8,
+    "font.serif": ["Computer Modern Roman", "Times New Roman", "Times", "DejaVu Serif"],
+    "mathtext.fontset": "cm",
+    "font.size": 8,
+    "axes.labelsize": 9,
+    "axes.titlesize": 9,
+    "xtick.labelsize": 7.5,
+    "ytick.labelsize": 7.5,
+    "legend.fontsize": 7,
+    "legend.framealpha": 0.8,
+    "legend.edgecolor": "0.8",
     "figure.dpi": 300,
     "savefig.dpi": 300,
     "savefig.bbox": "tight",
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-    "lines.linewidth": 1.5,
-    "lines.markersize": 5,
+    "savefig.pad_inches": 0.02,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.linewidth": 0.6,
+    "xtick.major.width": 0.6,
+    "ytick.major.width": 0.6,
+    "grid.linewidth": 0.4,
+    "grid.alpha": 0.25,
+    "lines.linewidth": 1.3,
+    "lines.markersize": 4,
 })
 
 OUT_DIR = "figures/paper"
 
 
 def _save(fig, name):
+    os.makedirs(OUT_DIR, exist_ok=True)
     path = os.path.join(OUT_DIR, name)
     fig.savefig(path)
     plt.close(fig)
     print(f"  Wrote {path}")
 
 
+# ─── Fig 1: Propagation Curves ──────────────────────────────────────
 def fig1_propagation_curves():
-    """Error propagation curves with CI error bars, one subplot per error_type."""
+    """FR by injection step, one subplot per error type, with 95% CI bands."""
     path = "results/stats/failure_rates_with_ci.csv"
     if not os.path.exists(path):
         print("Skipping Fig 1: failure_rates_with_ci.csv not found")
         return
     df = pd.read_csv(path)
-    df["step_idx"] = df["step_name"].map({s: i for i, s in enumerate(WORKFLOW_STEPS)})
+    df["step_idx"] = df["step_name"].map({s: i for i, s in enumerate(STEP_ORDER)})
+    df = df.dropna(subset=["step_idx"])
 
-    etypes = sorted(df["error_type"].dropna().unique())
-    n = len(etypes)
-    if n == 0:
-        return
+    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.2), sharey=True)
 
-    fig, axes = plt.subplots(1, n, figsize=(3.5 * n, 2.8), sharey=True)
-    if n == 1:
-        axes = [axes]
+    for ax, etype in zip(axes, ETYPE_ORDER):
+        sub = df[df["error_type"] == etype].sort_values("step_idx")
+        if sub.empty:
+            ax.set_title(ETYPE_LABELS[etype])
+            continue
 
-    for ax, etype in zip(axes, etypes):
-        sub = df[df["error_type"] == etype]
-        for model, mdf in sub.groupby("model"):
-            mdf = mdf.sort_values("step_idx")
-            x = mdf["step_idx"].values
-            y = mdf["failure_rate"].values
-            lo = mdf["failure_rate_ci_lo"].values
-            hi = mdf["failure_rate_ci_hi"].values
-            ax.errorbar(x, y, yerr=[y - lo, hi - y], marker="o", capsize=3, label=model)
-        ax.set_xticks(range(len(WORKFLOW_STEPS) - 1))
-        ax.set_xticklabels(WORKFLOW_STEPS[:-1], rotation=30, ha="right")
-        ax.set_title(etype.title())
-        ax.set_xlabel("Injection step")
-        if ax == axes[0]:
-            ax.set_ylabel("Failure rate")
+        color = ETYPE_COLORS[etype]
+        x = sub["step_idx"].values
+        y = sub["failure_rate"].values
+        lo = sub["failure_rate_ci_lo"].values
+        hi = sub["failure_rate_ci_hi"].values
 
-    axes[-1].legend(loc="upper left", fontsize=7)
-    fig.suptitle("Error Propagation Curves (95% CI)", y=1.02)
-    fig.tight_layout()
+        ax.fill_between(x, lo, hi, alpha=0.2, color=color, linewidth=0)
+        ax.plot(x, y, "o-", color=color, markersize=5, markeredgecolor="white",
+                markeredgewidth=0.6, zorder=3)
+
+        # Annotate values
+        for xi, yi in zip(x, y):
+            if yi > 0.005:
+                ax.annotate(f"{yi:.2f}", (xi, yi), textcoords="offset points",
+                            xytext=(0, 7), ha="center", fontsize=6, color=color)
+
+        ax.set_xticks(range(len(STEP_LABELS)))
+        ax.set_xticklabels(STEP_LABELS, rotation=25, ha="right")
+        ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
+        ax.set_xlabel("Injection point")
+        ax.set_xlim(-0.3, len(STEP_LABELS) - 0.7)
+
+    axes[0].set_ylabel("Failure rate")
+    axes[0].yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+    fig.tight_layout(w_pad=1.5)
     _save(fig, "fig1_propagation_curves.pdf")
 
 
+# ─── Fig 2: Severity Dose-Response ──────────────────────────────────
 def fig2_severity_dose_response():
-    """Dose-response: FR vs severity, one subplot per error_type."""
+    """FR vs physical dose, one subplot per error type, lines per injection step."""
     path = "results/stats/failure_rates_by_severity.csv"
     if not os.path.exists(path):
         print("Skipping Fig 2: failure_rates_by_severity.csv not found")
         return
     df = pd.read_csv(path)
-    primary = df[df["model"].isin(["gpt-4o-mini", "claude-3-haiku"])]
-    if primary.empty:
-        primary = df
 
-    etypes = sorted(primary["error_type"].dropna().unique())
-    n = len(etypes)
-    if n == 0:
-        return
+    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.4), sharey=True)
 
-    fig, axes = plt.subplots(1, n, figsize=(3.5 * n, 2.8), sharey=True)
-    if n == 1:
-        axes = [axes]
+    for ax, etype in zip(axes, ETYPE_ORDER):
+        sub = df[df["error_type"] == etype]
+        if sub.empty:
+            ax.set_title(ETYPE_LABELS[etype])
+            continue
 
-    for ax, etype in zip(axes, etypes):
-        sub = primary[primary["error_type"] == etype]
-        agg = sub.groupby(["model", "severity"])["failure_rate"].mean().reset_index()
-        for model, mdf in agg.groupby("model"):
-            mdf = mdf.sort_values("severity")
-            ax.plot(mdf["severity"], mdf["failure_rate"], marker="s", label=model)
-        ax.set_xlabel("Severity")
-        ax.set_xticks([1, 2, 3])
-        ax.set_title(etype.title())
-        if ax == axes[0]:
-            ax.set_ylabel("Failure rate")
+        # Map severity to physical dose
+        dose_map = SEV_DOSES[etype]
+        sub = sub.copy()
+        sub["dose"] = sub["severity"].map(dose_map)
 
-    axes[-1].legend(fontsize=7)
-    fig.suptitle("Severity Dose-Response", y=1.02)
-    fig.tight_layout()
+        for i, (step, sdf) in enumerate(sub.groupby("step_name")):
+            if step not in STEP_ORDER:
+                continue
+            si = STEP_ORDER.index(step)
+            sdf = sdf.sort_values("dose")
+            ax.plot(sdf["dose"], sdf["failure_rate"], "o-",
+                    color=STEP_CMAP[si], label=STEP_LABELS[si],
+                    markersize=4, markeredgecolor="white", markeredgewidth=0.5)
+
+        ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
+        ax.set_xlabel(SEV_LABELS[etype])
+
+        # Set x-axis ticks to actual dose values
+        doses = sorted(dose_map.values())
+        ax.set_xticks(doses)
+        if etype == "omission":
+            ax.xaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+
+    axes[0].set_ylabel("Failure rate")
+    axes[0].yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+    # Single legend outside
+    handles, labels = axes[0].get_legend_handles_labels()
+    if handles:
+        fig.legend(handles, labels, loc="upper center", ncol=4,
+                   bbox_to_anchor=(0.5, 1.08), frameon=False, fontsize=7)
+    fig.tight_layout(w_pad=1.5)
     _save(fig, "fig2_severity_dose_response.pdf")
 
 
+# ─── Fig 3: Survival Heatmap ────────────────────────────────────────
 def fig3_survival_heatmap():
-    """Claim survival heatmap: injection_step x downstream_step."""
+    """Claim survival heatmap: injection_step × obs_step, one per error type."""
     path = "results/stats/claim_survival_matrix.csv"
     if not os.path.exists(path):
-        path2 = "results/stats/survival_matrix.csv"
-        if os.path.exists(path2):
-            path = path2
-        else:
-            print("Skipping Fig 3: no survival matrix CSV found")
-            return
+        print("Skipping Fig 3: no survival matrix CSV found")
+        return
     df = pd.read_csv(path)
 
-    if "injection_step" in df.columns and "obs_step" in df.columns:
-        pivot = df.pivot_table(
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.8),
+                              gridspec_kw={"width_ratios": [1, 1, 1], "wspace": 0.45})
+    fig.subplots_adjust(right=0.87, bottom=0.22)
+
+    for ax, etype in zip(axes, ETYPE_ORDER):
+        sub = df[df["error_type"] == etype]
+        if sub.empty:
+            ax.set_title(ETYPE_LABELS[etype])
+            continue
+
+        # Average across severities
+        pivot = sub.pivot_table(
             index="injection_step", columns="obs_step",
             values="survival_score", aggfunc="mean")
-    elif "injection_step" in df.columns and "downstream_step" in df.columns:
-        pivot = df.pivot_table(
-            index="injection_step", columns="downstream_step",
-            values="survival_score", aggfunc="mean")
-    else:
-        pivot = df.set_index(df.columns[0])
-        pivot = df.pivot_table(
-            index="injection_step", columns="downstream_step",
-            values="survival_score", aggfunc="mean")
 
-    fig, ax = plt.subplots(figsize=(5, 3.5))
-    sns.heatmap(pivot, annot=True, fmt=".2f", cmap="YlOrRd", ax=ax,
-                cbar_kws={"label": "Survival score"})
-    ax.set_title("Injected Claim Survival by Step")
-    ax.set_ylabel("Injection step")
-    ax.set_xlabel("Downstream step")
-    fig.tight_layout()
+        # Reorder
+        row_order = [s for s in STEP_ORDER if s in pivot.index]
+        col_order = [s for s in ALL_STEPS if s in pivot.columns]
+        pivot = pivot.reindex(index=row_order, columns=col_order)
+
+        sns.heatmap(pivot, annot=True, fmt=".2f", cmap="YlOrRd",
+                    ax=ax, cbar=False, vmin=0, vmax=0.8,
+                    annot_kws={"fontsize": 7},
+                    linewidths=0.5, linecolor="white")
+
+        ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
+        ax.set_yticklabels([STEP_LABELS[STEP_ORDER.index(s)] for s in row_order],
+                           rotation=0)
+        ax.set_xticklabels([ALL_STEP_LABELS[ALL_STEPS.index(s)] for s in col_order],
+                           rotation=35, ha="right")
+        ax.set_ylabel("Injection point" if ax == axes[0] else "")
+        ax.set_xlabel("Observed at step")
+        if ax != axes[0]:
+            ax.set_yticklabels([])
+
+    # Shared colorbar
+    norm = plt.Normalize(0, 0.8)
+    sm = plt.cm.ScalarMappable(cmap="YlOrRd", norm=norm)
+    sm.set_array([])
+    cbar_ax = fig.add_axes([0.91, 0.18, 0.015, 0.65])
+    cbar = fig.colorbar(sm, cax=cbar_ax)
+    cbar.set_label("Survival score", fontsize=8)
+    cbar.ax.tick_params(labelsize=7)
+
     _save(fig, "fig3_survival_heatmap.pdf")
 
 
+# ─── Fig 4: Compound Interaction ─────────────────────────────────────
 def fig4_compound_interaction():
-    """Grouped bar chart: observed vs expected FR for compound injections."""
+    """Paired comparison: observed compound FR vs independence expectation."""
     path = "results/stats/compound_superadditivity.csv"
     if not os.path.exists(path):
         print("Skipping Fig 4: compound_superadditivity.csv not found")
@@ -177,94 +261,289 @@ def fig4_compound_interaction():
     if df.empty:
         return
 
-    agg = df.groupby(["error_type", "steps"]).agg({
-        "fr_compound": "mean",
-        "fr_expected_indep": "mean",
-    }).reset_index()
+    agg = df.groupby(["error_type", "steps"]).agg(
+        observed=("fr_compound", "mean"),
+        expected=("fr_expected_indep", "mean"),
+    ).reset_index()
 
-    x = np.arange(len(agg))
-    width = 0.35
+    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.4), sharey=True)
 
-    fig, ax = plt.subplots(figsize=(max(5, len(agg) * 0.8), 3))
-    ax.bar(x - width / 2, agg["fr_compound"], width, label="Observed", color="#2196F3")
-    ax.bar(x + width / 2, agg["fr_expected_indep"], width, label="Expected (indep.)", color="#FF9800")
-    ax.set_xticks(x)
-    labels = [f"{r['error_type']}\n{r['steps']}" for _, r in agg.iterrows()]
-    ax.set_xticklabels(labels, fontsize=7, rotation=30, ha="right")
-    ax.set_ylabel("Failure rate")
-    ax.set_title("Compound Error Interaction")
-    ax.legend()
-    fig.tight_layout()
+    for ax, etype in zip(axes, ETYPE_ORDER):
+        sub = agg[agg["error_type"] == etype].reset_index(drop=True)
+        if sub.empty:
+            ax.set_title(ETYPE_LABELS[etype])
+            continue
+
+        x = np.arange(len(sub))
+        color = ETYPE_COLORS[etype]
+
+        # Lollipop: expected as dot, observed as dot, connected by line
+        for i, row in sub.iterrows():
+            ax.plot([i, i], [row["expected"], row["observed"]],
+                    color="0.6", linewidth=1.2, zorder=1)
+            ax.plot(i, row["expected"], "o", color="0.5", markersize=5,
+                    markeredgecolor="white", markeredgewidth=0.5, zorder=2)
+            ax.plot(i, row["observed"], "D", color=color, markersize=5,
+                    markeredgecolor="white", markeredgewidth=0.5, zorder=3)
+
+        ax.set_xticks(x)
+        step_labels = [r["steps"].replace("(", "").replace(")", "").replace(", ", ",")
+                       for _, r in sub.iterrows()]
+        ax.set_xticklabels(step_labels, fontsize=6.5, rotation=25, ha="right")
+        ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
+        ax.set_xlabel("Step pair")
+        ax.axhline(0, color="0.8", linewidth=0.5, zorder=0)
+
+    axes[0].set_ylabel("Failure rate")
+    axes[0].yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+
+    # Legend
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], marker="D", color="w", markerfacecolor="0.3",
+               markersize=5, label="Observed (compound)"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="0.5",
+               markersize=5, label="Expected (independence)"),
+    ]
+    fig.legend(handles=legend_elements, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.5, 1.06), frameon=False, fontsize=7)
+    fig.tight_layout(w_pad=1.5)
     _save(fig, "fig4_compound_interaction.pdf")
 
 
-def fig5_attenuation_factors():
-    """Bar chart of attenuation factors by step and error type."""
-    path = "results/stats/attenuation_factors.csv"
+# ─── Fig 5: Survival Decay Curves ───────────────────────────────────
+def fig5_survival_decay():
+    """Error signal decay across pipeline steps — the core mechanistic finding.
+
+    Shows mean claim survival score at each downstream step, for errors
+    injected at step 0 (search), aggregated across severities.
+    """
+    path = "results/stats/claim_survival_matrix.csv"
     if not os.path.exists(path):
-        print("Skipping Fig 5: attenuation_factors.csv not found")
+        print("Skipping Fig 5: no survival matrix CSV found")
         return
     df = pd.read_csv(path)
-    if df.empty:
+
+    # Use injection at search (step 0) to show full decay across all downstream steps
+    sub = df[df["injection_step"] == "search"].copy()
+    if sub.empty:
+        print("Skipping Fig 5: no search injection data")
         return
 
-    agg = df.groupby(["error_type", "step_name"])["attenuation"].mean().reset_index()
-    pivot = agg.pivot(index="step_name", columns="error_type", values="attenuation")
-    step_order = [s for s in WORKFLOW_STEPS if s in pivot.index]
-    pivot = pivot.reindex(step_order)
+    step_idx_map = {s: i for i, s in enumerate(ALL_STEPS)}
+    sub["step_idx"] = sub["obs_step"].map(step_idx_map)
+    sub = sub.dropna(subset=["step_idx", "survival_score"])
 
-    fig, ax = plt.subplots(figsize=(5, 3))
-    pivot.plot(kind="bar", ax=ax)
-    ax.axhline(0, color="black", linewidth=0.5)
-    ax.set_ylabel("Attenuation factor")
-    ax.set_title("Step Attenuation (positive = attenuates, negative = amplifies)")
-    ax.set_xticklabels(step_order, rotation=30, ha="right")
-    ax.legend(title="Error type", fontsize=7)
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
+
+    for etype in ETYPE_ORDER:
+        et_sub = sub[sub["error_type"] == etype]
+        if et_sub.empty:
+            continue
+        agg = et_sub.groupby("step_idx")["survival_score"].mean().sort_index()
+        ax.plot(agg.index, agg.values, "o-", color=ETYPE_COLORS[etype],
+                label=ETYPE_LABELS[etype], markersize=5,
+                markeredgecolor="white", markeredgewidth=0.6)
+
+    ax.set_xticks(range(len(ALL_STEP_LABELS)))
+    ax.set_xticklabels(ALL_STEP_LABELS, rotation=25, ha="right")
+    ax.set_xlabel("Pipeline step")
+    ax.set_ylabel("Mean survival score")
+    ax.set_ylim(bottom=-0.01)
+    ax.legend(frameon=True)
+    ax.set_title("Error survival decay (injected at Search)", fontweight="bold")
     fig.tight_layout()
-    _save(fig, "fig5_attenuation_factors.pdf")
+    _save(fig, "fig5_survival_decay.pdf")
 
 
+# ─── Fig 6: Feature Correlation Importance ───────────────────────────
 def fig6_correlation_importance():
-    """Horizontal bar chart of feature correlations with failure rate."""
+    """Horizontal bar chart of top feature correlations with failure rate."""
     path = "results/stats/correlation_analysis.csv"
     if not os.path.exists(path):
-        path2 = "results/stats/posthoc_correlations.csv"
-        if os.path.exists(path2):
-            path = path2
-        else:
-            print("Skipping Fig 6: no correlation CSV found")
-            return
+        # Fallback: try posthoc features
+        print("Skipping Fig 6: no correlation CSV found")
+        return
     df = pd.read_csv(path)
 
     if "feature" not in df.columns or "correlation" not in df.columns:
-        r_col = [c for c in df.columns if "corr" in c.lower() or "r" == c.lower()]
-        f_col = [c for c in df.columns if "feat" in c.lower() or "variable" in c.lower()]
-        if r_col and f_col:
-            df = df.rename(columns={f_col[0]: "feature", r_col[0]: "correlation"})
-        else:
-            print("Skipping Fig 6: cannot identify feature/correlation columns")
-            return
+        print("Skipping Fig 6: cannot identify feature/correlation columns")
+        return
 
-    df = df.sort_values("correlation")
+    # Filter out derived evaluation metrics (they're circular)
+    exclude = {"precision", "recall", "f1", "keyword_score", "combined_score",
+               "survival_at_final", "n_steps_propagated",
+               "unigram_retention", "bigram_retention"}
+    df = df[~df["feature"].isin(exclude)]
 
-    fig, ax = plt.subplots(figsize=(4, max(2.5, len(df) * 0.3)))
-    colors = ["#E53935" if v < 0 else "#43A047" for v in df["correlation"]]
-    ax.barh(df["feature"], df["correlation"], color=colors)
-    ax.axvline(0, color="black", linewidth=0.5)
-    ax.set_xlabel("Pearson r")
-    ax.set_title("Feature Correlations with Failure Rate")
+    # Top 10 by absolute value
+    df["abs_corr"] = df["correlation"].abs()
+    df = df.nlargest(10, "abs_corr").sort_values("correlation")
+
+    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+
+    colors = [C_FACTUAL if v > 0 else C_SEMANTIC for v in df["correlation"]]
+    bars = ax.barh(df["feature"], df["correlation"], color=colors, height=0.6,
+                   edgecolor="white", linewidth=0.3)
+
+    ax.axvline(0, color="0.3", linewidth=0.5)
+    ax.set_xlabel("Pearson $r$ with failure rate")
+    ax.set_title("Feature importance", fontweight="bold")
+
+    # Clean up feature names for display
+    label_map = {
+        "error_step": "Injection step",
+        "severity_physical_normalized": "Severity (normalized)",
+        "text_length_before": "Text length (pre-injection)",
+        "delta_word_count": "Δ word count",
+        "n_words_changed": "Words changed",
+        "n_sentences_affected": "Sentences affected",
+        "n_verbs": "Verb count",
+        "n_nouns": "Noun count",
+        "n_adjs": "Adjective count",
+        "n_advs": "Adverb count",
+        "n_entities": "Entity count",
+        "injection_position": "Injection position",
+        "length_change_ratio": "Length change ratio",
+        "tfidf_similarity": "TF-IDF similarity",
+    }
+    ax.set_yticklabels([label_map.get(f, f) for f in df["feature"]], fontsize=7)
+
     fig.tight_layout()
     _save(fig, "fig6_correlation_importance.pdf")
 
 
+# ─── Appendix: Survival Matrix Detail ────────────────────────────────
+def figA_survival_matrices():
+    """Detailed dual-panel survival matrices for appendix (sev=3 only)."""
+    path = "results/stats/claim_survival_matrix.csv"
+    if not os.path.exists(path):
+        return
+    df = pd.read_csv(path)
+
+    os.makedirs("figures/paper/appendix", exist_ok=True)
+
+    for etype in ETYPE_ORDER:
+        # Pick highest severity available
+        sub = df[df["error_type"] == etype]
+        max_sev = sub["severity"].max()
+        sub = sub[sub["severity"] == max_sev]
+        if sub.empty:
+            continue
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.75, 2.5))
+
+        for ax, metric, title, cmap in [
+            (ax1, "propagation_rate", "Binary propagation", "YlOrRd"),
+            (ax2, "survival_score", "Continuous survival", "YlOrRd"),
+        ]:
+            pivot = sub.pivot_table(
+                index="injection_step", columns="obs_step",
+                values=metric, aggfunc="mean")
+
+            row_order = [s for s in STEP_ORDER if s in pivot.index]
+            col_order = [s for s in ALL_STEPS if s in pivot.columns]
+            pivot = pivot.reindex(index=row_order, columns=col_order)
+
+            sns.heatmap(pivot, annot=True, fmt=".2f", cmap=cmap,
+                        ax=ax, cbar=False, vmin=0, vmax=1.0,
+                        annot_kws={"fontsize": 7},
+                        linewidths=0.5, linecolor="white")
+
+            ax.set_yticklabels([STEP_LABELS[STEP_ORDER.index(s)] for s in row_order],
+                               rotation=0)
+            ax.set_xticklabels([ALL_STEP_LABELS[ALL_STEPS.index(s)] for s in col_order],
+                               rotation=35, ha="right")
+            ax.set_title(title, fontsize=8)
+            ax.set_ylabel("Injection point" if ax == ax1 else "")
+            ax.set_xlabel("Observed at step")
+
+        fig.suptitle(f"{ETYPE_LABELS[etype]} (severity {max_sev})",
+                     fontweight="bold", fontsize=9, y=1.02)
+        fig.tight_layout(w_pad=1.5)
+        _save(fig, f"appendix/survival_matrix_{etype}.pdf")
+
+
+# ─── Appendix: Verify Detection Rate ────────────────────────────────
+def figA_verify_detection():
+    """Verify detection rate heatmap: error_type × injection_step."""
+    path = "results/stats/verify_detection_rate.csv"
+    if not os.path.exists(path):
+        return
+
+    df = pd.read_csv(path)
+    if df.empty or "detection_rate" not in df.columns:
+        return
+
+    # Need per-step detection rates - check if available
+    # If only per-error-type aggregates, create a simpler bar chart
+    fig, ax = plt.subplots(figsize=(3.5, 2.0))
+
+    x = np.arange(len(df))
+    colors = [ETYPE_COLORS.get(et, "0.5") for et in df["error_type"]]
+    ax.bar(x, df["detection_rate"], color=colors, width=0.5,
+           edgecolor="white", linewidth=0.5)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([ETYPE_LABELS.get(et, et) for et in df["error_type"]])
+    ax.set_ylabel("Detection rate")
+    ax.yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+    ax.set_title("Verify step detection rate", fontweight="bold")
+    fig.tight_layout()
+    _save(fig, "appendix/verify_detection_rate.pdf")
+
+
+# ─── Appendix: Degradation Distribution ─────────────────────────────
+def figA_degradation_distribution():
+    """KDE of failure rate by severity and error type."""
+    path = "results/stats/posthoc_features.csv"
+    if not os.path.exists(path):
+        return
+    df = pd.read_csv(path)
+    if "failure_rate" not in df.columns:
+        return
+
+    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.2), sharey=True)
+
+    for ax, etype in zip(axes, ETYPE_ORDER):
+        sub = df[df["error_type"] == etype]
+        if sub.empty:
+            continue
+        for sev in sorted(sub["severity"].unique()):
+            sev_sub = sub[sub["severity"] == sev]["failure_rate"]
+            if len(sev_sub) > 5:
+                sev_sub.plot.kde(ax=ax, label=f"sev={int(sev)}", linewidth=1.0)
+        ax.set_xlim(-0.05, 0.6)
+        ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
+        ax.set_xlabel("Failure rate")
+
+    axes[0].set_ylabel("Density")
+    handles, labels = axes[0].get_legend_handles_labels()
+    if handles:
+        fig.legend(handles, labels, loc="upper center", ncol=3,
+                   bbox_to_anchor=(0.5, 1.06), frameon=False, fontsize=7)
+    fig.tight_layout(w_pad=1.5)
+    _save(fig, "appendix/degradation_distribution.pdf")
+
+
+# ─── Main ────────────────────────────────────────────────────────────
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "appendix"), exist_ok=True)
+
+    print("Generating paper figures...")
     fig1_propagation_curves()
     fig2_severity_dose_response()
     fig3_survival_heatmap()
     fig4_compound_interaction()
-    fig5_attenuation_factors()
+    fig5_survival_decay()
     fig6_correlation_importance()
+
+    print("\nGenerating appendix figures...")
+    figA_survival_matrices()
+    figA_verify_detection()
+    figA_degradation_distribution()
+
     print(f"\nAll figures saved to {OUT_DIR}/")
 
 
