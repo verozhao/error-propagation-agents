@@ -92,11 +92,18 @@ def step_filter(search_results: str, model_fn: Callable) -> str:
     return model_fn(prompt)
 
 def step_summarize(filtered_results: str, model_fn: Callable) -> str:
-    prompt = f"Summarize the key information from these results into a concise paragraph:\n\n{filtered_results}"
+    prompt = (
+        f"Summarize the key factual information from these results. "
+        f"Ensure you preserve specific entities like dates, locations, and names:\n\n{filtered_results}"
+    )
     return model_fn(prompt)
 
 def step_compose(summary: str, model_fn: Callable) -> str:
-    prompt = f"Based on this summary, write a helpful recommendation or answer paragraph for a user:\n\n{summary}"
+    prompt = (
+        f"Based on this summary, provide a direct answer to the user's original question. "
+        f"You MUST include the specific facts, names, or locations requested. "
+        f"Summary: \n\n{summary}"
+    )
     return model_fn(prompt)
 
 def step_verify(recommendation: str, original_query: str, model_fn: Callable) -> str:
