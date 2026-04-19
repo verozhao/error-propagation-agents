@@ -285,7 +285,7 @@ def run_full_experiment(
         return jsonl_path
 
     # max_workers = min(10, len(jobs))
-    max_workers = 1
+    max_workers = 10
     write_lock = threading.Lock()
 
     def _run_one(job):
