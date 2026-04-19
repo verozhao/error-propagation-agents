@@ -182,6 +182,17 @@ def run_significance(
 
             ci_lo, ci_hi = bootstrap_ci(paired["inj"].values)
 
+            n_pairs = len(diffs[diffs != 0])
+            if n_pairs > 0 and stat == stat:
+                r_rb = 1.0 - (2.0 * stat) / (n_pairs * (n_pairs + 1) / 2)
+            else:
+                r_rb = 0.0
+
+            if len(diffs) > 1:
+                cohens_d = float(diffs.mean() / diffs.std(ddof=1)) if diffs.std(ddof=1) > 0 else 0.0
+            else:
+                cohens_d = 0.0
+
             step_name = WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}"
             step_rows.append({
                 "model": model,
@@ -196,6 +207,8 @@ def run_significance(
                 "injected_ci95_hi": ci_hi,
                 "test": test,
                 "p_value": float(p) if p == p else None,
+                "effect_size_r": round(r_rb, 4),
+                "cohens_d": round(cohens_d, 4),
             })
 
         # Per-family multiple-comparison correction

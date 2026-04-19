@@ -28,6 +28,8 @@ def main():
                         help="Enable LLM judge (adds cost). Default off — uses algorithmic metric.")
     parser.add_argument("--compound-steps", type=str, default=None,
                         help="Compound injection: comma-separated pair(s) like '0,3' or '0,3;1,3'")
+    parser.add_argument("--no-retry", action="store_true",
+                        help="Disable verify-triggered retry (ablation)")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -59,6 +61,7 @@ def main():
             judge_models=[args.judge_model] if args.judge_model else None,
             use_llm_judge=args.use_llm_judge,
             compound_pairs=compound_pairs,
+            max_retries=0 if args.no_retry else 1,
         )
         print(f"Results saved to: {output_file}")
     
