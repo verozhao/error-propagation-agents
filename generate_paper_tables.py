@@ -147,11 +147,163 @@ def table3_compound():
     print(f"Wrote {out}")
 
 
+def table4_severity():
+    """Severity dose-response table."""
+    path = "results/stats/failure_rates_by_severity.csv"
+    if not os.path.exists(path):
+        print(f"Skipping Table 4: {path} not found")
+        return
+    df = pd.read_csv(path)
+    primary = df[df["model"].isin(["gpt-4o-mini", "claude-3-haiku"])].copy()
+    if primary.empty:
+        print("Skipping Table 4: no primary model data")
+        return
+
+    agg = primary.groupby(["model", "error_type", "severity"]).agg(
+        mean_fr=("failure_rate", "mean"),
+        n=("n", "sum"),
+    ).reset_index()
+
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\caption{Failure rate by severity level (dose-response).}",
+        r"\label{tab:severity}",
+        r"\begin{tabular}{llccc}",
+        r"\toprule",
+        r"Model & Error Type & Sev 1 & Sev 2 & Sev 3 \\",
+        r"\midrule",
+    ]
+    for (model, etype), group in agg.groupby(["model", "error_type"]):
+        cells = []
+        for sev in [1, 2, 3]:
+            row = group[group["severity"] == sev]
+            if not row.empty:
+                cells.append(f"{row.iloc[0]['mean_fr']:.3f}")
+            else:
+                cells.append("--")
+        lines.append(f"{model} & {etype} & " + " & ".join(cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+
+    out = os.path.join("paper", "tables", "table4_severity.tex")
+    with open(out, "w") as f:
+        f.write("\n".join(lines))
+    print(f"Wrote {out}")
+
+
+def table5_langchain():
+    """LangChain vs main pipeline comparison."""
+    path = "results/stats/langchain_comparison.csv"
+    if not os.path.exists(path):
+        print(f"Skipping Table 5: {path} not found")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("Skipping Table 5: empty")
+        return
+
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\caption{Cross-architecture validation: main pipeline vs.\ LangChain-style chain.}",
+        r"\label{tab:langchain}",
+        r"\begin{tabular}{lccc}",
+        r"\toprule",
+        r"Error Type & FR\textsubscript{main} & FR\textsubscript{LC} & $\Delta$ \\",
+        r"\midrule",
+    ]
+    for _, row in df.iterrows():
+        fr_main = f"{row['fr_main']:.3f}" if pd.notna(row.get('fr_main')) else "--"
+        fr_lc = f"{row['fr_langchain']:.3f}" if pd.notna(row.get('fr_langchain')) else "--"
+        delta = f"{row['delta']:.3f}" if pd.notna(row.get('delta')) else "--"
+        lines.append(f"{row['error_type']} & {fr_main} & {fr_lc} & {delta}" + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+
+    out = os.path.join("paper", "tables", "table5_langchain.tex")
+    with open(out, "w") as f:
+        f.write("\n".join(lines))
+    print(f"Wrote {out}")
+
+
+def table6_verify_detection():
+    """Verify step detection rate."""
+    path = "results/stats/verify_detection_rate.csv"
+    if not os.path.exists(path):
+        print(f"Skipping Table 6: {path} not found")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("Skipping Table 6: empty")
+        return
+
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\caption{Verify step detection rate: fraction of injected errors flagged as INVALID.}",
+        r"\label{tab:verify}",
+        r"\begin{tabular}{llccc}",
+        r"\toprule",
+        r"Model & Error Type & $n$ & Flagged & Detection Rate \\",
+        r"\midrule",
+    ]
+    for _, row in df.iterrows():
+        lines.append(
+            f"{row['model']} & {row['error_type']} & "
+            f"{int(row['n_trials'])} & {int(row['n_flagged'])} & "
+            f"{row['detection_rate']:.3f}" + r" \\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+
+    out = os.path.join("paper", "tables", "table6_verify_detection.tex")
+    with open(out, "w") as f:
+        f.write("\n".join(lines))
+    print(f"Wrote {out}")
+
+
+def table7_metric_sensitivity():
+    """Metric sensitivity summary."""
+    path = "results/stats/metric_sensitivity.csv"
+    if not os.path.exists(path):
+        print(f"Skipping Table 7: {path} not found")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("Skipping Table 7: empty")
+        return
+
+    lines = [
+        r"\begin{table}[t]",
+        r"\centering",
+        r"\caption{Metric sensitivity: failure rate under alternative weight vectors.}",
+        r"\label{tab:metric_sensitivity}",
+        r"\begin{tabular}{cccc}",
+        r"\toprule",
+        r"$w_{\mathrm{pres}}$ & $w_{\mathrm{surv}}$ & $w_{\mathrm{valid}}$ & Mean FR \\",
+        r"\midrule",
+    ]
+    df_sorted = df.sort_values("mean_failure_rate")
+    for _, row in df_sorted.iterrows():
+        lines.append(
+            f"{row['w_preserved']:.2f} & {row['w_survival']:.2f} & "
+            f"{row['w_valid']:.2f} & {row['mean_failure_rate']:.4f}" + r" \\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+
+    out = os.path.join("paper", "tables", "table7_metric_sensitivity.tex")
+    with open(out, "w") as f:
+        f.write("\n".join(lines))
+    print(f"Wrote {out}")
+
+
 def main():
     os.makedirs("paper/tables", exist_ok=True)
     table1_propagation()
     table2_significance()
     table3_compound()
+    table4_severity()
+    table5_langchain()
+    table6_verify_detection()
+    table7_metric_sensitivity()
 
 
 if __name__ == "__main__":

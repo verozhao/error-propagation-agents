@@ -1,0 +1,2 @@
+model,error_type,n_trials,n_flagged,detection_rate
+gpt-4o-mini,factual,7,0,0.0
