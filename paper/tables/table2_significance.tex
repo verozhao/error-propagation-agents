@@ -1,0 +1,23 @@
+\begin{table}[t]
+\centering
+\caption{Wilcoxon signed-rank tests with Holm--Bonferroni correction and effect sizes.}
+\label{tab:significance}
+\begin{tabular}{llcrrrrc}
+\toprule
+Model & Error & Step & $n$ & $\Delta$ & $p_{\mathrm{adj}}$ & $r$ & $d$ & Sig. \\
+\midrule
+claude-3-haiku & factual & search & 128 & 0.028 & 0.0000 & 0.151 & 0.267 & \checkmark \\
+claude-3-haiku & factual & filter & 124 & 0.020 & 0.0004 & -0.124 & 0.134 & \checkmark \\
+claude-3-haiku & factual & summarize & 146 & 0.007 & 0.0001 & -0.229 & 0.053 & \checkmark \\
+claude-3-haiku & factual & compose & 59 & 0.338 & 0.0000 & 0.992 & 1.674 & \checkmark \\
+claude-3-haiku & omission & search & 130 & 0.044 & 0.0000 & 0.412 & 0.277 & \checkmark \\
+claude-3-haiku & omission & filter & 123 & 0.072 & 0.0000 & 0.279 & 0.326 & \checkmark \\
+claude-3-haiku & omission & summarize & 102 & 0.047 & 0.0000 & 0.183 & 0.258 & \checkmark \\
+claude-3-haiku & omission & compose & 56 & 0.093 & 0.0000 & 0.568 & 0.379 & \checkmark \\
+claude-3-haiku & semantic & search & 130 & -0.038 & 0.1130 & -18.943 & -0.284 &  \\
+claude-3-haiku & semantic & filter & 158 & -0.044 & 0.1130 & -10.392 & -0.321 &  \\
+claude-3-haiku & semantic & summarize & 85 & -0.080 & 0.1008 & -7.937 & -0.402 &  \\
+claude-3-haiku & semantic & compose & 37 & 0.024 & 0.1130 & 0.386 & 0.126 &  \\
+\bottomrule
+\end{tabular}
+\end{table}
