@@ -1,0 +1,4 @@
+model,error_type,fr_with_retry,fr_without_retry,delta,pct_reduction,n_retry_on,n_retry_off
+claude-3-haiku,factual,0,0.1822,0.1822,100.0,1014,16
+claude-3-haiku,semantic,0,,,,1224,0
+claude-3-haiku,omission,0,,,,1096,0

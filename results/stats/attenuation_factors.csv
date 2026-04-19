@@ -1,0 +1,12 @@
+model,error_type,severity,step_name,prev_step,fr_prev,fr_curr,attenuation
+claude-3-haiku,factual,1,filter,search,0.0,0.0,0.0
+claude-3-haiku,factual,1,summarize,filter,0.0,0.0,0.0
+claude-3-haiku,factual,1,compose,summarize,0.0,0.34991744103361416,-1.0
+claude-3-haiku,factual,3,filter,search,0.0,0.0,0.0
+claude-3-haiku,factual,3,summarize,filter,0.0,0.0,0.0
+claude-3-haiku,factual,3,compose,summarize,0.0,0.25955621534967055,-1.0
+claude-3-haiku,omission,1,filter,search,0.0,0.0,0.0
+claude-3-haiku,omission,1,summarize,filter,0.0,0.0,0.0
+claude-3-haiku,semantic,1,filter,search,0.0,0.0,0.0
+claude-3-haiku,semantic,1,summarize,filter,0.0,0.0,0.0
+claude-3-haiku,semantic,1,compose,summarize,0.0,0.0,0.0
