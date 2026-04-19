@@ -143,12 +143,19 @@ def fig3_survival_heatmap():
             return
     df = pd.read_csv(path)
 
-    if "injection_step" in df.columns and "downstream_step" in df.columns:
+    if "injection_step" in df.columns and "obs_step" in df.columns:
+        pivot = df.pivot_table(
+            index="injection_step", columns="obs_step",
+            values="survival_score", aggfunc="mean")
+    elif "injection_step" in df.columns and "downstream_step" in df.columns:
         pivot = df.pivot_table(
             index="injection_step", columns="downstream_step",
             values="survival_score", aggfunc="mean")
     else:
         pivot = df.set_index(df.columns[0])
+        pivot = df.pivot_table(
+            index="injection_step", columns="downstream_step",
+            values="survival_score", aggfunc="mean")
 
     fig, ax = plt.subplots(figsize=(5, 3.5))
     sns.heatmap(pivot, annot=True, fmt=".2f", cmap="YlOrRd", ax=ax,
