@@ -13,8 +13,8 @@
 #   ./run_severity_sweeps.sh --compound-only  # compound sweep only
 set -euo pipefail
 
-TRIALS=30
-COMPOUND_TRIALS=20
+TRIALS=5
+COMPOUND_TRIALS=5
 MODELS="claude-3-haiku"
 RUN_SINGLE=true
 RUN_COMPOUND=false
