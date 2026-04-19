@@ -140,6 +140,7 @@ def run_workflow(
         current_input = query if attempt == 0 else f"{query}\n(SYSTEM LOG: Your previous pipeline run was flagged as INVALID by the verify step. Please re-execute and correct any factual or logical errors.)"
 
         for i, step_name in enumerate(steps):
+            print(f"\n[DEBUG] Running Task: '{query[:20]}...' | Step: {step_name}")
             if step_name == "verify":
                 output = STEP_FUNCTIONS[step_name](current_input, query, model_fn)
             else:
