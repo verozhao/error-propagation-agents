@@ -54,9 +54,11 @@ def save_search_cache(cache):
 _GLOBAL_SEARCH_CACHE = load_search_cache()
 
 def step_search(query: str, model_fn: Callable) -> str:
+    print("  [TRACE] Entering Search Function...", flush=True)
     # 1. If cache hit, return the strictly consistent real search results
     # (ensures absolute variable control across 39 experimental conditions)
     if query in _GLOBAL_SEARCH_CACHE:
+        print(f"  [TRACE] Cache Hit for: {query[:20]}", flush=True)
         return _GLOBAL_SEARCH_CACHE[query]
     
     # 2. If cache miss, call the real API (with retries and anti-ban delay)
@@ -65,8 +67,10 @@ def step_search(query: str, model_fn: Callable) -> str:
         try:
             from ddgs import DDGS
             with DDGS() as ddgs:
+                print(f"  [TRACE] Calling DuckDuckGo API (Attempt {attempt+1})...", flush=True)
                 results = list(ddgs.text(query, max_results=5))
             if results:
+                print("  [TRACE] Search API returned results successfully.", flush=True)
                 formatted = "\n".join([f"{i+1}. {r['title']}: {r['body']}" for i, r in enumerate(results)])
                 final_text = f"Real web search results for '{query}':\n{formatted}"
                 
@@ -76,7 +80,7 @@ def step_search(query: str, model_fn: Callable) -> str:
                 time.sleep(1) # Polite delay to prevent DuckDuckGo rate limiting
                 return final_text
         except Exception as e:
-            print(f"Search API wait... attempt {attempt+1}/{max_retries} for query: '{query}'")
+            print(f"  [TRACE] Search API wait... {e} | attempt {attempt+1}", flush=True)
             time.sleep(5 * (attempt + 1)) # Exponential backoff
             
     # 3. Fatal error: If real search fails completely, raise an exception to halt the trial. 
@@ -137,6 +141,7 @@ def run_workflow(
     for attempt in range(max_retries + 1):
         results = []
         # Contextual retry prompt if verification failed
+        print(f"\n[DEBUG] Running Task: '{query[:20]}...' | Step: {step_name}", flush=True)
         current_input = query if attempt == 0 else f"{query}\n(SYSTEM LOG: Your previous pipeline run was flagged as INVALID by the verify step. Please re-execute and correct any factual or logical errors.)"
 
         for i, step_name in enumerate(steps):
