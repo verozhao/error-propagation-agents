@@ -100,7 +100,7 @@ def step_summarize(filtered_results: str, model_fn: Callable) -> str:
 
 def step_compose(summary: str, model_fn: Callable) -> str:
     prompt = (
-        f"Based on this summary, provide a direct answer to the user's original question. "
+        f"Answer the user's question directly using ONLY the facts provided. DO NOT provide recommendations, DO NOT be conversational, and DO NOT offer extra context. One sentence maximum."
         f"You MUST include the specific facts, names, or locations requested. "
         f"Summary: \n\n{summary}"
     )
