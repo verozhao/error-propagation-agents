@@ -38,7 +38,8 @@ class StepResult:
 # --- 2. Grounded Tool Usage (Real Web Search) ---
 def step_search(query: str, model_fn: Callable) -> str:
     try:
-        from duckduckgo_search import DDGS
+        # from duckduckgo_search import DDGS
+        from ddgs import DDGS
         with DDGS() as ddgs:
             results = list(ddgs.text(query, max_results=5))
         if results:
