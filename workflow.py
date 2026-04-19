@@ -131,9 +131,9 @@ def run_workflow(
     error_injection_fn: Callable = None,
     error_step: int | list[int] | None = None,
     error_kwargs: dict | None = None,
+    max_retries: int = 1,
 ) -> list[StepResult]:
-    """Run pipeline with 1-retry cyclic mitigation logic."""
-    max_retries = 1
+    """Run pipeline with cyclic mitigation logic."""
     steps = ["search", "filter", "summarize", "compose", "verify"]
     error_kwargs = error_kwargs or {}
 

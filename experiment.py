@@ -53,6 +53,7 @@ def run_single_experiment(
     trial_idx: int = 0,
     use_llm_judge: bool = False,
     compound_steps: list[int] | None = None,
+    max_retries: int = 1,
 ) -> dict:
     """Run one pipeline trial.
 
@@ -95,6 +96,7 @@ def run_single_experiment(
         error_injection_fn=error_fn,
         error_step=actual_error_step,
         error_kwargs=error_kwargs,
+        max_retries=max_retries,
     )
 
     injected_content = None
@@ -207,6 +209,7 @@ def run_full_experiment(
     skip_baseline: bool = False,
     use_llm_judge: bool = False,
     compound_pairs: list[tuple[int, ...]] | None = None,
+    max_retries: int = 1,
 ):
     import threading
 
@@ -305,6 +308,7 @@ def run_full_experiment(
                 trial_idx=trial,
                 use_llm_judge=use_llm_judge,
                 compound_steps=compound,
+                max_retries=max_retries,
             )
             result["trial"] = trial
             return result
