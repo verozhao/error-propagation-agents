@@ -174,6 +174,7 @@ def run_single_experiment(
         "injection_meta": injection_meta,
         "error_found_in_step": error_found_in_step,
         "seed": seed,
+        "max_retries": max_retries,
     }
 
     if save_traces:
