@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering
+\caption{Verify step detection rate: fraction of injected errors flagged as INVALID.}
+\label{tab:verify}
+\begin{tabular}{llccc}
+\toprule
+Model & Error Type & $n$ & Flagged & Detection Rate \\
+\midrule
+claude-3-haiku & factual & 5520 & 4476 & 0.811 \\
+claude-3-haiku & omission & 4798 & 3690 & 0.769 \\
+claude-3-haiku & semantic & 5520 & 4336 & 0.786 \\
+\bottomrule
+\end{tabular}
+\end{table}

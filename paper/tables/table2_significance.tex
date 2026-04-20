@@ -1,0 +1,23 @@
+\begin{table}[t]
+\centering
+\caption{Wilcoxon signed-rank tests with Holm--Bonferroni correction and effect sizes.}
+\label{tab:significance}
+\begin{tabular}{llcrrrrc}
+\toprule
+Error & Step & $n$ & $\Delta$ & $p_{\mathrm{adj}}$ & $r$ & $d$ & Sig. \\
+\midrule
+factual & search & 540 & 0.057 & 1.2e-28 & -0.300 & 0.370 & \checkmark \\
+factual & filter & 540 & 0.054 & 1.1e-14 & 0.005 & 0.291 & \checkmark \\
+factual & summarize & 540 & 0.035 & 1.2e-17 & -0.405 & 0.227 & \checkmark \\
+factual & compose & 540 & 0.351 & 5.8e-86 & 0.979 & 1.551 & \checkmark \\
+omission & search & 540 & 0.081 & 4.9e-42 & 0.644 & 0.491 & \checkmark \\
+omission & filter & 516 & 0.117 & 3.0e-56 & 0.729 & 0.752 & \checkmark \\
+omission & summarize & 513 & 0.108 & 2.1e-49 & 0.609 & 0.587 & \checkmark \\
+omission & compose & 230 & 0.094 & 1.6e-26 & 0.736 & 0.650 & \checkmark \\
+semantic & search & 405 & 0.008 & 0.0604 & -46.308 & 0.118 &  \\
+semantic & filter & 405 & -0.007 & 0.8878 & -21.323 & -0.090 &  \\
+semantic & summarize & 405 & 0.063 & 7.7e-18 & -2.320 & 0.465 & \checkmark \\
+semantic & compose & 405 & 0.121 & 4.2e-46 & 0.579 & 0.876 & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Markov attenuation model: estimated step-wise transition probabilities $\alpha_k$ with 95\% bootstrap CIs. $\lambda$ is the severity-dependent scaling factor. $R^2$ is computed on per-condition failure rates (predicted vs.\ observed).}
+\label{tab:markov}
+\begin{tabular}{lcccc}
+\toprule
+Transition & Factual & Omission & Semantic & Pooled \\
+\midrule
+search $\to$ filter & 0.255 (0.23, 0.28) & 0.713 (0.69, 0.74) & 0.238 (0.21, 0.27) & 0.403 (0.38, 0.42) \\
+filter $\to$ summarize & 0.484 (0.46, 0.51) & 0.852 (0.84, 0.86) & 0.131 (0.11, 0.15) & 0.514 (0.50, 0.53) \\
+summarize $\to$ compose & 0.395 (0.37, 0.42) & 0.834 (0.82, 0.85) & 0.315 (0.28, 0.35) & 0.547 (0.53, 0.56) \\
+compose $\to$ verify & 0.288 (0.27, 0.31) & 0.671 (0.65, 0.69) & 0.086 (0.06, 0.11) & 0.407 (0.39, 0.42) \\
+\midrule
+$\lambda$ & 0.547 & 0.260 & 0.197 & --- \\
+$R^2$ & 0.916 & 0.567 & 0.665 & 0.749 \\
+RMSE & 0.0617 & 0.0238 & 0.0408 & 0.0709 \\
+\midrule
+Null (uniform $\alpha$) & \multicolumn{4}{c}{$R^2 = -6.943$} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,6 @@
+model,n_params,r_squared,rmse,lambda,aic,bic,alpha_uniform
+per_type_factual,5,0.916,0.0617,0.5466,,,
+per_type_omission,5,0.567,0.0238,0.2601,,,
+per_type_semantic,5,0.6652,0.0408,0.1966,,,
+pooled,7,0.7491,0.0709,,-49.52,-46.13,
+null_uniform,1,-6.9432,0.3989,,,,0.473

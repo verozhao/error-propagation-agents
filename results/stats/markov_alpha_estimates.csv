@@ -1,0 +1,17 @@
+scope,transition,from_step,to_step,alpha,ci_lo,ci_hi,n
+factual,search → filter,0,1,0.2551,0.2264,0.2837,540
+factual,filter → summarize,1,2,0.4839,0.4626,0.5057,835
+factual,summarize → compose,2,3,0.3951,0.3734,0.417,1327
+factual,compose → verify,3,4,0.2882,0.2695,0.3072,1364
+omission,search → filter,0,1,0.7128,0.6881,0.7374,507
+omission,filter → summarize,1,2,0.8516,0.8373,0.8649,790
+omission,summarize → compose,2,3,0.8341,0.8199,0.8475,1125
+omission,compose → verify,3,4,0.6711,0.6514,0.6901,1238
+semantic,search → filter,0,1,0.2376,0.2064,0.2696,469
+semantic,filter → summarize,1,2,0.1312,0.1108,0.1545,631
+semantic,summarize → compose,2,3,0.3148,0.2776,0.3523,523
+semantic,compose → verify,3,4,0.0862,0.0629,0.1103,516
+pooled,search → filter,0,1,0.4028,0.3832,0.4218,0
+pooled,filter → summarize,1,2,0.514,0.497,0.5297,0
+pooled,summarize → compose,2,3,0.547,0.5318,0.5628,0
+pooled,compose → verify,3,4,0.4068,0.393,0.421,0

@@ -1,0 +1,4 @@
+model,error_type,n_trials,n_flagged,detection_rate
+claude-3-haiku,factual,5520,4476,0.8108695652173913
+claude-3-haiku,omission,4798,3690,0.7690704460191746
+claude-3-haiku,semantic,5520,4336,0.7855072463768116

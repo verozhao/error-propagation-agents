@@ -1,0 +1,13 @@
+error_type,injection_step,injection_step_idx,fr_observed,fr_predicted,survival_predicted,residual,n
+factual,search,0,0.0923,0.0301,0.0551,0.0622,540
+factual,filter,1,0.0874,0.0622,0.1139,0.0251,540
+factual,summarize,2,0.0564,0.1575,0.2882,-0.1011,540
+factual,compose,3,0.5694,0.5466,1.0,0.0228,540
+omission,search,0,0.1327,0.124,0.4767,0.0087,540
+omission,filter,1,0.1847,0.1456,0.5597,0.0392,516
+omission,summarize,2,0.174,0.1745,0.6711,-0.0005,513
+omission,compose,3,0.2344,0.2601,1.0,-0.0257,230
+semantic,search,0,0.0315,0.0007,0.0036,0.0308,540
+semantic,filter,1,0.0069,0.0053,0.0271,0.0015,540
+semantic,summarize,2,0.0923,0.0169,0.0862,0.0754,540
+semantic,compose,3,0.1899,0.1966,1.0,-0.0066,540

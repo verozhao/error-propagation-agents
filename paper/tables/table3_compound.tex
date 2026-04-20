@@ -1,0 +1,26 @@
+\begin{table}[t]
+\centering
+\caption{Compound injection: observed vs.\ expected failure rates under independence.}
+\label{tab:compound}
+\begin{tabular}{llccccc}
+\toprule
+Model & Error & Steps & FR\textsubscript{obs} & FR\textsubscript{exp} & $\Delta$ & Super-add. \\
+\midrule
+claude-3-haiku & factual & (0, 1) & 0.213 & 0.172 & 0.041 & \checkmark \\
+claude-3-haiku & factual & (0, 2) & 0.220 & 0.143 & 0.077 & \checkmark \\
+claude-3-haiku & factual & (0, 3) & 0.473 & 0.609 & -0.137 &  \\
+claude-3-haiku & factual & (1, 2) & 0.222 & 0.139 & 0.083 &  \\
+claude-3-haiku & factual & (1, 3) & 0.440 & 0.607 & -0.167 &  \\
+claude-3-haiku & omission & (0, 1) & 0.244 & 0.293 & -0.048 & \checkmark \\
+claude-3-haiku & omission & (0, 2) & 0.225 & 0.284 & -0.058 &  \\
+claude-3-haiku & omission & (0, 3) & 0.228 & 0.336 & -0.107 &  \\
+claude-3-haiku & omission & (1, 2) & 0.260 & 0.327 & -0.066 &  \\
+claude-3-haiku & omission & (1, 3) & 0.271 & 0.376 & -0.105 &  \\
+claude-3-haiku & semantic & (0, 1) & 0.167 & 0.038 & 0.129 & \checkmark \\
+claude-3-haiku & semantic & (0, 2) & 0.209 & 0.121 & 0.088 & \checkmark \\
+claude-3-haiku & semantic & (0, 3) & 0.228 & 0.215 & 0.012 & \checkmark \\
+claude-3-haiku & semantic & (1, 2) & 0.188 & 0.099 & 0.090 & \checkmark \\
+claude-3-haiku & semantic & (1, 3) & 0.240 & 0.196 & 0.045 & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
