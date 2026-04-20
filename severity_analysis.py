@@ -77,13 +77,26 @@ def load_severity_results(results_dir="results") -> pd.DataFrame:
 
 
 def compute_failure_rates_by_severity(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute failure rates grouped by (model, error_type, severity, step)."""
+    """Compute failure rates grouped by (model, error_type, severity, step).
+
+    Baselines are shared across severity levels: the sweep only produces
+    baselines at sev=1 (sev2/3 use --skip-baseline) because the
+    deterministic seed excludes severity — so sev=1 baselines ARE the
+    baselines for all severities.
+    """
     results = []
+
+    # Pre-compute baseline per (model, error_type) — shared across severities
+    baseline_pool = {}
+    for (model, etype), group in df.groupby(["model", "error_type"]):
+        bl = group[group["error_step"] == -1]["combined_score"]
+        if not bl.empty:
+            baseline_pool[(model, etype)] = bl.mean()
+
     for (model, etype, sev), group in df.groupby(["model", "error_type", "severity"]):
-        baseline = group[group["error_step"] == -1]["combined_score"]
-        if baseline.empty:
+        baseline_mean = baseline_pool.get((model, etype))
+        if baseline_mean is None:
             continue
-        baseline_mean = baseline.mean()
 
         for step in sorted(group["error_step"].unique()):
             if step == -1:
