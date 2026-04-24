@@ -10,13 +10,14 @@ def main():
     parser.add_argument("--models", nargs="+", default=None)
     parser.add_argument("--use-api", action="store_true", help="Use API models instead of local")
     parser.add_argument("--trials", type=int, default=50)
-    parser.add_argument("--error-type", default="semantic", choices=["semantic", "factual", "omission"])
+    parser.add_argument("--error-type", default="ragtruth_weighted",
+                        choices=["entity", "invented", "unverifiable", "contradictory", "ragtruth_weighted"],
+                        help="Error type grounded in FAVA taxonomy (default: ragtruth_weighted)")
     parser.add_argument("--severity", type=int, default=1, choices=[1, 2, 3],
-                        help="Error injection severity level (1-3, default 1)")
-    parser.add_argument("--pos-target", default=None, choices=["noun", "verb", "adj"],
-                        help="POS-targeted injection: only corrupt this word class")
-    parser.add_argument("--tfidf-target", default=None, choices=["high", "low"],
-                        help="TF-IDF-targeted injection: corrupt highest or lowest importance word")
+                        help="Injection intensity: number of error operations per step (1-3)")
+    parser.add_argument("--injection-model", type=str, default=None,
+                        help="Model to use for LLM-based error generation (e.g., llama-3.1-8b). "
+                             "If not set, uses fast rule-based injection.")
     parser.add_argument("--results-file", type=str, default=None)
     parser.add_argument("--diagnostic-query", type=str, default=None,
                         help="Run only this single query (for diagnostic mini-sweep)")
@@ -31,8 +32,7 @@ def main():
     parser.add_argument("--no-retry", action="store_true",
                         help="Disable verify-triggered retry (ablation)")
     parser.add_argument("--queries", type=int, default=None,
-                        help="Max number of queries to use (default: all). "
-                             "Budget guide: 15 queries × 20 trials ≈ $94")
+                        help="Max number of queries to use (default: all)")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -57,8 +57,6 @@ def main():
             num_trials=args.trials,
             error_type=args.error_type,
             severity=args.severity,
-            pos_target=args.pos_target,
-            tfidf_target=args.tfidf_target,
             diagnostic_query=args.diagnostic_query,
             skip_baseline=args.skip_baseline,
             judge_models=[args.judge_model] if args.judge_model else None,
@@ -66,6 +64,7 @@ def main():
             compound_pairs=compound_pairs,
             max_retries=0 if args.no_retry else 1,
             max_queries=args.queries,
+            injection_model=args.injection_model,
         )
         print(f"Results saved to: {output_file}")
     

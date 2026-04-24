@@ -48,12 +48,11 @@ def run_single_experiment(
     judge_models: list[str] | None = None,
     save_traces: bool = True,
     ground_truth: dict | None = None,
-    pos_target: str | None = None,
-    tfidf_target: str | None = None,
     trial_idx: int = 0,
     use_llm_judge: bool = False,
     compound_steps: list[int] | None = None,
     max_retries: int = 1,
+    injection_model: str | None = None,
 ) -> dict:
     """Run one pipeline trial.
 
@@ -85,14 +84,15 @@ def run_single_experiment(
     error_fn = ERROR_TYPES.get(error_type) if has_injection else None
 
     error_kwargs = {"severity": severity, "return_delta": True, "rng": rng} if error_fn else {}
-    if error_fn and pos_target:
-        error_kwargs["pos_target"] = pos_target
-    if error_fn and tfidf_target:
-        error_kwargs["tfidf_target"] = tfidf_target
-    # Pass query + ground_truth for answer-targeted injection (Phase 7)
+    # Pass query + ground_truth for answer-targeted injection
     if error_fn:
         error_kwargs["query"] = task["query"]
         error_kwargs["ground_truth"] = ground_truth
+    # Direction 1: LLM-as-Error-Generator — pass injection_model_fn if specified
+    if error_fn and injection_model:
+        error_kwargs["injection_model_fn"] = lambda prompt: call_model(
+            injection_model, prompt, max_tokens=512, temperature=0.3
+        )
 
     results = run_workflow(
         query=task["query"],
@@ -162,17 +162,34 @@ def run_single_experiment(
     # analysis code that only looks at error_step no longer mis-classifies
     # compound trials as baselines.
     is_baseline = (error_step is None and compound_steps is None)
+
+    # --- Direction 3: Continuous severity ---
+    # Compute post-hoc continuous severity as normalized edit distance between
+    # pre-injection and post-injection text at the injected step. This replaces
+    # discrete sev1/2/3 with a continuous measure for regression analysis.
+    severity_continuous = None
+    if not is_baseline:
+        for r in results:
+            if r.error_injected and r.pre_injection_output and r.output_text:
+                pre = r.pre_injection_output
+                post = r.output_text
+                # Normalized character-level edit distance (0 = identical, 1 = completely different)
+                max_len = max(len(pre), len(post), 1)
+                char_diff = sum(1 for a, b in zip(pre, post) if a != b) + abs(len(pre) - len(post))
+                severity_continuous = round(char_diff / max_len, 4)
+                break
+
     record = {
         "model": model_name,
         "task_query": task["query"],
         "error_step": compound_steps if compound_steps else error_step,
         "error_type": error_type,
         "severity": severity,
+        "severity_continuous": severity_continuous,
         "compound_steps": compound_steps,
         "is_baseline": is_baseline,
-        "injection_valid": injection_valid,  # Issue α: True / False / None (baseline)
-        "pos_target": pos_target,
-        "tfidf_target": tfidf_target,
+        "injection_valid": injection_valid,
+        "injection_model": injection_model,
         "evaluation": evaluation,
         "injected_content": injected_content,
         "injection_meta": injection_meta,
@@ -209,19 +226,18 @@ def run_single_experiment(
 def run_full_experiment(
     models: list[str],
     num_trials: int = NUM_TRIALS,
-    error_type: str = "semantic",
+    error_type: str = "ragtruth_weighted",
     severity: int = 1,
     judge_models: list[str] | None = None,
     save_traces: bool = True,
     output_subdir: str | None = None,
-    pos_target: str | None = None,
-    tfidf_target: str | None = None,
     diagnostic_query: str | None = None,
     skip_baseline: bool = False,
     use_llm_judge: bool = False,
     compound_pairs: list[tuple[int, ...]] | None = None,
     max_retries: int = 1,
     max_queries: int | None = None,
+    injection_model: str | None = None,
 ):
     import threading
 
@@ -257,10 +273,8 @@ def run_full_experiment(
     # Build stable JSONL filename for resume
     model_tag = "_".join(sorted(models))
     parts = [error_type, f"sev{severity}", model_tag, f"{num_trials}trials"]
-    if pos_target:
-        parts.append(f"pos_{pos_target}")
-    if tfidf_target:
-        parts.append(f"tfidf_{tfidf_target}")
+    if injection_model:
+        parts.append(f"llm_{injection_model.replace('-', '')}")
     if compound_pairs:
         parts.append("compound")
     stable_name = "_".join(parts)
@@ -320,12 +334,11 @@ def run_full_experiment(
                 judge_models=judge_models,
                 save_traces=save_traces,
                 ground_truth=ground_truth,
-                pos_target=pos_target,
-                tfidf_target=tfidf_target,
                 trial_idx=trial,
                 use_llm_judge=use_llm_judge,
                 compound_steps=compound,
                 max_retries=max_retries,
+                injection_model=injection_model,
             )
             result["trial"] = trial
             return result
