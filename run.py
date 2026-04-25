@@ -75,6 +75,7 @@ def main():
             injection_model=args.injection_model,
             pipeline=args.pipeline,
             baseline_only=args.baseline_only,
+            intervention=args.intervention,
         )
         print(f"Results saved to: {output_file}")
     

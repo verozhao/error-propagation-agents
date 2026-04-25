@@ -56,6 +56,7 @@ def run_single_experiment(
     max_retries: int = 1,
     injection_model: str | None = None,
     pipeline: str = "medium",
+    intervention_fn=None,
 ) -> dict:
     """Run one pipeline trial.
 
@@ -107,6 +108,7 @@ def run_single_experiment(
         error_kwargs=error_kwargs,
         max_retries=max_retries,
         pipeline_config=pipeline_config,
+        intervention_fn=intervention_fn,
     )
 
     injected_content = None
@@ -253,14 +255,26 @@ def run_full_experiment(
     injection_model: str | None = None,
     pipeline: str = "medium",
     baseline_only: bool = False,
+    intervention: str = "none",
 ):
     import threading
+    from intervention import calibrate_threshold, should_reask_threshold
 
     subdir = output_subdir or f"{error_type}_error"
     output_dir = os.path.join(OUTPUT_DIR, subdir)
     os.makedirs(output_dir, exist_ok=True)
 
     ground_truth = load_ground_truth()
+
+    # Build intervention function from strategy name
+    intervention_fn = None
+    if intervention == "threshold":
+        threshold = calibrate_threshold([], percentile=75)  # uses fallback default
+        intervention_fn = lambda inp, out: should_reask_threshold(inp, out, threshold)
+    elif intervention in ("learned", "optimal"):
+        print(f"Intervention '{intervention}' requires pre-trained state; falling back to threshold")
+        threshold = calibrate_threshold([], percentile=75)
+        intervention_fn = lambda inp, out: should_reask_threshold(inp, out, threshold)
 
     all_results = []
     pipeline_cfg = PIPELINE_CONFIGS.get(pipeline, PIPELINE_CONFIGS["medium"])
@@ -362,6 +376,7 @@ def run_full_experiment(
                 max_retries=max_retries,
                 injection_model=injection_model,
                 pipeline=pipeline,
+                intervention_fn=intervention_fn,
             )
             result["trial"] = trial
             return result
