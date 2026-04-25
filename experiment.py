@@ -6,12 +6,14 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import numpy as np
-from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, INJECT_AT_VERIFY
+from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, INJECT_AT_VERIFY, PIPELINE_CONFIGS
 from models import call_model
 from workflow import run_workflow, TASK_TEMPLATES
 from error_injection import ERROR_TYPES
 from evaluation import evaluate_workflow_output
 from factual_accuracy import claim_survival_score, load_ground_truth
+from severity import severity_semantic, severity_edit
+from persistence import persistence_curve, find_matched_baseline
 
 
 def _derive_seed(model_name, task_query, error_step, trial_idx):
@@ -53,6 +55,7 @@ def run_single_experiment(
     compound_steps: list[int] | None = None,
     max_retries: int = 1,
     injection_model: str | None = None,
+    pipeline: str = "medium",
 ) -> dict:
     """Run one pipeline trial.
 
@@ -94,6 +97,8 @@ def run_single_experiment(
             injection_model, prompt, max_tokens=512, temperature=0.3
         )
 
+    pipeline_config = PIPELINE_CONFIGS.get(pipeline)
+
     results = run_workflow(
         query=task["query"],
         model_fn=model_fn,
@@ -101,6 +106,7 @@ def run_single_experiment(
         error_step=actual_error_step,
         error_kwargs=error_kwargs,
         max_retries=max_retries,
+        pipeline_config=pipeline_config,
     )
 
     injected_content = None
@@ -164,32 +170,41 @@ def run_single_experiment(
     is_baseline = (error_step is None and compound_steps is None)
 
     # --- Direction 3: Continuous severity ---
-    # Compute post-hoc continuous severity as normalized edit distance between
-    # pre-injection and post-injection text at the injected step. This replaces
-    # discrete sev1/2/3 with a continuous measure for regression analysis.
     severity_continuous = None
+    sev_semantic = None
+    sev_edit = None
     if not is_baseline:
         for r in results:
             if r.error_injected and r.pre_injection_output and r.output_text:
                 pre = r.pre_injection_output
                 post = r.output_text
-                # Normalized character-level edit distance (0 = identical, 1 = completely different)
-                max_len = max(len(pre), len(post), 1)
-                char_diff = sum(1 for a, b in zip(pre, post) if a != b) + abs(len(pre) - len(post))
-                severity_continuous = round(char_diff / max_len, 4)
+                sev_semantic = severity_semantic(pre, post)
+                sev_edit = severity_edit(pre, post)
+                severity_continuous = sev_edit  # backward compat
                 break
+
+    # Task domain from ground_truth or task dict
+    task_domain = task.get("domain", "unknown")
+    if ground_truth and task["query"] in ground_truth:
+        gt_entry = ground_truth[task["query"]]
+        if isinstance(gt_entry, dict):
+            task_domain = gt_entry.get("source", gt_entry.get("domain", task_domain))
 
     record = {
         "model": model_name,
         "task_query": task["query"],
+        "task_domain": task_domain,
         "error_step": compound_steps if compound_steps else error_step,
         "error_type": error_type,
         "severity": severity,
         "severity_continuous": severity_continuous,
+        "severity_semantic": sev_semantic,
+        "severity_edit": sev_edit,
         "compound_steps": compound_steps,
         "is_baseline": is_baseline,
         "injection_valid": injection_valid,
         "injection_model": injection_model,
+        "pipeline": pipeline,
         "evaluation": evaluation,
         "injected_content": injected_content,
         "injection_meta": injection_meta,
@@ -238,6 +253,7 @@ def run_full_experiment(
     max_retries: int = 1,
     max_queries: int | None = None,
     injection_model: str | None = None,
+    pipeline: str = "medium",
 ):
     import threading
 
@@ -248,7 +264,12 @@ def run_full_experiment(
     ground_truth = load_ground_truth()
 
     all_results = []
-    max_inject_step = len(WORKFLOW_STEPS) if INJECT_AT_VERIFY else len(WORKFLOW_STEPS) - 1
+    pipeline_cfg = PIPELINE_CONFIGS.get(pipeline, PIPELINE_CONFIGS["medium"])
+    if isinstance(pipeline_cfg, list):
+        pipeline_steps = pipeline_cfg
+    else:
+        pipeline_steps = pipeline_cfg.get("steps", WORKFLOW_STEPS)
+    max_inject_step = len(pipeline_steps) if INJECT_AT_VERIFY else len(pipeline_steps) - 1
 
     tasks = TASK_TEMPLATES
     if diagnostic_query:
@@ -339,6 +360,7 @@ def run_full_experiment(
                 compound_steps=compound,
                 max_retries=max_retries,
                 injection_model=injection_model,
+                pipeline=pipeline,
             )
             result["trial"] = trial
             return result

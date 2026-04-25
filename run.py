@@ -33,6 +33,14 @@ def main():
                         help="Disable verify-triggered retry (ablation)")
     parser.add_argument("--queries", type=int, default=None,
                         help="Max number of queries to use (default: all)")
+    parser.add_argument("--pipeline", default="medium",
+                        choices=["short", "medium", "self_refine_A", "self_refine_C"],
+                        help="Pipeline configuration (default: medium)")
+    parser.add_argument("--intervention", default="none",
+                        choices=["none", "threshold", "learned", "optimal"],
+                        help="Intervention strategy (default: none)")
+    parser.add_argument("--baseline-only", action="store_true",
+                        help="Run only baseline (no injection) for natural failure analysis")
     args = parser.parse_args()
     
     if args.mode == "check":
@@ -58,13 +66,14 @@ def main():
             error_type=args.error_type,
             severity=args.severity,
             diagnostic_query=args.diagnostic_query,
-            skip_baseline=args.skip_baseline,
+            skip_baseline=args.skip_baseline or args.baseline_only,
             judge_models=[args.judge_model] if args.judge_model else None,
             use_llm_judge=args.use_llm_judge,
             compound_pairs=compound_pairs,
             max_retries=0 if args.no_retry else 1,
             max_queries=args.queries,
             injection_model=args.injection_model,
+            pipeline=args.pipeline,
         )
         print(f"Results saved to: {output_file}")
     

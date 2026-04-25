@@ -1,0 +1,55 @@
+# Frozen experiment configuration — do not modify after Day 0
+# All runs consume this file for reproducibility
+
+models:
+  pipeline:
+    gemini-flash: "gemini-2.0-flash"
+    gpt-4o-mini: "gpt-4o-mini-2024-07-18"
+    llama-3.1-8b: "meta-llama/Llama-3.1-8B-Instruct"
+    claude-sonnet: "claude-sonnet-4-6-20250514"
+  judges:
+    primary: "gpt-4o-mini-2024-07-18"
+    secondary: "claude-sonnet-4-6-20250514"
+    step_scorer: "meta-llama/Llama-3.1-8B-Instruct"
+
+parameters:
+  temperature: 0.7
+  max_tokens: 1024
+  trials_per_cell: 15
+  seed_formula: "sha256(model + query + step + trial_idx)"
+
+pipelines:
+  short: ["search", "compose", "verify"]
+  medium: ["search", "filter", "summarize", "compose", "verify"]
+  self_refine_A:
+    steps: ["search", "filter", "summarize", "compose", "verify"]
+    feedback: {after: "compose", max_iter: 2, inject_mode: "before_loop"}
+  self_refine_C:
+    steps: ["search", "filter", "summarize", "compose", "verify"]
+    feedback: {after: "compose", max_iter: 2, inject_mode: "at_critique"}
+
+injection:
+  method: "rule-based"
+  taxonomy: "FAVA (Mishra et al., 2024) mapped from RAGTruth (Niu et al., 2024)"
+  weights_file: "error_operation_taxonomy.json"
+  types: ["entity", "invented", "unverifiable", "contradictory"]
+
+queries:
+  sources:
+    multi_hop: {dataset: "HotpotQA", n: 60}
+    single_hop: {dataset: "TriviaQA", n: 60}
+    reasoning: {dataset: "StrategyQA", n: 60}
+    agentic: {dataset: "BFCL", n: 30}
+    synthetic_novel: {generated: true, n: 30}
+
+severity_encoders:
+  primary: "BAAI/bge-large-en-v1.5"
+  validation: ["intfloat/e5-large-v2", "sentence-transformers/all-mpnet-base-v2"]
+
+analysis:
+  headline_tests: 10
+  headline_correction: "Holm"
+  exploratory_correction: "Benjamini-Hochberg FDR"
+  bootstrap_resamples: 10000
+  equivalence_bounds: [-0.10, 0.10]
+  persistence_threshold: 0.1

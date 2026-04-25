@@ -189,6 +189,45 @@ STEP_FUNCTIONS = {
     "verify": step_verify,
 }
 
+# --- Self-refine critique/revise prompts ---
+
+CRITIQUE_PROMPT = """You are a strict fact-checker. Review the following draft answer and identify any factual errors, unsupported claims, or missing information.
+
+Draft answer:
+\"\"\"{draft}\"\"\"
+
+Original query: {query}
+
+List each issue on its own line. If the draft is accurate and complete, respond with exactly: NO ISSUES FOUND"""
+
+REVISE_PROMPT = """Revise the following draft to fix the issues identified by the critic. Keep all correct information intact.
+
+Draft answer:
+\"\"\"{draft}\"\"\"
+
+Critique:
+\"\"\"{critique}\"\"\"
+
+Original query: {query}
+
+Output ONLY the revised answer, nothing else."""
+
+
+def run_self_refine(draft: str, query: str, model_fn: Callable, max_iter: int = 2) -> tuple[str, list[dict]]:
+    """Run critique→revise loop on a draft. Returns (final_text, refinement_log)."""
+    current = draft
+    log = []
+    for i in range(max_iter):
+        critique = model_fn(CRITIQUE_PROMPT.format(draft=current, query=query))
+        if "NO ISSUES FOUND" in critique.upper():
+            log.append({"iteration": i + 1, "critique": critique, "action": "accepted"})
+            break
+        revised = model_fn(REVISE_PROMPT.format(draft=current, critique=critique, query=query))
+        log.append({"iteration": i + 1, "critique": critique, "revised": revised})
+        current = revised
+    return current, log
+
+
 # --- 3. Cyclic Backtracking Mitigation (The Defense Strategy) ---
 def run_workflow(
     query: str,
@@ -197,9 +236,22 @@ def run_workflow(
     error_step: int | list[int] | None = None,
     error_kwargs: dict | None = None,
     max_retries: int = 1,
+    pipeline_config=None,
+    intervention_fn: Callable = None,
 ) -> list[StepResult]:
     """Run pipeline with cyclic mitigation logic."""
-    steps = ["search", "filter", "summarize", "compose", "verify"]
+    if pipeline_config is not None:
+        if isinstance(pipeline_config, list):
+            steps = list(pipeline_config)
+        else:
+            steps = list(pipeline_config.get("steps", ["search", "filter", "summarize", "compose", "verify"]))
+    else:
+        steps = ["search", "filter", "summarize", "compose", "verify"]
+
+    feedback_cfg = None
+    if isinstance(pipeline_config, dict) and "feedback" in pipeline_config:
+        feedback_cfg = pipeline_config["feedback"]
+
     error_kwargs = error_kwargs or {}
 
     if error_step is None:
@@ -235,20 +287,48 @@ def run_workflow(
             injection_meta = None
 
             if attempt == 0 and error_injection_fn and i in error_step_set:
-                pre_injection_output = output
-                try:
-                    injection_result = error_injection_fn(output, step_name, **error_kwargs)
-                except TypeError:
-                    injection_result = error_injection_fn(output, step_name)
-                
-                if isinstance(injection_result, tuple):
-                    if len(injection_result) == 3:
-                        output, injected_content, injection_meta = injection_result
+                inject_mode = pipeline_config.get("inject_mode", "before_loop") if isinstance(pipeline_config, dict) else "before_loop"
+                if inject_mode != "at_critique":
+                    pre_injection_output = output
+                    try:
+                        injection_result = error_injection_fn(output, step_name, **error_kwargs)
+                    except TypeError:
+                        injection_result = error_injection_fn(output, step_name)
+
+                    if isinstance(injection_result, tuple):
+                        if len(injection_result) == 3:
+                            output, injected_content, injection_meta = injection_result
+                        else:
+                            output, injected_content = injection_result
                     else:
-                        output, injected_content = injection_result
-                else:
-                    output = injection_result
-                error_injected = True
+                        output = injection_result
+                    error_injected = True
+
+            # Self-refine loop (critique→revise) after the feedback step
+            if feedback_cfg and step_name == feedback_cfg.get("after"):
+                inject_mode = pipeline_config.get("inject_mode", "before_loop") if isinstance(pipeline_config, dict) else "before_loop"
+                if inject_mode == "at_critique" and attempt == 0 and error_injection_fn and i in error_step_set:
+                    pre_injection_output = output
+                    try:
+                        injection_result = error_injection_fn(output, step_name, **error_kwargs)
+                    except TypeError:
+                        injection_result = error_injection_fn(output, step_name)
+                    if isinstance(injection_result, tuple):
+                        if len(injection_result) == 3:
+                            output, injected_content, injection_meta = injection_result
+                        else:
+                            output, injected_content = injection_result
+                    else:
+                        output = injection_result
+                    error_injected = True
+
+                max_refine_iter = feedback_cfg.get("max_iter", 2)
+                output, _refine_log = run_self_refine(output, query, model_fn, max_iter=max_refine_iter)
+
+            # Intervention: re-ask if intervention_fn flags this step
+            if intervention_fn and not error_injected:
+                if intervention_fn(current_input, output):
+                    output = STEP_FUNCTIONS[step_name](current_input, model_fn) if step_name != "verify" else STEP_FUNCTIONS[step_name](current_input, query, model_fn)
 
             results.append(
                 StepResult(
