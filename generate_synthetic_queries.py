@@ -1,14 +1,21 @@
 """Generate post-2024 novel queries for contamination-free evaluation.
 
-Uses an LLM to generate factual questions about recent events that
-cannot appear in model training data. Each query is verified to have
-a short, unambiguous answer.
+Two generation modes:
+1. curated (default): Load hand-verified questions from a curated JSONL file.
+   These should be sourced from verifiable post-cutoff sources (Wikipedia DYK,
+   arXiv abstracts post-2025-Q4, news archives) and manually checked.
+2. llm_generate (legacy): Use an LLM to generate and cross-verify. This mode
+   is methodologically weaker because both generator and verifier have similar
+   knowledge cutoffs (~mid-2024) and cannot reliably produce/validate post-cutoff
+   facts. Retained for backward compatibility but NOT recommended for the paper.
 
 Output: appends to ground_truth.json with source="synthetic_novel".
 """
 import json
 import os
 from models import call_model
+
+CURATED_QUERIES_FILE = os.path.join(os.path.dirname(__file__), "synthetic_novel_curated.jsonl")
 
 GENERATION_PROMPT = """Generate {n} factual questions about real events, discoveries, or developments from 2025 or later.
 
@@ -47,9 +54,60 @@ AMBIGUOUS - if multiple valid answers exist
 UNVERIFIABLE - if you cannot confirm the answer"""
 
 
+def load_curated_queries(path: str = CURATED_QUERIES_FILE) -> list[dict]:
+    """Load hand-verified queries from a curated JSONL file.
+
+    Expected format per line:
+    {"question": "...", "answer": "...", "domain": "...", "source_url": "...", "verified_by": "human"}
+    """
+    if not os.path.exists(path):
+        print(f"WARNING: Curated queries file not found: {path}")
+        print("  To create it, source 30 questions from:")
+        print("  - Wikipedia:Did_you_know/Recent_additions (last 6 months)")
+        print("  - arXiv abstracts (2025-Q4 onward)")
+        print("  - Major news archives (Reuters, AP)")
+        print("  Format: one JSON object per line with question, answer, domain, source_url")
+        return []
+
+    queries = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if entry.get("question") and entry.get("answer"):
+                    queries.append({
+                        "question": entry["question"],
+                        "answer": entry["answer"],
+                        "domain": entry.get("domain", "synthetic_novel"),
+                        "date_range": entry.get("date_range", "2025+"),
+                        "source": "synthetic_novel",
+                        "source_url": entry.get("source_url", ""),
+                        "verified_by": entry.get("verified_by", "human"),
+                    })
+            except json.JSONDecodeError:
+                continue
+
+    print(f"Loaded {len(queries)} curated novel queries from {path}")
+    return queries
+
+
 def generate_queries(n: int = 30, generator_model: str = "gpt-4o-mini",
-                     verifier_model: str = "gemini-flash") -> list[dict]:
-    """Generate and verify n synthetic novel queries."""
+                     verifier_model: str = "gemini-flash",
+                     mode: str = "curated") -> list[dict]:
+    """Generate or load synthetic novel queries.
+
+    Args:
+        mode: "curated" (recommended) or "llm_generate" (legacy, weaker).
+    """
+    if mode == "curated":
+        queries = load_curated_queries()
+        if queries:
+            return queries[:n]
+        print("Falling back to LLM generation (curated file not found)")
+
     batch_size = min(15, n)
     all_queries = []
 
@@ -164,6 +222,8 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Generate synthetic novel queries")
     parser.add_argument("--n", type=int, default=30, help="Number of queries to generate")
+    parser.add_argument("--mode", choices=["curated", "llm_generate"], default="curated",
+                        help="curated (recommended) or llm_generate (legacy)")
     parser.add_argument("--generator", type=str, default="gpt-4o-mini")
     parser.add_argument("--verifier", type=str, default="gemini-flash")
     parser.add_argument("--output", type=str, default=None,
@@ -171,7 +231,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     queries = generate_queries(n=args.n, generator_model=args.generator,
-                               verifier_model=args.verifier)
+                               verifier_model=args.verifier, mode=args.mode)
     print(f"Generated {len(queries)} verified queries")
 
     if args.output:

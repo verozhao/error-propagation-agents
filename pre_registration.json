@@ -57,5 +57,5 @@
     "rope": "Region of practical equivalence for null effects: [-0.05, 0.05] for standardized effect sizes. Report proportion of posterior mass inside ROPE.",
     "bayes_factor_threshold": "BF > 10 for strong evidence, 3-10 for moderate, 1-3 for anecdotal. Report alongside frequentist p-values for transparency."
   },
-  "commit_hash": ""
+  "commit_hash": "5920cb5e4e8a81358ab087235d96d5fbe637f6b72bf91656335b368e5388ec04"
 }

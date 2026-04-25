@@ -45,7 +45,7 @@ def commit_registration(registration: dict, filepath: str = "pre_registration.js
     """Save and compute hash for audit trail."""
     registration["commit_hash"] = hashlib.sha256(
         json.dumps(registration, sort_keys=True).encode()
-    ).hexdigest()[:16]
+    ).hexdigest()
     with open(filepath, "w") as f:
         json.dump(registration, f, indent=2)
     print(f"Pre-registration saved: {filepath}")

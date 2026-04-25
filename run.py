@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--queries", type=int, default=None,
                         help="Max number of queries to use (default: all)")
     parser.add_argument("--pipeline", default="medium",
-                        choices=["short", "medium", "self_refine_A", "self_refine_C"],
+                        choices=["short", "medium", "self_refine_A", "self_refine_B", "self_refine_C"],
                         help="Pipeline configuration (default: medium)")
     parser.add_argument("--intervention", default="none",
                         choices=["none", "threshold", "learned", "optimal"],

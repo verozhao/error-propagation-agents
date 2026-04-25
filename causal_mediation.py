@@ -160,3 +160,41 @@ def compute_mediation(trial_records: list, baseline_records: list,
         }
 
     return {"error": "insufficient data for mediation analysis"}
+
+
+def compute_mediation_per_model(trial_records: list, baseline_records: list) -> dict:
+    """Compute per-model mediation for H2 testing.
+
+    H2 requires NIE/TE > 0.4 for >= 3 of 4 models. This function runs
+    compute_mediation on each model's subset and returns results keyed
+    by model name.
+
+    Returns: {model_name: {nie, nie_ci_95, nde, ..., mediation_fraction_nie_over_te, ...}}
+    """
+    from collections import defaultdict
+
+    by_model = defaultdict(lambda: {"trial": [], "baseline": []})
+    for r in trial_records:
+        model = r.get("model", "unknown")
+        by_model[model]["trial"].append(r)
+    for r in baseline_records:
+        model = r.get("model", "unknown")
+        by_model[model]["baseline"].append(r)
+
+    per_model = {}
+    models_above_threshold = 0
+    for model_name, records in sorted(by_model.items()):
+        result = compute_mediation(records["trial"], records["baseline"])
+        per_model[model_name] = result
+        frac = result.get("mediation_fraction_nie_over_te", 0)
+        if frac > 0.4:
+            models_above_threshold += 1
+
+    return {
+        "per_model": per_model,
+        "n_models": len(per_model),
+        "models_above_0.4": models_above_threshold,
+        "h2_confirmed": models_above_threshold >= 3,
+        "h2_threshold": 0.4,
+        "h2_required_models": 3,
+    }

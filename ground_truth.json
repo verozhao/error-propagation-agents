@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "status": "DRAFT — 58 queries (8 manual + 50 auto-generated from HotpotQA)",
+    "status": "58 seed queries (8 manual + 50 HotpotQA). Runtime loader (workflow.load_all_tasks) supplements with HotpotQA/TriviaQA/StrategyQA/BFCL/synthetic for 200+ total.",
     "drafted_by": "Claude, 2026-04-06",
     "schema": {
       "assertions": "facts a correct answer should preserve. `keywords` are the minimal set of tokens that must co-occur (case-insensitive) for the assertion to count as 'present' via lexical match. `aliases` are alternative surface forms.",

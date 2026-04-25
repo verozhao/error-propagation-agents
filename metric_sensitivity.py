@@ -21,7 +21,7 @@ def recompute_score(ev, w_preserved, w_survival, w_valid):
 def sweep():
     records = []
     for f in glob.glob("results/**/*.jsonl", recursive=True):
-        if "stats" in f or "sanity" in f:
+        if "stats" in f or "sanity" in f or "_legacy" in f or "archive" in f:
             continue
         for line in open(f):
             try:

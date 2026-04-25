@@ -57,7 +57,7 @@ def load_all(results_glob: str = "results/**/*.json") -> pd.DataFrame:
     rows = []
     # Load from JSONL first
     for path in glob("results/**/*.jsonl", recursive=True):
-        if "stats" in path or "trace_analysis" in path or "sanity_checks" in path:
+        if "stats" in path or "trace_analysis" in path or "sanity_checks" in path or "_legacy" in path or "archive" in path:
             continue
         with open(path) as f:
             for line in f:
@@ -87,7 +87,7 @@ def load_all(results_glob: str = "results/**/*.json") -> pd.DataFrame:
     # Fallback to JSON if no JSONL data
     if not rows:
         for path in glob(results_glob, recursive=True):
-            if "stats" in path or "trace_analysis" in path or "sanity_checks" in path:
+            if "stats" in path or "trace_analysis" in path or "sanity_checks" in path or "_legacy" in path or "archive" in path:
                 continue
             with open(path) as f:
                 data = json.load(f)
