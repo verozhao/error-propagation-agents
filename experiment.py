@@ -254,6 +254,7 @@ def run_full_experiment(
     max_queries: int | None = None,
     injection_model: str | None = None,
     pipeline: str = "medium",
+    baseline_only: bool = False,
 ):
     import threading
 
@@ -284,7 +285,9 @@ def run_full_experiment(
         tasks = tasks[:max_queries]
         print(f"Budget control: using {len(tasks)} queries (--queries {max_queries})")
 
-    if compound_pairs:
+    if baseline_only:
+        error_steps = [None]
+    elif compound_pairs:
         error_steps = [list(p) for p in compound_pairs]
     else:
         error_steps = list(range(max_inject_step))
@@ -399,6 +402,24 @@ def run_full_experiment(
                 all_records.append(json.loads(line))
             except Exception:
                 pass
+
+    # Post-hoc persistence curve computation (requires matched baselines)
+    if save_traces:
+        baselines = [r for r in all_records if r.get("is_baseline")]
+        n_persistence = 0
+        for r in all_records:
+            if r.get("is_baseline") or r.get("error_step") is None:
+                continue
+            if not r.get("injected_content") or not r.get("step_outputs"):
+                continue
+            matched = find_matched_baseline(r["task_query"], baselines)
+            if matched and matched.get("step_outputs"):
+                curve = persistence_curve(r, matched)
+                r["persistence_curve"] = curve
+                n_persistence += 1
+        if n_persistence > 0:
+            print(f"Computed persistence curves for {n_persistence} injected trials")
+
     consolidated_path = os.path.join(output_dir, f"{stable_name}_{timestamp}.json")
     with open(consolidated_path, "w") as f:
         json.dump(all_records, f, indent=2)

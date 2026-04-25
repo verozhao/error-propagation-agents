@@ -72,6 +72,7 @@ def build_model():
 
     Call this inside a numpyro MCMC sampling context.
     """
+    import jax
     import numpyro
     import numpyro.distributions as dist
     import jax.numpy as jnp

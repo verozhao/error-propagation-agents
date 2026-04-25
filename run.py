@@ -66,7 +66,7 @@ def main():
             error_type=args.error_type,
             severity=args.severity,
             diagnostic_query=args.diagnostic_query,
-            skip_baseline=args.skip_baseline or args.baseline_only,
+            skip_baseline=args.skip_baseline,
             judge_models=[args.judge_model] if args.judge_model else None,
             use_llm_judge=args.use_llm_judge,
             compound_pairs=compound_pairs,
@@ -74,6 +74,7 @@ def main():
             max_queries=args.queries,
             injection_model=args.injection_model,
             pipeline=args.pipeline,
+            baseline_only=args.baseline_only,
         )
         print(f"Results saved to: {output_file}")
     

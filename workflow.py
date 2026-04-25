@@ -84,8 +84,131 @@ def _load_tasks_from_ground_truth(num_tasks=50):
           f"({n_cached} with search cache)")
     return tasks
 
-# Replace hardcoded toy queries with robust 50-query benchmark
-TASK_TEMPLATES = load_hotpotqa_tasks(50)
+def load_triviaqa_tasks(num_tasks=60):
+    """Load TriviaQA validation questions (single-hop factoid)."""
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("trivia_qa", "rc", split="validation")
+        tasks = []
+        seen = set()
+        for item in ds:
+            if len(tasks) >= num_tasks:
+                break
+            q = item["question"]
+            answer = item.get("answer", {}).get("value", "")
+            if not answer or q in seen:
+                continue
+            if len(answer.split()) > 10 or len(q) > 200:
+                continue
+            seen.add(q)
+            tasks.append({
+                "query": q,
+                "expected_keywords": [answer],
+                "domain": "single_hop",
+                "_placeholder": False,
+            })
+        return tasks
+    except (ImportError, Exception) as e:
+        print(f"WARNING: TriviaQA load failed ({e}), skipping")
+        return []
+
+
+def load_strategyqa_tasks(num_tasks=60):
+    """Load StrategyQA questions (multi-step reasoning, yes/no)."""
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("wics/strategy-qa", split="test")
+        tasks = []
+        for item in ds:
+            if len(tasks) >= num_tasks:
+                break
+            q = item.get("question", item.get("input", ""))
+            answer = str(item.get("answer", item.get("target", "")))
+            if not q:
+                continue
+            tasks.append({
+                "query": q,
+                "expected_keywords": [answer] if answer else [],
+                "domain": "reasoning",
+                "_placeholder": False,
+            })
+        return tasks
+    except (ImportError, Exception) as e:
+        print(f"WARNING: StrategyQA load failed ({e}), skipping")
+        return []
+
+
+def load_bfcl_tasks(num_tasks=30):
+    """Load BFCL/ToolBench questions (agentic tool-use)."""
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("gorilla-llm/Berkeley-Function-Calling-Leaderboard", split="test")
+        tasks = []
+        for item in ds:
+            if len(tasks) >= num_tasks:
+                break
+            q = item.get("question", "")
+            if not q or len(q) > 200:
+                continue
+            tasks.append({
+                "query": q,
+                "expected_keywords": [],
+                "domain": "agentic",
+                "_placeholder": False,
+            })
+        return tasks
+    except (ImportError, Exception) as e:
+        print(f"WARNING: BFCL load failed ({e}), skipping")
+        return []
+
+
+def load_synthetic_novel_tasks():
+    """Load synthetic novel queries from ground_truth.json (source=synthetic_novel)."""
+    gt_path = os.path.join(os.path.dirname(__file__), "ground_truth.json")
+    if not os.path.exists(gt_path):
+        return []
+    with open(gt_path, "r", encoding="utf-8") as f:
+        gt = json.load(f)
+    tasks = []
+    for entry in gt.get("queries", []):
+        if entry.get("source") == "synthetic_novel":
+            tasks.append({
+                "query": entry.get("query", ""),
+                "expected_keywords": [entry.get("answer", "")] if entry.get("answer") else [],
+                "domain": "synthetic_novel",
+                "_placeholder": False,
+            })
+    return tasks
+
+
+def load_all_tasks():
+    """Load combined query set: HotpotQA + TriviaQA + StrategyQA + BFCL + synthetic novel.
+
+    Falls back to ground_truth.json if HuggingFace datasets unavailable.
+    """
+    hotpot = load_hotpotqa_tasks(60)
+    trivia = load_triviaqa_tasks(60)
+    strategy = load_strategyqa_tasks(60)
+    bfcl = load_bfcl_tasks(30)
+    synthetic = load_synthetic_novel_tasks()
+
+    all_tasks = hotpot + trivia + strategy + bfcl + synthetic
+
+    if len(all_tasks) < 30:
+        print("WARNING: Few dataset queries loaded, supplementing from ground_truth.json")
+        gt_tasks = _load_tasks_from_ground_truth(210 - len(all_tasks))
+        existing_queries = {t["query"] for t in all_tasks}
+        for t in gt_tasks:
+            if t["query"] not in existing_queries:
+                all_tasks.append(t)
+
+    print(f"Loaded {len(all_tasks)} total tasks: "
+          f"{len(hotpot)} HotpotQA, {len(trivia)} TriviaQA, "
+          f"{len(strategy)} StrategyQA, {len(bfcl)} BFCL, {len(synthetic)} synthetic")
+    return all_tasks
+
+
+TASK_TEMPLATES = load_all_tasks()
 
 @dataclass
 class StepResult:
