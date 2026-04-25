@@ -121,11 +121,9 @@ def run_single_experiment(
     if len(injected_contents) > 1:
         injected_content = " | ".join(injected_contents)
 
-    # Issue α: distinguish "injection was attempted and produced a delta"
-    # from "injection was attempted but the injector returned no-op" (e.g.
-    # omission at severity 3 when the text is a single sentence triggers
-    # the n <= 2 early-return in inject_omission_error). Baseline records
-    # have injection_valid=None because no injection was attempted.
+    # Distinguish "injection was attempted and produced a delta" from
+    # "injection was attempted but the injector returned no-op".
+    # Baseline records have injection_valid=None (no injection attempted).
     injection_attempted = actual_error_step is not None
     if not injection_attempted:
         injection_valid = None  # baseline

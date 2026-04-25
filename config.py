@@ -7,6 +7,23 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
+# Load frozen experiment config (pinned model versions, parameters)
+_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "experiment_config.yaml")
+EXPERIMENT_CONFIG = {}
+try:
+    import yaml
+    if os.path.exists(_CONFIG_PATH):
+        with open(_CONFIG_PATH) as _f:
+            EXPERIMENT_CONFIG = yaml.safe_load(_f) or {}
+except ImportError:
+    pass
+
+PINNED_MODEL_VERSIONS = {}
+if EXPERIMENT_CONFIG:
+    for _section in ("pipeline", "judges"):
+        for _alias, _version in EXPERIMENT_CONFIG.get("models", {}).get(_section, {}).items():
+            PINNED_MODEL_VERSIONS[_alias] = _version
+
 # Pipeline configurations
 PIPELINE_CONFIGS = {
     "short": ["search", "compose", "verify"],
