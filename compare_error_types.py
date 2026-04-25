@@ -9,18 +9,30 @@ from record_utils import is_baseline, injection_is_valid
 
 RESULTS_DIR = "results"
 MODEL = "gpt-4o-mini"
-ERROR_TYPES = ["factual_error", "omission_error", "semantic_error"]
+ERROR_TYPES = ["entity", "invented", "unverifiable", "contradictory"]
 LABEL_MAP = {
-    "factual_error": "Factual",
-    "omission_error": "Omission",
-    "semantic_error": "Semantic",
+    "entity": "Entity Substitution",
+    "invented": "Invented Detail",
+    "unverifiable": "Unverifiable Claim",
+    "contradictory": "Contradictory",
 }
 
 
-def load_error_type(error_type_dir: str) -> pd.DataFrame:
-    files = glob.glob(f"{RESULTS_DIR}/{error_type_dir}/{MODEL}_*.json")
+def load_error_type(error_type: str, results_dir: str = None) -> pd.DataFrame:
+    """Load records for a specific FAVA error type.
+
+    Supports both per-type directories and ragtruth_weighted runs
+    (post-hoc decomposition via injection_meta.error_type).
+    """
+    results_dir = results_dir or RESULTS_DIR
+    # Try per-type directory first, then ragtruth_weighted
+    search_dirs = [f"{error_type}_error", "ragtruth_weighted_error"]
+    files = []
+    for d in search_dirs:
+        files.extend(glob.glob(f"{results_dir}/{d}/{MODEL}_*.json"))
+        files.extend(glob.glob(f"{results_dir}/{d}/ragtruth_weighted_*.json"))
     if not files:
-        raise FileNotFoundError(f"No files found for {MODEL} in {RESULTS_DIR}/{error_type_dir}/")
+        raise FileNotFoundError(f"No files found for {MODEL} in {results_dir}")
     rows = []
     for path in files:
         with open(path) as f:
@@ -28,22 +40,27 @@ def load_error_type(error_type_dir: str) -> pd.DataFrame:
         for r in data:
             if "error" in r:
                 continue
+            # Filter to matching error type from injection_meta
+            meta = r.get("injection_meta") or {}
+            record_type = meta.get("error_type", r.get("error_type", ""))
             if is_baseline(r):
                 step = -1
             else:
+                if record_type != error_type and record_type not in ("", "ragtruth_weighted"):
+                    continue
                 if injection_is_valid(r) is False:
-                    continue  # drop no-op injections
+                    continue
                 es = r.get("error_step")
                 if isinstance(es, list):
                     step = es[0] if es else -1
                 elif es is None:
-                    continue  # legacy compound misclassified as non-baseline
+                    continue
                 else:
                     step = es
             rows.append({
                 "error_step": step,
                 "combined_score": r["evaluation"].get("combined_score") or r["evaluation"].get("combined", 0),
-                "error_type": error_type_dir,
+                "error_type": error_type,
             })
     return pd.DataFrame(rows)
 
@@ -71,7 +88,7 @@ def plot_comparison(dfs: list[pd.DataFrame], output_path: str = "figures/error_t
     os.makedirs("figures", exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    markers = ["o", "s", "^"]
+    markers = ["o", "s", "^", "D"]
 
     for df, marker in zip(dfs, markers):
         label = LABEL_MAP[df["error_type"].iloc[0]]

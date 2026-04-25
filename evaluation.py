@@ -1,6 +1,7 @@
 from workflow import StepResult
 from models import call_model
 from factual_accuracy import evaluate_factual_accuracy, load_ground_truth
+from config import SECONDARY_JUDGE
 import random
 
 
@@ -362,3 +363,57 @@ def evaluate_workflow_output(
     if pairwise:
         result["pairwise"] = pairwise
     return result
+
+
+def evaluate_with_secondary_judge(
+    results: list[StepResult],
+    original_query: str,
+    expected_keywords: list[str],
+    primary_judge: str = "gpt-4o-mini",
+    secondary_judge: str | None = None,
+    ground_truth: dict | None = None,
+    use_llm_judge: bool = True,
+) -> dict:
+    """Run evaluation with both primary and secondary judges.
+
+    Returns per-judge scores for inter-rater agreement analysis.
+    """
+    secondary_judge = secondary_judge or SECONDARY_JUDGE
+    judges = [primary_judge, secondary_judge]
+    per_judge = {}
+
+    for judge in judges:
+        eval_result = evaluate_workflow_output(
+            results=results,
+            original_query=original_query,
+            expected_keywords=expected_keywords,
+            evaluator_model=judge,
+            ground_truth=ground_truth,
+            use_llm_judge=use_llm_judge,
+        )
+        per_judge[judge] = eval_result
+
+    return {
+        "primary": per_judge[primary_judge],
+        "secondary": per_judge[secondary_judge],
+        "judges": judges,
+    }
+
+
+def score_step_quality(step_input: str, step_output: str, query: str,
+                       scorer_model: str = "gpt-4o-mini") -> dict:
+    """Score a single step's output quality for natural failure identification."""
+    prompt = f"""Rate this pipeline step output on a scale of 1-5 for factual consistency.
+1 = contains clear errors, 5 = fully consistent with input.
+
+Query: {query}
+Step input: {step_input[:500]}
+Step output: {step_output[:500]}
+
+Reply with ONLY a number 1-5."""
+    try:
+        raw = call_model(scorer_model, prompt, max_tokens=10, temperature=0.0).strip()
+        score = int(raw.split()[0])
+        return {"quality": max(1, min(5, score)), "scorer": scorer_model}
+    except Exception:
+        return {"quality": 3, "scorer": scorer_model}

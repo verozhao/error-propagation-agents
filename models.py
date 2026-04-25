@@ -34,6 +34,17 @@ API_MODELS = {
     "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
 }
 
+# Apply pinned versions from experiment_config.yaml (prevents silent alias migration)
+try:
+    from config import PINNED_MODEL_VERSIONS
+    for _alias, _pinned in PINNED_MODEL_VERSIONS.items():
+        if _alias in API_MODELS:
+            API_MODELS[_alias]["model"] = _pinned
+        if _alias in OPEN_SOURCE_MODELS:
+            OPEN_SOURCE_MODELS[_alias] = _pinned
+except ImportError:
+    pass
+
 # CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
 CMU_GATEWAY_MODELS = {
     "gpt-4o": "gpt-4o-2024-08-06",
