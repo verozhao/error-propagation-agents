@@ -1,8 +1,17 @@
-"""Analyze LangChain validation results and compare against the main pipeline.
+"""Analyze chain architecture validation results and compare against the main pipeline.
 
 Loads results/langchain_validation/*.json and results from the main pipeline,
 then produces a comparison table showing whether the three propagation modes
 (persistence, attenuation, reconstruction) reproduce across architectures.
+
+Step mapping:
+    The 3-step chain (retrieval/summarize/answer) maps to the 5-step medium
+    pipeline as follows for qualitative comparison:
+        retrieval -> search+filter (collapsed)
+        summarize -> summarize
+        answer    -> compose
+    Results are reported as qualitative replication of decay shape, not
+    quantitative cell-by-cell comparison, since step counts differ.
 
 Usage:
     python langchain_analysis.py

@@ -6,7 +6,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import numpy as np
-from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, INJECT_AT_VERIFY, PIPELINE_CONFIGS
+from config import WORKFLOW_STEPS, NUM_TRIALS, OUTPUT_DIR, PIPELINE_CONFIGS
 from models import call_model
 from workflow import run_workflow, TASK_TEMPLATES
 from error_injection import ERROR_TYPES
@@ -282,7 +282,7 @@ def run_full_experiment(
         pipeline_steps = pipeline_cfg
     else:
         pipeline_steps = pipeline_cfg.get("steps", WORKFLOW_STEPS)
-    max_inject_step = len(pipeline_steps) if INJECT_AT_VERIFY else len(pipeline_steps) - 1
+    max_inject_step = len(pipeline_steps) - 1
 
     tasks = TASK_TEMPLATES
     if diagnostic_query:

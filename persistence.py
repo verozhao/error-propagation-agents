@@ -64,6 +64,46 @@ def persistence_curve(trial_record: dict, baseline_record: dict, encoder_name: s
     return curve
 
 
+def corruption_persistence_multi(
+    injected_delta: str,
+    step_output: str,
+    baseline_output: str,
+) -> dict:
+    """Compute persistence with all three encoders for robustness check.
+
+    Returns: dict mapping short encoder name to persistence score.
+    """
+    encoders = [
+        "BAAI/bge-large-en-v1.5",
+        "intfloat/e5-large-v2",
+        "sentence-transformers/all-mpnet-base-v2",
+    ]
+    results = {}
+    for enc_name in encoders:
+        short_name = enc_name.split("/")[-1]
+        results[short_name] = corruption_persistence(
+            injected_delta, step_output, baseline_output, encoder_name=enc_name
+        )
+    return results
+
+
+def persistence_curve_multi(trial_record: dict, baseline_record: dict) -> dict:
+    """Compute persistence curves with all three encoders.
+
+    Returns: dict mapping short encoder name to list of (step_index, step_name, score).
+    """
+    encoders = [
+        "BAAI/bge-large-en-v1.5",
+        "intfloat/e5-large-v2",
+        "sentence-transformers/all-mpnet-base-v2",
+    ]
+    results = {}
+    for enc_name in encoders:
+        short_name = enc_name.split("/")[-1]
+        results[short_name] = persistence_curve(trial_record, baseline_record, encoder_name=enc_name)
+    return results
+
+
 def find_matched_baseline(query: str, baseline_records: list) -> dict | None:
     """Find a baseline record for the same query."""
     for r in baseline_records:

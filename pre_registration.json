@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-04-25T00:00:00",
+  "primary_hypotheses": [
+    {
+      "id": "H1",
+      "statement": "Persistence decay shape (exponential vs linear vs flat) is consistent across models within the same architecture family and distinct across architecture families. Specifically, the best-fit decay model (by AICc) will agree for >= 3 of 4 models, and at least two architecture families will select different best-fit models.",
+      "test": "Fit exponential, linear, and flat decay models to persistence curves per (model, error_type). Compare AICc-selected best model across models. Test agreement via Fleiss' kappa >= 0.6 within-family, and chi-squared test for between-family differences.",
+      "threshold": "Fleiss kappa >= 0.6 within-family; chi-squared p < 0.05 between-family",
+      "decision_rule": "Confirm H1 if both criteria met. Partially confirm if only one criterion met. Reject if neither."
+    },
+    {
+      "id": "H2",
+      "statement": "Causal mediation fraction NIE/TE > 0.4 across at least 3 of 4 pipeline models, indicating that error persistence (the indirect path injection -> persistence -> final failure) accounts for a substantial share of the total effect of error injection on output quality degradation.",
+      "test": "Compute NIE, NDE, TE via bootstrap mediation analysis (1000 resamples). Report NIE/TE with 95% bootstrap CIs per model. Test NIE/TE > 0.4 via one-sided bootstrap test.",
+      "threshold": "NIE/TE point estimate > 0.4 with 95% CI lower bound > 0.2 for >= 3 of 4 models",
+      "decision_rule": "Confirm H2 if >= 3 models meet threshold. Partially confirm if 2 models meet. Reject if <= 1."
+    }
+  ],
+  "secondary_hypotheses": [
+    {
+      "id": "S1",
+      "statement": "Entity substitution errors (FAVA type: entity) persist at higher rates than invented-claim errors at equivalent initial severity, due to entity errors being harder to detect without external knowledge.",
+      "test": "Compare mean persistence integrals for entity vs invented types via Welch's t-test and TOST equivalence test (bound=0.10)."
+    },
+    {
+      "id": "S2",
+      "statement": "Self-refine architecture A (inject before critique loop) attenuates errors more than the medium pipeline (no self-refine), measured by lower persistence integral at the compose step.",
+      "test": "Paired comparison (same query, same model) of persistence at compose step. Wilcoxon signed-rank test, Holm-corrected."
+    },
+    {
+      "id": "S3",
+      "statement": "Errors injected earlier in the pipeline (step 0: search, step 1: filter) have lower end-to-end survival than errors injected later (step 2: summarize, step 3: compose), consistent with the Markov attenuation model prediction S(i) = product of alpha_k for k > i.",
+      "test": "Compare mean final survival for early (steps 0-1) vs late (steps 2-3) injection via Mann-Whitney U. Validate Markov model predictions against observed FR per injection step (R^2 > 0.7)."
+    },
+    {
+      "id": "S4",
+      "statement": "Multi-encoder severity agreement: persistence curves computed with BGE-large, E5-large, and MPNet encoders are highly correlated (Pearson r > 0.85 for all pairwise comparisons), validating that the persistence metric is not an artifact of a single embedding space.",
+      "test": "Compute persistence curves with all three encoders on the same trial set. Report pairwise Pearson correlations with 95% CIs."
+    }
+  ],
+  "thesis_contingency": {
+    "H1_confirmed_H2_confirmed": "Full thesis supported: error propagation follows architecture-dependent decay patterns, and persistence is the primary causal mechanism linking injection to final failure. The paper's theoretical model (Theorem 1) and empirical findings are mutually reinforcing. Recommend framing as: 'Error propagation in LLM pipelines is predictable, architecture-dependent, and causally mediated by semantic persistence.'",
+    "H1_confirmed_H2_rejected": "Decay shapes are consistent within architectures but persistence is not the primary causal pathway. This suggests models have characteristic error-handling behaviors, but the mechanism is more direct (e.g., error directly degrades output quality without measurable intermediate persistence). Reframe paper around architectural fingerprints rather than causal mediation. Theorem 1 still holds but the practical intervention story weakens.",
+    "H1_rejected_H2_confirmed": "Persistence mediates failure but decay shapes are not architecture-dependent. This means the causal mechanism is universal across models, but the specific dynamics vary unpredictably. Reframe around universal persistence-based intervention thresholds. The intervention strategy (Theorem 1 optimal stopping) still applies but must be calibrated per-model rather than per-architecture-family.",
+    "H1_rejected_H2_rejected": "Neither architecture-dependent decay nor causal mediation is supported. The theoretical model does not match empirical reality. Pivot paper to empirical contribution: the FAVA-grounded injection methodology, the multi-encoder persistence metric, and the dataset. Report as a negative result with methodological contributions. The contamination probe and ground truth infrastructure remain valuable.",
+    "partial": "If results are mixed (e.g., H1 partially confirmed for some error types but not others, or H2 confirmed for 2 of 4 models), report the conditions under which each hypothesis holds. Use the hierarchical Bayesian model posteriors to characterize the heterogeneity. Frame as: 'Error propagation dynamics are context-dependent, with [specific conditions] determining whether persistence follows predictable patterns.'"
+  },
+  "analysis_hierarchy": {
+    "headline_tests": "Holm-corrected across 10 primary and secondary hypothesis tests",
+    "exploratory": "FDR (Benjamini-Hochberg), clearly labeled as exploratory in all tables and figures",
+    "model_parameters": "Bootstrap CIs (10000 resamples), no multiplicity correction",
+    "bayesian_inference": "Hierarchical model posteriors reported as 95% credible intervals. Decision: confirm if 95% CI excludes the null value; partially confirm if 90% CI excludes null but 95% does not."
+  },
+  "bayesian_decision_rules": {
+    "H1_bayesian": "Posterior probability that best-fit decay model agrees within-family > 0.8. Compute via posterior predictive simulation from the hierarchical model.",
+    "H2_bayesian": "95% credible interval for NIE/TE excludes 0.4 from below (i.e., lower bound of 95% CI > 0.4) for >= 3 models. Report full posterior distribution.",
+    "rope": "Region of practical equivalence for null effects: [-0.05, 0.05] for standardized effect sizes. Report proportion of posterior mass inside ROPE.",
+    "bayes_factor_threshold": "BF > 10 for strong evidence, 3-10 for moderate, 1-3 for anecdotal. Report alongside frequentist p-values for transparency."
+  },
+  "commit_hash": ""
+}

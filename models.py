@@ -26,8 +26,8 @@ OPEN_SOURCE_MODELS = {
 API_MODELS = {
     "gpt-4o": {"provider": "openai", "model": "gpt-4o"},
     "gpt-4o-mini": {"provider": "openai", "model": "gpt-4o-mini"},
-    "claude-sonnet": {"provider": "anthropic", "model": "claude-sonnet-4-20250514"},
-    "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-20250414"},
+    "claude-sonnet": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
     "claude-3-haiku": {"provider": "anthropic", "model": "claude-3-haiku-20240307"},
     "claude-sonnet-3-5": {"provider": "anthropic", "model": "claude-3-5-sonnet"},
     "gemini-pro": {"provider": "google", "model": "gemini-1.5-pro"},

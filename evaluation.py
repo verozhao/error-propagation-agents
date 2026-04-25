@@ -1,7 +1,7 @@
 from workflow import StepResult
 from models import call_model
 from factual_accuracy import evaluate_factual_accuracy, load_ground_truth
-from config import SECONDARY_JUDGE
+from config import SECONDARY_JUDGE, STEP_SCORER
 import random
 
 
@@ -401,7 +401,7 @@ def evaluate_with_secondary_judge(
 
 
 def score_step_quality(step_input: str, step_output: str, query: str,
-                       scorer_model: str = "gpt-4o-mini") -> dict:
+                       scorer_model: str = STEP_SCORER) -> dict:
     """Score a single step's output quality for natural failure identification."""
     prompt = f"""Rate this pipeline step output on a scale of 1-5 for factual consistency.
 1 = contains clear errors, 5 = fully consistent with input.

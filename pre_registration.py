@@ -33,6 +33,11 @@ def create_registration_template() -> dict:
             "exploratory": "FDR (Benjamini-Hochberg), clearly labeled",
             "model_parameters": "Bootstrap CIs, no multiplicity correction",
         },
+        "bayesian_decision_rules": {
+            "credible_interval": "Confirm if 95% credible interval excludes null. Partially confirm if 90% CI excludes null but 95% does not.",
+            "rope": "Region of practical equivalence: [-0.05, 0.05] for standardized effects. Report posterior mass inside ROPE.",
+            "bayes_factor": "BF > 10 strong evidence, 3-10 moderate, 1-3 anecdotal. Report alongside p-values.",
+        },
     }
 
 

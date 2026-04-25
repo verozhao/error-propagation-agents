@@ -17,9 +17,12 @@ def run_contamination_probe(ground_truth_path: str, models: list[str]) -> dict:
         gt = json.load(f)
 
     results = {}
-    for query, gt_entry in gt.items():
+    for entry in gt.get("queries", []):
+        query = entry.get("query", "")
+        if not query:
+            continue
         gold_answers = []
-        for assertion in gt_entry.get("assertions", []):
+        for assertion in entry.get("assertions", []):
             gold_answers.extend(assertion.get("keywords", []))
         if not gold_answers:
             continue
@@ -29,11 +32,9 @@ def run_contamination_probe(ground_truth_path: str, models: list[str]) -> dict:
 
         for model in models:
             try:
-                # Prompt with JUST the question, no context
                 response = call_model(model, f"Answer this question concisely: {query}",
                                       max_tokens=100, temperature=0.0)
                 response_lower = response.lower().strip()
-                # Check if any gold answer appears verbatim
                 if any(gold in response_lower for gold in gold_set):
                     matches += 1
             except Exception:

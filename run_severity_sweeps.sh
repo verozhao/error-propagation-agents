@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Phase 6 sweep: Claude 3 Haiku as primary subject model.
+# Phase 7+ sweep: FAVA taxonomy (entity/invented/unverifiable/contradictory).
 #
-# Single-step sweep: 3 error types × 4 injection steps × 3 severities × 8 queries × 30 trials
+# Single-step sweep: 4 error types x 4 injection steps x 3 severities x queries x trials
 #   Baselines run once per error type at sev=1; sev=2/3 reuse via --skip-baseline.
 #
-# Compound sweep: 5 step-pairs × 3 error types × 8 queries × 20 trials at sev=2.
+# Compound sweep: 5 step-pairs x 4 error types x queries x trials at sev=2.
 #
 # Usage:
 #   ./run_severity_sweeps.sh              # single-step only, 30 trials
@@ -36,7 +36,7 @@ echo "Config: models=[$MODELS] trials=$TRIALS queries=$QUERIES compound_trials=$
 echo "  single-step=$RUN_SINGLE compound=$RUN_COMPOUND"
 
 if $RUN_SINGLE; then
-  for etype in factual semantic omission; do
+  for etype in entity invented unverifiable contradictory; do
     echo ""
     echo "=== $etype error sweeps ==="
 
@@ -63,7 +63,7 @@ if $RUN_COMPOUND; then
   echo ""
   echo "=== Compound injection sweeps (severity 2) ==="
 
-  for etype in factual semantic omission; do
+  for etype in entity invented unverifiable contradictory; do
     echo "--- compound $etype ---"
     python run.py --mode run --use-api --trials "$COMPOUND_TRIALS" \
       --models $MODELS --error-type "$etype" --severity 2 \

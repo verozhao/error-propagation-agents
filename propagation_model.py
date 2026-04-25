@@ -1,5 +1,11 @@
 """Formal error propagation model: Markov chain with step-wise attenuation.
 
+NOTE: This is the SECONDARY frequentist model (appendix / Section 6).
+The PRIMARY model is the hierarchical Bayesian version in
+hierarchical_model.py (Section 5.5). This Markov alpha model serves
+as a sanity check: if both models agree on attenuation patterns,
+the finding is robust to modeling assumptions.
+
 ===========================================================================
 THEORETICAL CONTRIBUTION (Section 4 of the paper)
 ===========================================================================
@@ -131,7 +137,7 @@ def load_records() -> list[dict]:
     from record_utils import is_baseline, injection_is_valid
     rows = []
     for path in glob.glob("results/**/*.jsonl", recursive=True):
-        if "stats" in path or "sanity" in path:
+        if "stats" in path or "sanity" in path or "_legacy" in path or "archive" in path:
             continue
         with open(path) as f:
             for line in f:
@@ -141,7 +147,7 @@ def load_records() -> list[dict]:
                     continue
     if not rows:
         for path in glob.glob("results/**/*.json", recursive=True):
-            if "stats" in path or "sanity" in path:
+            if "stats" in path or "sanity" in path or "_legacy" in path or "archive" in path:
                 continue
             with open(path) as f:
                 data = json.load(f)

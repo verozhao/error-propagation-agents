@@ -38,6 +38,12 @@ PIPELINE_CONFIGS = {
         "feedback": {"after": "compose", "type": "critique_revise", "max_iter": 2},
         "inject_mode": "at_critique",  # inject at the critique step itself
     },
+    # semantics B: post-refinement injection, not run in main sweep due to budget
+    "self_refine_B": {
+        "steps": ["search", "filter", "summarize", "compose", "verify"],
+        "feedback": {"after": "compose", "type": "critique_revise", "max_iter": 2},
+        "inject_mode": "after_loop",
+    },
 }
 
 DEFAULT_PIPELINE = "medium"
@@ -48,8 +54,6 @@ OUTPUT_DIR = "results"
 
 DEFAULT_OPEN_SOURCE_MODELS = ["llama-3.1-8b"]
 DEFAULT_API_MODELS = ["gpt-4o-mini", "gemini-flash"]
-
-INJECT_AT_VERIFY = False
 
 # Judge configuration
 PRIMARY_JUDGE = "gpt-4o-mini"

@@ -7,11 +7,10 @@ that are tight even at n=15/cell via partial pooling.
 """
 import numpy as np
 
-def prepare_data(trial_records: list, persistence_threshold: float = 0.1) -> dict:
+def prepare_data(trial_records: list) -> dict:
     """Convert trial records to arrays for numpyro.
 
     Returns dict with:
-        failure: binary array (persistence > threshold)
         persistence: continuous array [0,1]
         step_idx: integer array
         model_idx: integer array
@@ -21,7 +20,7 @@ def prepare_data(trial_records: list, persistence_threshold: float = 0.1) -> dic
         index maps: {name: idx} dicts
     """
     model_map, type_map, domain_map = {}, {}, {}
-    failures, persistences, steps, models, types, domains, severities = [], [], [], [], [], [], []
+    persistences, steps, models, types, domains, severities = [], [], [], [], [], []
 
     for r in trial_records:
         if r.get("is_baseline") or r.get("error_step") is None:
@@ -41,7 +40,6 @@ def prepare_data(trial_records: list, persistence_threshold: float = 0.1) -> dic
             if domain not in domain_map:
                 domain_map[domain] = len(domain_map)
 
-            failures.append(int(p_score > persistence_threshold))
             persistences.append(p_score)
             steps.append(step_idx)
             models.append(model_map[model])
@@ -50,7 +48,6 @@ def prepare_data(trial_records: list, persistence_threshold: float = 0.1) -> dic
             severities.append(sev)
 
     return {
-        "failure": np.array(failures),
         "persistence": np.array(persistences),
         "step_idx": np.array(steps),
         "model_idx": np.array(models),

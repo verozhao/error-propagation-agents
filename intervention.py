@@ -67,20 +67,51 @@ def train_learned_gate(trial_records: list) -> tuple:
     return model, float(cv_auc), ["severity", "step_idx", "error_type", "prev_persistence"]
 
 
-def optimal_threshold_from_posterior(hazard_samples: np.ndarray, delta_k: float,
+def optimal_threshold_from_posterior(hazard_samples: np.ndarray, delta_k: float | np.ndarray,
                                      cost_ratio: float = 0.1) -> dict:
     """Derive optimal re-ask threshold from hazard model posterior.
 
-    Re-ask iff: h_k(ε) · Δ_k > c/U
+    Re-ask iff: h_k(epsilon) * delta_k > c/U
+    => threshold_k = c / (U * delta_k)
 
-    Returns distribution over thresholds (one per posterior sample).
+    When delta_k is a scalar, posterior uncertainty comes from hazard_samples.
+    When delta_k is an array (posterior samples), both sources of uncertainty
+    are propagated.
+
+    Args:
+        hazard_samples: posterior samples of hazard rate, shape (n_samples,)
+            or (n_samples, n_steps). Used to compute the decision boundary.
+        delta_k: downstream quality drop per unit hazard. Scalar or array
+            of posterior samples with the same leading dimension.
+        cost_ratio: c/U, the cost of re-asking relative to the utility of
+            a correct answer.
+
+    Returns: dict with threshold mean, 95% CI, and per-sample distribution.
     """
-    # h_k(ε) · Δ_k > c/U  →  h_k(ε) > c / (U · Δ_k)
-    threshold_per_sample = cost_ratio / (delta_k + 1e-6)
-    # This is constant given fixed cost ratio and delta
-    # But with posterior uncertainty on delta_k, we get a distribution
+    hazard = np.atleast_1d(hazard_samples).astype(float)
+
+    if isinstance(delta_k, np.ndarray):
+        delta = np.atleast_1d(delta_k).astype(float)
+    else:
+        delta = np.full(len(hazard), float(delta_k))
+
+    if len(delta) != len(hazard):
+        delta = np.full(len(hazard), float(np.mean(delta)))
+
+    thresholds = cost_ratio / (delta * hazard + 1e-8)
+    thresholds = np.clip(thresholds, 0, 1)
+
+    mean_thresh = float(np.mean(thresholds))
+    ci_lo = float(np.percentile(thresholds, 2.5))
+    ci_hi = float(np.percentile(thresholds, 97.5))
 
     return {
-        "optimal_threshold": float(threshold_per_sample),
-        "interpretation": f"Re-ask when predicted hazard > {threshold_per_sample:.3f}",
+        "optimal_threshold": mean_thresh,
+        "ci_95": [ci_lo, ci_hi],
+        "std": float(np.std(thresholds)),
+        "n_posterior_samples": len(thresholds),
+        "interpretation": (
+            f"Re-ask when predicted hazard > {mean_thresh:.3f} "
+            f"[95% CI: {ci_lo:.3f}, {ci_hi:.3f}]"
+        ),
     }

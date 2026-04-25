@@ -544,7 +544,80 @@ def main():
     figA_verify_detection()
     figA_degradation_distribution()
 
+    print("\nGenerating causal DAG figure...")
+    fig_causal_dag()
+
     print(f"\nAll figures saved to {OUT_DIR}/")
+
+
+def fig_causal_dag():
+    """Causal DAG: injection -> step outputs -> persistence -> final failure.
+
+    Programmatic figure for Section 3.6.
+    """
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    ax.set_xlim(-0.5, 6.5)
+    ax.set_ylim(-1.5, 2.5)
+    ax.axis("off")
+
+    nodes = {
+        "Injection\n(Treatment)": (0.5, 1.0),
+        "Step k\nOutput": (2.0, 1.0),
+        "Step k+1\nOutput": (3.5, 1.0),
+        "Persistence\n(Mediator)": (3.5, -0.5),
+        "Final\nFailure": (5.5, 1.0),
+        "Severity": (0.5, -0.5),
+        "Model": (2.0, 2.2),
+        "Error\nType": (3.5, 2.2),
+    }
+
+    for label, (x, y) in nodes.items():
+        bbox_style = "round,pad=0.3"
+        fc = "#E3F2FD"
+        if "Treatment" in label:
+            fc = "#FFF3E0"
+        elif "Failure" in label:
+            fc = "#FFEBEE"
+        elif "Mediator" in label:
+            fc = "#E8F5E9"
+        elif label in ("Severity", "Model", "Error\nType"):
+            fc = "#F3E5F5"
+        ax.text(x, y, label, ha="center", va="center", fontsize=8,
+                bbox=dict(boxstyle=bbox_style, facecolor=fc, edgecolor="#666",
+                          linewidth=0.8))
+
+    edges = [
+        ("Injection\n(Treatment)", "Step k\nOutput", "solid"),
+        ("Step k\nOutput", "Step k+1\nOutput", "solid"),
+        ("Step k\nOutput", "Persistence\n(Mediator)", "solid"),
+        ("Step k+1\nOutput", "Persistence\n(Mediator)", "solid"),
+        ("Persistence\n(Mediator)", "Final\nFailure", "solid"),
+        ("Injection\n(Treatment)", "Final\nFailure", "dashed"),  # NDE path
+        ("Severity", "Injection\n(Treatment)", "solid"),
+        ("Model", "Step k\nOutput", "solid"),
+        ("Error\nType", "Step k+1\nOutput", "solid"),
+    ]
+
+    for src, dst, style in edges:
+        x1, y1 = nodes[src]
+        x2, y2 = nodes[dst]
+        ax.annotate(
+            "", xy=(x2, y2), xytext=(x1, y1),
+            arrowprops=dict(
+                arrowstyle="->", color="#333", lw=1.2,
+                linestyle=style,
+                connectionstyle="arc3,rad=0.1" if abs(y2 - y1) > 1 else "arc3,rad=0.05",
+            ),
+        )
+
+    ax.text(3.0, -1.2, "Solid = causal path; Dashed = direct effect (NDE)",
+            ha="center", fontsize=7, style="italic", color="#666")
+    ax.set_title("Causal DAG: Error Propagation in LLM Pipelines", fontsize=10, pad=10)
+    fig.tight_layout()
+    out = os.path.join(OUT_DIR, "fig_causal_dag.pdf")
+    fig.savefig(out)
+    plt.close(fig)
+    print(f"  Wrote {out}")
 
 
 if __name__ == "__main__":

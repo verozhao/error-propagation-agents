@@ -209,6 +209,10 @@ def load_all_tasks():
 
 
 TASK_TEMPLATES = load_all_tasks()
+assert len(TASK_TEMPLATES) >= 30, (
+    f"Insufficient queries: got {len(TASK_TEMPLATES)}, need >= 30. "
+    f"Check dataset availability or ground_truth.json."
+)
 
 @dataclass
 class StepResult:
@@ -427,7 +431,7 @@ def run_workflow(
                         output = injection_result
                     error_injected = True
 
-            # Self-refine loop (critique→revise) after the feedback step
+            # Self-refine loop (critique->revise) after the feedback step
             if feedback_cfg and step_name == feedback_cfg.get("after"):
                 inject_mode = pipeline_config.get("inject_mode", "before_loop") if isinstance(pipeline_config, dict) else "before_loop"
                 if inject_mode == "at_critique" and attempt == 0 and error_injection_fn and i in error_step_set:
@@ -447,6 +451,22 @@ def run_workflow(
 
                 max_refine_iter = feedback_cfg.get("max_iter", 2)
                 output, _refine_log = run_self_refine(output, query, model_fn, max_iter=max_refine_iter)
+
+                # after_loop: inject AFTER the self-refine loop completes
+                if inject_mode == "after_loop" and attempt == 0 and error_injection_fn and i in error_step_set:
+                    pre_injection_output = output
+                    try:
+                        injection_result = error_injection_fn(output, step_name, **error_kwargs)
+                    except TypeError:
+                        injection_result = error_injection_fn(output, step_name)
+                    if isinstance(injection_result, tuple):
+                        if len(injection_result) == 3:
+                            output, injected_content, injection_meta = injection_result
+                        else:
+                            output, injected_content = injection_result
+                    else:
+                        output = injection_result
+                    error_injected = True
 
             # Intervention: re-ask if intervention_fn flags this step
             if intervention_fn and not error_injected:

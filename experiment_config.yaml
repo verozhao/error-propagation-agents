@@ -6,10 +6,10 @@ models:
     gemini-flash: "gemini-2.0-flash"
     gpt-4o-mini: "gpt-4o-mini-2024-07-18"
     llama-3.1-8b: "meta-llama/Llama-3.1-8B-Instruct"
-    claude-sonnet: "claude-sonnet-4-6-20250514"
+    claude-sonnet: "claude-sonnet-4-6"
   judges:
     primary: "gpt-4o-mini-2024-07-18"
-    secondary: "claude-sonnet-4-6-20250514"
+    secondary: "claude-sonnet-4-6"
     step_scorer: "meta-llama/Llama-3.1-8B-Instruct"
 
 parameters:
@@ -27,6 +27,10 @@ pipelines:
   self_refine_C:
     steps: ["search", "filter", "summarize", "compose", "verify"]
     feedback: {after: "compose", max_iter: 2, inject_mode: "at_critique"}
+  # semantics B: post-refinement injection, not run in main sweep due to budget
+  self_refine_B:
+    steps: ["search", "filter", "summarize", "compose", "verify"]
+    feedback: {after: "compose", max_iter: 2, inject_mode: "after_loop"}
 
 injection:
   method: "rule-based"

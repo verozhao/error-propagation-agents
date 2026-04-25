@@ -101,28 +101,59 @@ def compute_mediation(trial_records: list, baseline_records: list,
             "total_effect": float(te),
         }
 
-    # Compute mediation fraction via regression
-    # Regress failure on persistence to estimate NIE
+    # Compute mediation fraction via regression with bootstrap CIs
     if len(overall_persistence) > 10:
-        slope, intercept, r_value, p_value, std_err = stats.linregress(
-            overall_persistence, overall_failure
-        )
-        # NIE ≈ slope × mean(persistence under injection)
-        mean_pers = np.mean(overall_persistence)
-        nie_estimate = slope * mean_pers
-        te_estimate = np.mean(overall_te) if overall_te else 0
-        nde_estimate = te_estimate - nie_estimate
-        mediation_fraction = nie_estimate / te_estimate if abs(te_estimate) > 0.01 else 0
+        pers_arr = np.array(overall_persistence)
+        fail_arr = np.array(overall_failure)
+        te_arr = np.array(overall_te) if overall_te else np.array([0.0])
+
+        def _estimate_mediation(pers, fail, te_vals):
+            slope, intercept, r_value, p_value, std_err = stats.linregress(pers, fail)
+            mean_pers = np.mean(pers)
+            nie = slope * mean_pers
+            te = np.mean(te_vals)
+            nde = te - nie
+            frac = nie / te if abs(te) > 0.01 else 0.0
+            return nie, nde, te, frac, slope, r_value ** 2, p_value
+
+        point = _estimate_mediation(pers_arr, fail_arr, te_arr)
+
+        n_boot = 1000
+        rng = np.random.default_rng(42)
+        boot_nie, boot_nde, boot_te, boot_frac = [], [], [], []
+        n = len(pers_arr)
+        for _ in range(n_boot):
+            idx = rng.choice(n, size=n, replace=True)
+            b_pers = pers_arr[idx]
+            b_fail = fail_arr[idx]
+            b_te = te_arr[idx] if len(te_arr) == n else te_arr
+            try:
+                nie_b, nde_b, te_b, frac_b, *_ = _estimate_mediation(b_pers, b_fail, b_te)
+                boot_nie.append(nie_b)
+                boot_nde.append(nde_b)
+                boot_te.append(te_b)
+                boot_frac.append(frac_b)
+            except Exception:
+                continue
+
+        def _ci(arr):
+            a = np.array(arr)
+            return [float(np.percentile(a, 2.5)), float(np.percentile(a, 97.5))]
 
         return {
-            "total_effect": float(te_estimate),
-            "nie": float(nie_estimate),
-            "nde": float(nde_estimate),
-            "mediation_fraction_nie_over_te": float(mediation_fraction),
+            "total_effect": float(point[2]),
+            "total_effect_ci_95": _ci(boot_te),
+            "nie": float(point[0]),
+            "nie_ci_95": _ci(boot_nie),
+            "nde": float(point[1]),
+            "nde_ci_95": _ci(boot_nde),
+            "mediation_fraction_nie_over_te": float(point[3]),
+            "mediation_fraction_ci_95": _ci(boot_frac),
+            "n_bootstrap": n_boot,
             "persistence_failure_regression": {
-                "slope": float(slope),
-                "r_squared": float(r_value ** 2),
-                "p_value": float(p_value),
+                "slope": float(point[4]),
+                "r_squared": float(point[5]),
+                "p_value": float(point[6]),
             },
             "group_results": group_results,
             "note": "No-unmeasured-confounders satisfied: injection is randomized experimental treatment.",

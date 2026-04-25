@@ -80,9 +80,9 @@ def estimate_sweep_cost(models, num_trials, error_steps_per_cell, queries,
 
 if __name__ == "__main__":
     from workflow import TASK_TEMPLATES
-    from config import WORKFLOW_STEPS, INJECT_AT_VERIFY
+    from config import WORKFLOW_STEPS
 
-    error_steps = len(WORKFLOW_STEPS) if INJECT_AT_VERIFY else len(WORKFLOW_STEPS) - 1
+    error_steps = len(WORKFLOW_STEPS) - 1
     estimate_sweep_cost(
         models=["gpt-4o-mini"],
         num_trials=40,
