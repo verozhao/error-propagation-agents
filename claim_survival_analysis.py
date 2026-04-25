@@ -19,7 +19,7 @@ from config import WORKFLOW_STEPS
 def load_records(results_glob="results/**/*.jsonl"):
     rows = []
     for path in glob.glob(results_glob, recursive=True):
-        if "stats" in path or "sanity" in path or "archive" in path:
+        if "stats" in path or "sanity" in path or "_legacy" in path or "archive" in path:
             continue
         with open(path) as f:
             for line in f:
@@ -29,7 +29,7 @@ def load_records(results_glob="results/**/*.jsonl"):
                     continue
     if not rows:
         for path in glob.glob("results/**/*.json", recursive=True):
-            if "stats" in path or "sanity" in path or "archive" in path:
+            if "stats" in path or "sanity" in path or "_legacy" in path or "archive" in path:
                 continue
             with open(path) as f:
                 data = json.load(f)

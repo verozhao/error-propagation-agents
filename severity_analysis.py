@@ -24,7 +24,7 @@ def load_severity_results(results_dir="results") -> pd.DataFrame:
     """Load all experiment results, extracting severity from records or directory names."""
     rows = []
     for path in glob.glob(f"{results_dir}/**/*.json", recursive=True):
-        if "stats" in path or "sanity" in path:
+        if "stats" in path or "sanity" in path or "_legacy" in path or "archive" in path:
             continue
         with open(path) as f:
             data = json.load(f)

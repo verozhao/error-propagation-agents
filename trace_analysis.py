@@ -95,7 +95,8 @@ def downstream_decay(df: pd.DataFrame) -> pd.DataFrame:
 
 def main(results_glob: str = "results/**/*.json", out_dir: str = "results/trace_analysis"):
     os.makedirs(out_dir, exist_ok=True)
-    paths = glob(results_glob, recursive=True)
+    paths = [p for p in glob(results_glob, recursive=True)
+             if "_legacy" not in p and "archive" not in p]
     records = load_traced_results(paths)
     if not records:
         print(f"No records found under {results_glob}")

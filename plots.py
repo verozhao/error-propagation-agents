@@ -9,6 +9,8 @@ import glob
 def load_all_results(results_dir="results"):
     all_data = []
     for f in glob.glob(f"{results_dir}/**/*.json", recursive=True):
+        if "_legacy" in f or "archive" in f:
+            continue
         model_name = f.split("/")[-1].split("_")[0]
         with open(f) as file:
             data = json.load(file)

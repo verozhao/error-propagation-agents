@@ -76,7 +76,8 @@ def _load_records(paths: list[str]) -> list[dict]:
 def select_cases(results_glob: str = "results/**/*.json", n_per_error: int = 5):
     """Pick the worst-case conditions for human review."""
     os.makedirs(OUT_DIR, exist_ok=True)
-    records = _load_records(glob(results_glob, recursive=True))
+    records = _load_records([p for p in glob(results_glob, recursive=True)
+                             if "_legacy" not in p and "archive" not in p])
     if not records:
         print(
             "No traced records found. Re-run experiments with save_traces=True "

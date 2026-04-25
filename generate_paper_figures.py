@@ -614,10 +614,7 @@ def fig_causal_dag():
             ha="center", fontsize=7, style="italic", color="#666")
     ax.set_title("Causal DAG: Error Propagation in LLM Pipelines", fontsize=10, pad=10)
     fig.tight_layout()
-    out = os.path.join(OUT_DIR, "fig_causal_dag.pdf")
-    fig.savefig(out)
-    plt.close(fig)
-    print(f"  Wrote {out}")
+    _save(fig, "fig_causal_dag.pdf")
 
 
 if __name__ == "__main__":

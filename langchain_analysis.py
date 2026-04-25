@@ -40,7 +40,7 @@ def load_langchain_records() -> list[dict]:
 def load_main_records() -> list[dict]:
     rows = []
     for f in glob.glob("results/**/*.jsonl", recursive=True):
-        if "stats" in f or "sanity" in f or "langchain" in f:
+        if "stats" in f or "sanity" in f or "langchain" in f or "_legacy" in f or "archive" in f:
             continue
         for line in open(f):
             try:
