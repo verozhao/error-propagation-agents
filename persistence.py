@@ -37,15 +37,32 @@ def persistence_curve(trial_record: dict, baseline_record: dict, encoder_name: s
 
     Returns: list of (step_index, step_name, persistence_score)
     """
-    delta = trial_record.get("injected_content", "")
-    if not delta:
-        return []
     inject_idx = trial_record.get("error_step")
     if inject_idx is None:
         return []
 
     trial_steps = trial_record.get("step_outputs", [])
     baseline_steps = baseline_record.get("step_outputs", [])
+
+    # Build the actual corruption delta: diff between the injected step's
+    # output and its pre-injection output.  The old code used
+    # `injected_content`, which is a meta-tag like "ENTITY: X->Y" — not
+    # the corrupted passage.  BGE similarity between that tag and a real
+    # paragraph is near-zero regardless of injection, producing persistence
+    # ≈ 0 everywhere.
+    if inject_idx < len(trial_steps):
+        inject_step = trial_steps[inject_idx]
+        pre = inject_step.get("pre_injection_output", "")
+        post = inject_step.get("output_text", "")
+        if pre and post and pre != post:
+            delta = post
+        else:
+            delta = trial_record.get("injected_content", "")
+    else:
+        delta = trial_record.get("injected_content", "")
+
+    if not delta:
+        return []
 
     curve = []
     for i, step in enumerate(trial_steps):

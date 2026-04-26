@@ -29,8 +29,10 @@ gates.append(("Run completion (error rate < 5%)", g1, f"{err_rate*100:.1f}% erro
 
 # Gate 2: Baseline failure rate < 0.15
 def is_failure(r):
-    q = r.get("evaluation", {}).get("quality_score")
-    return q is not None and q <= 4
+    cs = r.get("evaluation", {}).get("combined_score")
+    if cs is None:
+        return False
+    return cs < 0.4
 bl_fr = sum(is_failure(r) for r in baselines) / max(len(baselines), 1)
 g2 = bl_fr < 0.15
 gates.append(("Baseline FR < 0.15", g2, f"baseline_fr={bl_fr:.3f}"))
@@ -39,7 +41,7 @@ gates.append(("Baseline FR < 0.15", g2, f"baseline_fr={bl_fr:.3f}"))
 cell_fr = defaultdict(list)
 cell_baseline_fr = defaultdict(list)
 for r in injected:
-    et = r.get("injection_meta", {}).get("error_type", "?")
+    et = (r.get("injection_meta") or {}).get("error_type", "?")
     step = r.get("error_step")
     cell_fr[(et, step)].append(is_failure(r))
 for r in baselines:
@@ -79,7 +81,7 @@ gates.append(("Persistence curves present for ≥75% injected", g4, f"{pct*100:.
 # Gate 5: All FAVA error types sampled (under ragtruth_weighted)
 etypes_seen = set()
 for r in injected:
-    et = r.get("injection_meta", {}).get("error_type")
+    et = (r.get("injection_meta") or {}).get("error_type")
     if et:
         etypes_seen.add(et)
 expected = {"entity", "invented", "unverifiable", "contradictory"}
