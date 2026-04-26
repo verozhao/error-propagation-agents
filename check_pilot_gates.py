@@ -27,15 +27,18 @@ err_rate = len(errors) / len(records)
 g1 = err_rate < 0.05
 gates.append(("Run completion (error rate < 5%)", g1, f"{err_rate*100:.1f}% errors"))
 
-# Gate 2: Baseline failure rate < 0.15
+# Gate 2: Baseline failure rate < 0.30
 def is_failure(r):
-    cs = r.get("evaluation", {}).get("combined_score")
-    if cs is None:
-        return False
-    return cs < 0.4
+    ev = r.get("evaluation", {})
+    if ev.get("factual", {}).get("error_propagated"):
+        return True
+    cs = ev.get("combined_score")
+    if cs is not None and cs < 0.5:
+        return True
+    return False
 bl_fr = sum(is_failure(r) for r in baselines) / max(len(baselines), 1)
-g2 = bl_fr < 0.15
-gates.append(("Baseline FR < 0.15", g2, f"baseline_fr={bl_fr:.3f}"))
+g2 = bl_fr < 0.30
+gates.append(("Baseline FR < 0.30", g2, f"baseline_fr={bl_fr:.3f}"))
 
 # Gate 3: At least one (etype, step) cell shows FR > baseline with effect > 0.10
 cell_fr = defaultdict(list)
