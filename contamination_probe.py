@@ -51,6 +51,9 @@ def run_contamination_probe(ground_truth_path: str, models: list[str]) -> dict:
     return results
 
 
+ACTIVE_MODELS = ["llama-3.1-8b", "claude-haiku-3", "claude-sonnet-3-7", "claude-sonnet-4"]
+
+
 def stratify_by_contamination(trial_records: list, contamination_scores: dict) -> dict:
     """Split trial records into 'likely_clean' and 'likely_contaminated' subsets."""
     clean = []
@@ -71,3 +74,27 @@ def stratify_by_contamination(trial_records: list, contamination_scores: dict) -
         "n_contaminated": len(contaminated),
         "fraction_contaminated": len(contaminated) / max(len(clean) + len(contaminated), 1),
     }
+
+
+if __name__ == "__main__":
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Run contamination probe on ground truth queries")
+    parser.add_argument("--gt", default="ground_truth.json", help="Path to ground_truth.json")
+    parser.add_argument("--models", nargs="+", default=ACTIVE_MODELS)
+    parser.add_argument("--out", default="results/stats/contamination_probe.json")
+    args = parser.parse_args()
+
+    print(f"Running contamination probe on {args.gt} with models: {args.models}")
+    results = run_contamination_probe(args.gt, args.models)
+
+    n_contaminated = sum(1 for v in results.values() if v["likely_contaminated"])
+    print(f"\nProbed {len(results)} queries across {len(args.models)} models")
+    print(f"Likely contaminated: {n_contaminated}/{len(results)} "
+          f"({n_contaminated/max(len(results),1):.0%})")
+
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    with open(args.out, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"Saved to {args.out}")
