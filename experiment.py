@@ -432,6 +432,12 @@ def run_full_experiment(
                 n_persistence += 1
         if n_persistence > 0:
             print(f"Computed persistence curves for {n_persistence} injected trials")
+            tmp_path = jsonl_path + ".tmp"
+            with open(tmp_path, "w") as fh:
+                for r in all_records:
+                    fh.write(json.dumps(r) + "\n")
+            os.replace(tmp_path, jsonl_path)
+            print(f"Rewrote {jsonl_path} with persistence curves")
 
     consolidated_path = os.path.join(output_dir, f"{stable_name}_{timestamp}.json")
     with open(consolidated_path, "w") as f:

@@ -38,20 +38,22 @@ def compute_mediation(trial_records: list, baseline_records: list,
 
         query = r["task_query"]
         model = r["model"]
-        meta = r.get("injection_meta", {})
+        meta = r.get("injection_meta") or {}
         error_type = meta.get("error_type", "unknown")
 
         # Get persistence integral (sum of persistence curve)
         persistence_curve = r.get("persistence_curve", [])
         persistence_integral = sum(p for _, _, p in persistence_curve) if persistence_curve else 0
 
-        # Get final failure (1 - normalized quality score)
+        # Get final failure from combined_score (0-1, higher is better)
         eval_data = r.get("evaluation", {})
         if isinstance(eval_data, dict):
-            quality = eval_data.get("quality_score", eval_data.get("overall_score", 5))
+            quality = eval_data.get("combined_score", 1.0)
         else:
-            quality = 5
-        final_failure = 1.0 if quality <= 4 else 0.0  # binary
+            quality = 1.0
+        if quality is None:
+            quality = 1.0
+        final_failure = 1.0 if quality < 0.5 else 0.0
 
         # Matched baseline
         baselines = baseline_by_query.get(query, [])
@@ -60,16 +62,18 @@ def compute_mediation(trial_records: list, baseline_records: list,
         for b in baselines:
             b_eval = b.get("evaluation", {})
             if isinstance(b_eval, dict):
-                bq = b_eval.get("quality_score", b_eval.get("overall_score", 5))
+                bq = b_eval.get("combined_score", 1.0)
             else:
-                bq = 5
+                bq = 1.0
+            if bq is None:
+                bq = 1.0
             baseline_qualities.append(bq)
             baseline_persistences.append(0.0)  # no injection → no persistence
 
         if not baseline_qualities:
             continue
 
-        baseline_failure = 1.0 if np.mean(baseline_qualities) <= 4 else 0.0
+        baseline_failure = 1.0 if np.mean(baseline_qualities) < 0.5 else 0.0
 
         results_by_group[(model, error_type, r.get("error_step"))].append({
             "persistence_integral": persistence_integral,

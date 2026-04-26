@@ -23,15 +23,22 @@ OPEN_SOURCE_MODELS = {
     "deepseek-r1-14b": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
 }
 
+# API_MODELS = {
+#     "gpt-4o": {"provider": "openai", "model": "gpt-4o"},
+#     "gpt-4o-mini": {"provider": "openai", "model": "gpt-4o-mini"},
+#     "claude-sonnet": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+#     "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
+#     "claude-3-haiku": {"provider": "anthropic", "model": "claude-3-haiku-20240307"},
+#     "claude-sonnet-3-5": {"provider": "anthropic", "model": "claude-3-5-sonnet"},
+#     "gemini-pro": {"provider": "google", "model": "gemini-1.5-pro"},
+#     "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
+# }
 API_MODELS = {
-    "gpt-4o": {"provider": "openai", "model": "gpt-4o"},
-    "gpt-4o-mini": {"provider": "openai", "model": "gpt-4o-mini"},
-    "claude-sonnet": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
-    "claude-haiku": {"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
-    "claude-3-haiku": {"provider": "anthropic", "model": "claude-3-haiku-20240307"},
-    "claude-sonnet-3-5": {"provider": "anthropic", "model": "claude-3-5-sonnet"},
-    "gemini-pro": {"provider": "google", "model": "gemini-1.5-pro"},
-    "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
+    "llama-3.1-8b":     {"provider": "anthropic", "model": "meta.llama3-1-8b-instruct-v1:0"},
+    "claude-haiku-3":   {"provider": "anthropic", "model": "claude-3-haiku-20240307"},
+    "claude-sonnet-3-7":{"provider": "anthropic", "model": "claude-3-7-sonnet-20250219-v1:0"},
+    "claude-sonnet-4":  {"provider": "anthropic", "model": "claude-sonnet-4-20250514-v1:0"},
+    "claude-opus-4":    {"provider": "anthropic", "model": "claude-opus-4-20250514-v1:0"},
 }
 
 # Apply pinned versions from experiment_config.yaml (prevents silent alias migration)
@@ -46,16 +53,24 @@ except ImportError:
     pass
 
 # CMU AI Gateway model ID mapping (from direct API IDs → gateway IDs)
+# CMU_GATEWAY_MODELS = {
+#     "gpt-4o": "gpt-4o-2024-08-06",
+#     "gpt-4o-mini": "gpt-4o-mini-2024-07-18",
+#     "claude-sonnet-4-6": "claude-sonnet-4-6-v1:0",
+#     "claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001-v1:0",
+#     "claude-3-haiku-20240307": "claude-3-haiku-20240307",
+#     "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
+#     "gemini-1.5-pro": "gemini-1.5-pro-002",
+#     "gemini-1.5-flash": "gemini-1.5-flash-002",
+#     "gemini-2.0-flash": "gemini-2.0-flash",
+# }
 CMU_GATEWAY_MODELS = {
-    "gpt-4o": "gpt-4o-2024-08-06",
-    "gpt-4o-mini": "gpt-4o-mini-2024-07-18",
-    "claude-sonnet-4-6": "claude-sonnet-4-6-v1:0",
-    "claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001-v1:0",
-    "claude-3-haiku-20240307": "claude-3-haiku-20240307",
-    "claude-3-5-sonnet": "claude-3-5-sonnet-20241022",
-    "gemini-1.5-pro": "gemini-1.5-pro-002",
-    "gemini-1.5-flash": "gemini-1.5-flash-002",
-    "gemini-2.0-flash": "gemini-2.0-flash",
+    # alias-or-id : gateway-id
+    "meta.llama3-1-8b-instruct-v1:0": "meta.llama3-1-8b-instruct-v1:0",  # identity
+    "claude-3-haiku-20240307":         "claude-3-haiku-20240307",
+    "claude-3-7-sonnet-20250219-v1:0": "claude-3-7-sonnet-20250219-v1:0",
+    "claude-sonnet-4-20250514-v1:0":   "claude-sonnet-4-20250514-v1:0",
+    "claude-opus-4-20250514-v1:0":     "claude-opus-4-20250514-v1:0",
 }
 
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -193,21 +208,32 @@ def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperatur
     return response.choices[0].message.content
 
 
-def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
+def call_model(model_name: str, prompt: str, max_tokens: int = 1024,
+               temperature: float = 0.0, seed: int = None) -> str:
+    # Gateway path takes priority when enabled, regardless of which dict
+    # the alias is registered in.
+    if USE_CMU_GATEWAY:
+        # Resolve alias -> gateway ID
+        # Try API_MODELS first (preferred), fall back to OPEN_SOURCE_MODELS
+        if model_name in API_MODELS:
+            model_id = API_MODELS[model_name]["model"]
+        elif model_name in OPEN_SOURCE_MODELS:
+            model_id = OPEN_SOURCE_MODELS[model_name]
+        else:
+            model_id = model_name
+        return call_cmu_gateway(model_id, prompt, max_tokens, temperature, seed)
+    
+    # Non-gateway path: keep existing local-vs-API routing
     if model_name in OPEN_SOURCE_MODELS:
         model = get_local_model(model_name)
         if seed is not None:
             import torch
             torch.manual_seed(seed)
         return model.generate(prompt, max_tokens, temperature)
-
+    
     if model_name in API_MODELS:
         cfg = API_MODELS[model_name]
         model_id = cfg["model"]
-
-        if USE_CMU_GATEWAY:
-            return call_cmu_gateway(model_id, prompt, max_tokens, temperature, seed)
-
         provider = cfg["provider"]
         if provider == "openai":
             return call_openai(model_id, prompt, max_tokens, temperature, seed)
@@ -215,7 +241,7 @@ def call_model(model_name: str, prompt: str, max_tokens: int = 1024, temperature
             return call_anthropic(model_id, prompt, max_tokens, temperature, seed)
         elif provider == "google":
             return call_google(model_id, prompt, max_tokens, temperature, seed)
-
+    
     raise ValueError(f"Unknown model: {model_name}")
 
 
