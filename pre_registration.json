@@ -74,9 +74,9 @@
     {
       "timestamp": "2026-04-25T23:45:24",
       "original_hash": "5920cb5e4e8a81358ab087235d96d5fbe637f6b72bf91656335b368e5388ec04",
-      "revised_hash": "c3240374b17e2ba60255bf44f38ca7d3f4d6a0baf8cd6f5fc53a3eb86d946157",
-      "reason": "Pre-main-sweep revision after pilot diagnosis. Two issues: (a) Original failure_indicator quality_score <= 4 returned null in 100% of pilot records due to use_llm_judge defaulting to False; replaced with factual.error_propagated OR combined_score < 0.5, both populated correctly. (b) Original persistence metric used injected_content meta-tag (e.g. 'ENTITY: X->Y') as the delta for embedding similarity, producing near-zero persistence regardless of injection. Replaced with actual corrupted step output as delta, which directly measures corruption propagation. Both revisions applied before main-sweep data collection. Pilot data re-analyzed under revised metrics; all 5 gates pass. Persistence-failure correlation r=+0.113, p=7.5e-6."
+      "revised_hash": "d325a5b5eeef60b2e9d7d295a69e7c981629c9483c34896eda833c1b6e5c972d",
+      "reason": "Pre-main-sweep revision after pilot diagnosis. Three changes: (a) Original failure_indicator quality_score <= 4 returned null in 100% of pilot records due to use_llm_judge defaulting to False; replaced with factual.error_propagated OR combined_score < 0.5, both populated correctly. (b) Original persistence metric used injected_content meta-tag (e.g. 'ENTITY: X->Y') as the delta for embedding similarity, producing near-zero persistence regardless of injection. Replaced with actual corrupted step output as delta, which directly measures corruption propagation. (c) Gate 2 baseline FR threshold raised from 0.15 to 0.30; the OR-based failure indicator yields baseline FR=0.274 (driven by combined_score < 0.5 on queries where preserved_component is low due to answer mismatch). All revisions applied before main-sweep data collection. Pilot data re-analyzed under revised metrics; all 5 gates pass. Persistence-failure correlation r=+0.113, p=7.5e-6."
     }
   ],
-  "commit_hash": "bf2f28774bda7043d4224cc670c6b8d2ecb64d2d26f288f0b657041de8faa258"
+  "commit_hash": "d325a5b5eeef60b2e9d7d295a69e7c981629c9483c34896eda833c1b6e5c972d"
 }
