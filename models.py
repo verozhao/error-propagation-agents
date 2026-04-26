@@ -10,7 +10,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 USE_GATEWAY = os.getenv("USE_GATEWAY", "false").lower() == "true"
-GATEWAY_URL = os.getenv("GATEWAY_URL", "https://ai-gateway.andrew.cmu.edu")
+GATEWAY_URL = "https://ai-gateway.andrew.cmu.edu"
 GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 
 OPEN_SOURCE_MODELS = {
