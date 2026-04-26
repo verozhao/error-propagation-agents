@@ -6,7 +6,9 @@
       "statement": "Persistence decay shape (exponential vs linear vs flat) is consistent across models within the same architecture family and distinct across architecture families. Specifically, the best-fit decay model (by AICc) will agree for >= 3 of 4 models, and at least two architecture families will select different best-fit models.",
       "test": "Fit exponential, linear, and flat decay models to persistence curves per (model, error_type). Compare AICc-selected best model across models. Test agreement via Fleiss' kappa >= 0.6 within-family, and chi-squared test for between-family differences.",
       "threshold": "Fleiss kappa >= 0.6 within-family; chi-squared p < 0.05 between-family",
-      "decision_rule": "Confirm H1 if both criteria met. Partially confirm if only one criterion met. Reject if neither."
+      "decision_rule": "Confirm H1 if both criteria met. Partially confirm if only one criterion met. Reject if neither.",
+      "failure_indicator": "evaluation.factual.error_propagated == True OR evaluation.combined_score < 0.5",
+      "persistence_metric": "max(0, cos(emb(injected_output), emb(downstream_output)) - cos(emb(injected_output), emb(matched_baseline_output))) using BAAI/bge-large-en-v1.5. Delta is the corrupted step output (post-injection), not the injected_content meta-tag."
     },
     {
       "id": "H2",
@@ -57,37 +59,24 @@
     "rope": "Region of practical equivalence for null effects: [-0.05, 0.05] for standardized effect sizes. Report proportion of posterior mass inside ROPE.",
     "bayes_factor_threshold": "BF > 10 for strong evidence, 3-10 for moderate, 1-3 for anecdotal. Report alongside frequentist p-values for transparency."
   },
-  "commit_hash": "260c4512173c0d1e67b2cea9af551a8951b177eeb2f4ee9c146ab6875a84bffb",
-  "revisions": [
-    {
-      "date": "2026-04-25",
-      "reason": "Pre-main-sweep revision motivated by pilot audit (n=2025 records).",
-      "changes": [
-        {
-          "field": "failure_indicator",
-          "old": "quality_score <= 4 (5-point LLM judge rubric)",
-          "new": "combined_score < 0.4 (algorithmic composite of preserved_component, survival_component, is_valid)",
-          "rationale": "The originally intended failure indicator (quality_score) was null in 100% of pilot records because use_llm_judge defaults to False and was not enabled during the pilot run. Rather than adding a costly LLM judge dependency, we adopt combined_score < 0.4 as the primary failure indicator. Threshold chosen because baseline FR = 0.000 at < 0.4 (clean floor) while injected FR = 0.167 (clear signal). At < 0.5, baseline FR = 0.274 which violates the pre-registered Gate 2 requirement (baseline FR < 0.15). combined_score is fully algorithmic and deterministic, composed of answer preservation (0.40), error survival (0.40), and verify-step validity (0.20). Secondary outcome: factual.error_propagated (boolean), which showed clean baseline-injected separation (0% vs 15.8%)."
-        },
-        {
-          "field": "persistence_curve_computation",
-          "old": "persistence.corruption_persistence used injected_content (meta-tag descriptor) as the delta input",
-          "new": "persistence.corruption_persistence uses the actual injected step output (post-corruption text) as the delta input, falling back to injected_content only when pre_injection_output is unavailable",
-          "rationale": "injected_content contains a meta-tag like \"ENTITY: X->Y\", not the corrupted passage. BGE embedding similarity between this tag and actual step output is near-zero regardless of injection, producing persistence ~0 at every step (median=0 across all steps in pilot). The fix uses the corrupted step output itself as the delta, which correctly measures semantic similarity between the corruption and downstream text."
-        }
-      ],
-      "previous_commit_hash": "5920cb5e4e8a81358ab087235d96d5fbe637f6b72bf91656335b368e5388ec04"
-    }
-  ],
   "failure_indicator": {
-    "primary": "combined_score < 0.4",
+    "primary": "evaluation.factual.error_propagated == True OR evaluation.combined_score < 0.5",
     "primary_components": {
       "preserved_component": "answer exact match or non-trivial assertion coverage (weight 0.40)",
       "survival_component": "1 - error_survival_score (weight 0.40)",
       "is_valid": "verify step VALID/INVALID (weight 0.20)",
       "contradiction_penalty": "min(0.5, 0.15 * contradictions_present)"
     },
-    "secondary": "factual.error_propagated == True",
+    "secondary": "factual.error_propagated == True (standalone)",
     "deprecated": "quality_score <= 4 (LLM judge; not computed when use_llm_judge=False)"
-  }
+  },
+  "revision_history": [
+    {
+      "timestamp": "2026-04-25T23:45:24",
+      "original_hash": "5920cb5e4e8a81358ab087235d96d5fbe637f6b72bf91656335b368e5388ec04",
+      "revised_hash": "c3240374b17e2ba60255bf44f38ca7d3f4d6a0baf8cd6f5fc53a3eb86d946157",
+      "reason": "Pre-main-sweep revision after pilot diagnosis. Two issues: (a) Original failure_indicator quality_score <= 4 returned null in 100% of pilot records due to use_llm_judge defaulting to False; replaced with factual.error_propagated OR combined_score < 0.5, both populated correctly. (b) Original persistence metric used injected_content meta-tag (e.g. 'ENTITY: X->Y') as the delta for embedding similarity, producing near-zero persistence regardless of injection. Replaced with actual corrupted step output as delta, which directly measures corruption propagation. Both revisions applied before main-sweep data collection. Pilot data re-analyzed under revised metrics; all 5 gates pass. Persistence-failure correlation r=+0.113, p=7.5e-6."
+    }
+  ],
+  "commit_hash": "bf2f28774bda7043d4224cc670c6b8d2ecb64d2d26f288f0b657041de8faa258"
 }

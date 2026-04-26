@@ -64,20 +64,20 @@ def persistence_curve(trial_record: dict, baseline_record: dict, encoder_name: s
     if not delta:
         return []
 
+    enc = get_encoder(encoder_name)
+    delta_emb = enc.encode([delta], normalize_embeddings=True)[0]
+
     curve = []
-    for i, step in enumerate(trial_steps):
-        if i <= inject_idx:
+    for k in range(inject_idx + 1, min(len(trial_steps), len(baseline_steps))):
+        inj_text = trial_steps[k].get("output_text", "")
+        bl_text = baseline_steps[k].get("output_text", "")
+        if not inj_text or not bl_text:
             continue
-        if i >= len(baseline_steps):
-            break
-        baseline_step = baseline_steps[i]
-        p = corruption_persistence(
-            delta,
-            step.get("output_text", ""),
-            baseline_step.get("output_text", ""),
-            encoder_name=encoder_name,
-        )
-        curve.append((i, step.get("step", f"step_{i}"), p))
+        embs = enc.encode([inj_text, bl_text], normalize_embeddings=True)
+        sim_inj = float(np.dot(delta_emb, embs[0]))
+        sim_bl = float(np.dot(delta_emb, embs[1]))
+        score = round(max(0.0, sim_inj - sim_bl), 6)
+        curve.append((k, trial_steps[k].get("step", f"step_{k}"), score))
     return curve
 
 
