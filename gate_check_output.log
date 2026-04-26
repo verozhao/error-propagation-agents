@@ -1,0 +1,33 @@
+========================================
+Sweep finished at Sun Apr 26 06:04:28 EDT 2026
+========================================
+
+=== GATE CHECKS ===
+Inspecting: results/ragtruth_weighted_error/ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl
+
+Total: 9000, errors: 0, ok: 9000
+  Baselines: 1800, Injected: 7200
+
+======================================================================
+PILOT GATE CHECK
+======================================================================
+  ✓ PASS  Run completion (error rate < 5%)
+          0.0% errors
+  ✓ PASS  Baseline FR < 0.30
+          baseline_fr=0.106
+  ✓ PASS  Signal exists (≥1 cell FR > baseline + 0.10, p<0.05)
+          8 cells with FR>baseline+0.10, p<0.05; e.g. (('invented', 1), 0.11801674092075064, 1.1102230246251565e-15)
+  ✓ PASS  Persistence curves present for ≥75% injected
+          95.2%
+  ✓ PASS  All 4 FAVA types sampled
+          all 4 present
+
+  5/5 gates passed
+  → Proceed to Llama main sweep (165q × 15t × 5c, ~$33.41)
+
+=== CAUSAL MEDIATION ===
+Total Effect: 0.053  CI: [0.04625, 0.059583333333333335]
+NIE:          -0.035  CI: [-0.04100407016979149, -0.030033513879125708]
+NDE:          0.088  CI: [0.0779473307145378, 0.09779633781753716]
+Mediation fraction (NIE/TE): -0.666  CI: [-0.7798932659022213, -0.5609076073526483]
+Regression p-value: 0.0000
