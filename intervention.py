@@ -45,7 +45,7 @@ def train_learned_gate(trial_records: list) -> tuple:
         if r.get("is_baseline") or not r.get("persistence_curve"):
             continue
         sev = r.get("severity_semantic", 0)
-        meta = r.get("injection_meta", {})
+        meta = r.get("injection_meta") or {}
         etype = {"entity": 0, "invented": 1, "unverifiable": 2, "contradictory": 3}.get(
             meta.get("error_type", ""), 0)
 

@@ -1,17 +1,17 @@
-"""Batched persistence curve computation — ~10x faster than per-record encoding."""
+"""Batched persistence curve computation — ~10x faster than per-record encoding.
+
+Usage:
+    python compute_curves_batched.py <path_to_jsonl>
+    python compute_curves_batched.py  # defaults to Llama file
+"""
+import sys
 import json
 import numpy as np
 from tqdm import tqdm
 from severity import get_encoder
 
-# JSONL_PATH = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-haiku-3_15trials.jsonl"
-# OUTPUT_JSON = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-haiku-3_15trials_consolidated.json"
-
-# JSONL_PATH = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-3-7_5trials.jsonl"
-# OUTPUT_JSON = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-3-7_5trials_consolidated.json"
-
-JSONL_PATH = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-4_5trials.jsonl"
-OUTPUT_JSON = "results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-4_5trials_consolidated.json"
+JSONL_PATH = sys.argv[1] if len(sys.argv) > 1 else "results/ragtruth_weighted_error/ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl"
+OUTPUT_JSON = JSONL_PATH.replace(".jsonl", "_consolidated.json")
 
 records = []
 with open(JSONL_PATH) as fh:

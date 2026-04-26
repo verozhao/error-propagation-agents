@@ -71,11 +71,13 @@ def load_all(results_glob: str = "results/**/*.json") -> pd.DataFrame:
                 if step is None:
                     continue  # legacy compound-as-baseline record — unusable
                 ev = d["evaluation"]
+                meta = d.get("injection_meta") or {}
+                etype = meta.get("error_type") or d.get("error_type")
                 rows.append(
                     {
                         "model": d.get("model"),
                         "task_query": d.get("task_query"),
-                        "error_type": d.get("error_type"),
+                        "error_type": etype,
                         "error_step": step,
                         "is_compound": isinstance(d.get("error_step"), list),
                         "trial": d.get("trial"),
