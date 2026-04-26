@@ -1,0 +1,658 @@
+{
+  "per_model": {
+    "claude-haiku-3": {
+      "total_effect": 0.07629629629629629,
+      "total_effect_ci_95": [
+        0.06259259259259259,
+        0.09111111111111111
+      ],
+      "nie": 0.019434501620249043,
+      "nie_ci_95": [
+        0.010594456599593965,
+        0.02670898981767077
+      ],
+      "nde": 0.05686179467604725,
+      "nde_ci_95": [
+        0.04088832290454051,
+        0.07272638560990173
+      ],
+      "mediation_fraction_nie_over_te": 0.25472405036248746,
+      "mediation_fraction_ci_95": [
+        0.1428116841517197,
+        0.36650631313579196
+      ],
+      "n_bootstrap": 1000,
+      "persistence_failure_regression": {
+        "slope": 0.45447514463295624,
+        "r_squared": 0.005844954711784351,
+        "p_value": 6.991951272356458e-05
+      },
+      "group_results": {
+        "('claude-haiku-3', 'invented', 0)": {
+          "n": 344,
+          "mean_persistence": 0.06874093313953489,
+          "failure_rate": 0.5726744186046512,
+          "baseline_failure_rate": 0.5232558139534884,
+          "total_effect": 0.04941860465116277
+        },
+        "('claude-haiku-3', 'entity', 0)": {
+          "n": 254,
+          "mean_persistence": 0.02978383070866142,
+          "failure_rate": 0.452755905511811,
+          "baseline_failure_rate": 0.4763779527559055,
+          "total_effect": -0.023622047244094502
+        },
+        "('claude-haiku-3', 'entity', 1)": {
+          "n": 259,
+          "mean_persistence": 0.03736114671814672,
+          "failure_rate": 0.5405405405405406,
+          "baseline_failure_rate": 0.4864864864864865,
+          "total_effect": 0.05405405405405406
+        },
+        "('claude-haiku-3', 'invented', 1)": {
+          "n": 344,
+          "mean_persistence": 0.12439687209302326,
+          "failure_rate": 0.6075581395348837,
+          "baseline_failure_rate": 0.5232558139534884,
+          "total_effect": 0.08430232558139528
+        },
+        "('claude-haiku-3', 'invented', 2)": {
+          "n": 316,
+          "mean_persistence": 0.028093873417721522,
+          "failure_rate": 0.5253164556962026,
+          "baseline_failure_rate": 0.5379746835443038,
+          "total_effect": -0.012658227848101222
+        },
+        "('claude-haiku-3', 'entity', 2)": {
+          "n": 213,
+          "mean_persistence": 0.024581394366197183,
+          "failure_rate": 0.596244131455399,
+          "baseline_failure_rate": 0.47417840375586856,
+          "total_effect": 0.12206572769953045
+        },
+        "('claude-haiku-3', 'unknown', 3)": {
+          "n": 91,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.6263736263736264,
+          "baseline_failure_rate": 0.6373626373626373,
+          "total_effect": -0.01098901098901095
+        },
+        "('claude-haiku-3', 'entity', 3)": {
+          "n": 310,
+          "mean_persistence": 0.01547549677419355,
+          "failure_rate": 0.5645161290322581,
+          "baseline_failure_rate": 0.45806451612903226,
+          "total_effect": 0.10645161290322586
+        },
+        "('claude-haiku-3', 'invented', 3)": {
+          "n": 151,
+          "mean_persistence": 0.009068940397350993,
+          "failure_rate": 0.9205298013245033,
+          "baseline_failure_rate": 0.5496688741721855,
+          "total_effect": 0.3708609271523179
+        },
+        "('claude-haiku-3', 'unverifiable', 0)": {
+          "n": 44,
+          "mean_persistence": 0.0689668181818182,
+          "failure_rate": 0.6818181818181818,
+          "baseline_failure_rate": 0.5909090909090909,
+          "total_effect": 0.09090909090909083
+        },
+        "('claude-haiku-3', 'unverifiable', 1)": {
+          "n": 44,
+          "mean_persistence": 0.022850340909090914,
+          "failure_rate": 0.5909090909090909,
+          "baseline_failure_rate": 0.5909090909090909,
+          "total_effect": 0.0
+        },
+        "('claude-haiku-3', 'unknown', 2)": {
+          "n": 30,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.5666666666666667,
+          "baseline_failure_rate": 0.5666666666666667,
+          "total_effect": 0.0
+        },
+        "('claude-haiku-3', 'contradictory', 2)": {
+          "n": 46,
+          "mean_persistence": 0.03571015217391304,
+          "failure_rate": 0.4782608695652174,
+          "baseline_failure_rate": 0.5217391304347826,
+          "total_effect": -0.04347826086956519
+        },
+        "('claude-haiku-3', 'unverifiable', 2)": {
+          "n": 70,
+          "mean_persistence": 0.014955971428571429,
+          "failure_rate": 0.4714285714285714,
+          "baseline_failure_rate": 0.4714285714285714,
+          "total_effect": 0.0
+        },
+        "('claude-haiku-3', 'unverifiable', 3)": {
+          "n": 95,
+          "mean_persistence": 0.0077798526315789466,
+          "failure_rate": 0.7684210526315789,
+          "baseline_failure_rate": 0.5157894736842106,
+          "total_effect": 0.2526315789473683
+        },
+        "('claude-haiku-3', 'contradictory', 0)": {
+          "n": 28,
+          "mean_persistence": 0.04541153571428571,
+          "failure_rate": 0.6428571428571429,
+          "baseline_failure_rate": 0.4642857142857143,
+          "total_effect": 0.1785714285714286
+        },
+        "('claude-haiku-3', 'contradictory', 1)": {
+          "n": 28,
+          "mean_persistence": 0.07846142857142857,
+          "failure_rate": 0.5357142857142857,
+          "baseline_failure_rate": 0.4642857142857143,
+          "total_effect": 0.0714285714285714
+        },
+        "('claude-haiku-3', 'contradictory', 3)": {
+          "n": 28,
+          "mean_persistence": 0.02001357142857143,
+          "failure_rate": 0.7857142857142857,
+          "baseline_failure_rate": 0.4642857142857143,
+          "total_effect": 0.3214285714285714
+        },
+        "('claude-haiku-3', 'unknown', 0)": {
+          "n": 5,
+          "mean_persistence": 0.0,
+          "failure_rate": 1.0,
+          "baseline_failure_rate": 1.0,
+          "total_effect": 0.0
+        }
+      },
+      "note": "No-unmeasured-confounders satisfied: injection is randomized experimental treatment."
+    },
+    "claude-sonnet-3-7": {
+      "total_effect": 0.15416666666666667,
+      "total_effect_ci_95": [
+        0.10833333333333334,
+        0.20416666666666666
+      ],
+      "nie": 0.013800374557601927,
+      "nie_ci_95": [
+        -0.02406896461321427,
+        0.057957992329417465
+      ],
+      "nde": 0.14036629210906476,
+      "nde_ci_95": [
+        0.08434466451926197,
+        0.19499635123158796
+      ],
+      "mediation_fraction_nie_over_te": 0.08951594307633683,
+      "mediation_fraction_ci_95": [
+        -0.18243837906109908,
+        0.36352900363073787
+      ],
+      "n_bootstrap": 1000,
+      "persistence_failure_regression": {
+        "slope": 0.36997104025553923,
+        "r_squared": 0.0017845525520927747,
+        "p_value": 0.5148433161204461
+      },
+      "group_results": {
+        "('claude-sonnet-3-7', 'entity', 1)": {
+          "n": 21,
+          "mean_persistence": 0.0185402380952381,
+          "failure_rate": 0.38095238095238093,
+          "baseline_failure_rate": 0.2857142857142857,
+          "total_effect": 0.09523809523809523
+        },
+        "('claude-sonnet-3-7', 'entity', 0)": {
+          "n": 25,
+          "mean_persistence": 0.025611159999999997,
+          "failure_rate": 0.28,
+          "baseline_failure_rate": 0.24,
+          "total_effect": 0.040000000000000036
+        },
+        "('claude-sonnet-3-7', 'contradictory', 0)": {
+          "n": 6,
+          "mean_persistence": 0.0775995,
+          "failure_rate": 0.16666666666666666,
+          "baseline_failure_rate": 0.16666666666666666,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'unknown', 2)": {
+          "n": 8,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.125,
+          "baseline_failure_rate": 0.125,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'contradictory', 1)": {
+          "n": 6,
+          "mean_persistence": 0.08396799999999999,
+          "failure_rate": 0.16666666666666666,
+          "baseline_failure_rate": 0.16666666666666666,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'entity', 2)": {
+          "n": 17,
+          "mean_persistence": 0.030478058823529414,
+          "failure_rate": 0.35294117647058826,
+          "baseline_failure_rate": 0.29411764705882354,
+          "total_effect": 0.05882352941176472
+        },
+        "('claude-sonnet-3-7', 'entity', 3)": {
+          "n": 29,
+          "mean_persistence": 0.019608413793103446,
+          "failure_rate": 0.5862068965517241,
+          "baseline_failure_rate": 0.3448275862068966,
+          "total_effect": 0.2413793103448275
+        },
+        "('claude-sonnet-3-7', 'contradictory', 3)": {
+          "n": 6,
+          "mean_persistence": 0.10655933333333334,
+          "failure_rate": 0.5,
+          "baseline_failure_rate": 0.16666666666666666,
+          "total_effect": 0.33333333333333337
+        },
+        "('claude-sonnet-3-7', 'invented', 0)": {
+          "n": 27,
+          "mean_persistence": 0.04331196296296296,
+          "failure_rate": 0.37037037037037035,
+          "baseline_failure_rate": 0.2962962962962963,
+          "total_effect": 0.07407407407407407
+        },
+        "('claude-sonnet-3-7', 'invented', 1)": {
+          "n": 27,
+          "mean_persistence": 0.07239862962962963,
+          "failure_rate": 0.4074074074074074,
+          "baseline_failure_rate": 0.2962962962962963,
+          "total_effect": 0.1111111111111111
+        },
+        "('claude-sonnet-3-7', 'invented', 2)": {
+          "n": 28,
+          "mean_persistence": 0.025128107142857143,
+          "failure_rate": 0.5357142857142857,
+          "baseline_failure_rate": 0.2857142857142857,
+          "total_effect": 0.25
+        },
+        "('claude-sonnet-3-7', 'contradictory', 2)": {
+          "n": 4,
+          "mean_persistence": 0.06891925,
+          "failure_rate": 0.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'invented', 3)": {
+          "n": 11,
+          "mean_persistence": 0.085435,
+          "failure_rate": 1.0,
+          "baseline_failure_rate": 0.2727272727272727,
+          "total_effect": 0.7272727272727273
+        },
+        "('claude-sonnet-3-7', 'unknown', 3)": {
+          "n": 9,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'unverifiable', 2)": {
+          "n": 3,
+          "mean_persistence": 0.024715666666666664,
+          "failure_rate": 0.6666666666666666,
+          "baseline_failure_rate": 0.3333333333333333,
+          "total_effect": 0.3333333333333333
+        },
+        "('claude-sonnet-3-7', 'unverifiable', 3)": {
+          "n": 5,
+          "mean_persistence": 0.008809,
+          "failure_rate": 0.2,
+          "baseline_failure_rate": 0.2,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'unknown', 1)": {
+          "n": 4,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-3-7', 'unverifiable', 0)": {
+          "n": 2,
+          "mean_persistence": 0.019751499999999998,
+          "failure_rate": 1.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 1.0
+        },
+        "('claude-sonnet-3-7', 'unverifiable', 1)": {
+          "n": 2,
+          "mean_persistence": 0.013104500000000002,
+          "failure_rate": 0.5,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.5
+        }
+      },
+      "note": "No-unmeasured-confounders satisfied: injection is randomized experimental treatment."
+    },
+    "claude-sonnet-4": {
+      "total_effect": 0.04583333333333333,
+      "total_effect_ci_95": [
+        0.02072916666666667,
+        0.075
+      ],
+      "nie": 0.06736446917521413,
+      "nie_ci_95": [
+        0.038958942008000506,
+        0.09928554446894317
+      ],
+      "nde": -0.0215311358418808,
+      "nde_ci_95": [
+        -0.06189586539058536,
+        0.014742671481708701
+      ],
+      "mediation_fraction_nie_over_te": 1.4697702365501266,
+      "mediation_fraction_ci_95": [
+        0.7469003891384742,
+        3.5488257929688776
+      ],
+      "n_bootstrap": 1000,
+      "persistence_failure_regression": {
+        "slope": 1.655642101137696,
+        "r_squared": 0.04227941924767699,
+        "p_value": 0.0013595204999125759
+      },
+      "group_results": {
+        "('claude-sonnet-4', 'invented', 0)": {
+          "n": 29,
+          "mean_persistence": 0.04820186206896553,
+          "failure_rate": 0.5172413793103449,
+          "baseline_failure_rate": 0.5172413793103449,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'entity', 0)": {
+          "n": 20,
+          "mean_persistence": 0.028394400000000004,
+          "failure_rate": 0.4,
+          "baseline_failure_rate": 0.4,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'invented', 1)": {
+          "n": 29,
+          "mean_persistence": 0.07815637931034483,
+          "failure_rate": 0.5517241379310345,
+          "baseline_failure_rate": 0.5172413793103449,
+          "total_effect": 0.03448275862068961
+        },
+        "('claude-sonnet-4', 'invented', 2)": {
+          "n": 27,
+          "mean_persistence": 0.01755851851851852,
+          "failure_rate": 0.5555555555555556,
+          "baseline_failure_rate": 0.5555555555555556,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'entity', 2)": {
+          "n": 19,
+          "mean_persistence": 0.012768157894736842,
+          "failure_rate": 0.42105263157894735,
+          "baseline_failure_rate": 0.42105263157894735,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'unverifiable', 2)": {
+          "n": 8,
+          "mean_persistence": 0.017469000000000002,
+          "failure_rate": 0.25,
+          "baseline_failure_rate": 0.25,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'unverifiable', 1)": {
+          "n": 6,
+          "mean_persistence": 0.016520833333333332,
+          "failure_rate": 0.5,
+          "baseline_failure_rate": 0.5,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'unverifiable', 0)": {
+          "n": 6,
+          "mean_persistence": 0.026801333333333333,
+          "failure_rate": 0.5,
+          "baseline_failure_rate": 0.5,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'entity', 1)": {
+          "n": 20,
+          "mean_persistence": 0.01637995,
+          "failure_rate": 0.4,
+          "baseline_failure_rate": 0.4,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'unverifiable', 3)": {
+          "n": 10,
+          "mean_persistence": 0.0579648,
+          "failure_rate": 0.6,
+          "baseline_failure_rate": 0.3,
+          "total_effect": 0.3
+        },
+        "('claude-sonnet-4', 'invented', 3)": {
+          "n": 16,
+          "mean_persistence": 0.10625775,
+          "failure_rate": 1.0,
+          "baseline_failure_rate": 0.5,
+          "total_effect": 0.5
+        },
+        "('claude-sonnet-4', 'entity', 3)": {
+          "n": 26,
+          "mean_persistence": 0.017224576923076922,
+          "failure_rate": 0.5769230769230769,
+          "baseline_failure_rate": 0.5769230769230769,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'contradictory', 0)": {
+          "n": 5,
+          "mean_persistence": 0.11364480000000002,
+          "failure_rate": 0.8,
+          "baseline_failure_rate": 0.8,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'contradictory', 1)": {
+          "n": 5,
+          "mean_persistence": 0.0805614,
+          "failure_rate": 0.8,
+          "baseline_failure_rate": 0.8,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'unknown', 2)": {
+          "n": 5,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.8,
+          "baseline_failure_rate": 0.8,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'contradictory', 3)": {
+          "n": 5,
+          "mean_persistence": 0.07803979999999999,
+          "failure_rate": 0.6,
+          "baseline_failure_rate": 0.8,
+          "total_effect": -0.20000000000000007
+        },
+        "('claude-sonnet-4', 'unknown', 3)": {
+          "n": 3,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.0
+        },
+        "('claude-sonnet-4', 'contradictory', 2)": {
+          "n": 1,
+          "mean_persistence": 0.0,
+          "failure_rate": 1.0,
+          "baseline_failure_rate": 1.0,
+          "total_effect": 0.0
+        }
+      },
+      "note": "No-unmeasured-confounders satisfied: injection is randomized experimental treatment."
+    },
+    "llama-3.1-8b": {
+      "total_effect": 0.05305555555555556,
+      "total_effect_ci_95": [
+        0.04625,
+        0.059583333333333335
+      ],
+      "nie": -0.03534353029631814,
+      "nie_ci_95": [
+        -0.04100407016979149,
+        -0.030033513879125708
+      ],
+      "nde": 0.0883990858518737,
+      "nde_ci_95": [
+        0.0779473307145378,
+        0.09779633781753716
+      ],
+      "mediation_fraction_nie_over_te": -0.6661607804541639,
+      "mediation_fraction_ci_95": [
+        -0.7798932659022213,
+        -0.5609076073526483
+      ],
+      "n_bootstrap": 1000,
+      "persistence_failure_regression": {
+        "slope": -0.32857753190429306,
+        "r_squared": 0.01531296168282918,
+        "p_value": 5.718628849280847e-26
+      },
+      "group_results": {
+        "('llama-3.1-8b', 'invented', 0)": {
+          "n": 823,
+          "mean_persistence": 0.13729857594167677,
+          "failure_rate": 0.11907654921020656,
+          "baseline_failure_rate": 0.10449574726609964,
+          "total_effect": 0.014580801944106922
+        },
+        "('llama-3.1-8b', 'entity', 0)": {
+          "n": 721,
+          "mean_persistence": 0.14027534535367547,
+          "failure_rate": 0.12205270457697642,
+          "baseline_failure_rate": 0.09847434119278779,
+          "total_effect": 0.02357836338418863
+        },
+        "('llama-3.1-8b', 'entity', 1)": {
+          "n": 745,
+          "mean_persistence": 0.1339543476510067,
+          "failure_rate": 0.10067114093959731,
+          "baseline_failure_rate": 0.0953020134228188,
+          "total_effect": 0.00536912751677851
+        },
+        "('llama-3.1-8b', 'unverifiable', 0)": {
+          "n": 135,
+          "mean_persistence": 0.15748005185185188,
+          "failure_rate": 0.1259259259259259,
+          "baseline_failure_rate": 0.1111111111111111,
+          "total_effect": 0.014814814814814808
+        },
+        "('llama-3.1-8b', 'invented', 1)": {
+          "n": 823,
+          "mean_persistence": 0.13994402187120292,
+          "failure_rate": 0.1324422843256379,
+          "baseline_failure_rate": 0.10449574726609964,
+          "total_effect": 0.027946537059538257
+        },
+        "('llama-3.1-8b', 'entity', 2)": {
+          "n": 601,
+          "mean_persistence": 0.11290568053244592,
+          "failure_rate": 0.09816971713810316,
+          "baseline_failure_rate": 0.07487520798668885,
+          "total_effect": 0.023294509151414303
+        },
+        "('llama-3.1-8b', 'invented', 2)": {
+          "n": 714,
+          "mean_persistence": 0.10055378851540617,
+          "failure_rate": 0.1484593837535014,
+          "baseline_failure_rate": 0.10224089635854341,
+          "total_effect": 0.046218487394957986
+        },
+        "('llama-3.1-8b', 'unverifiable', 1)": {
+          "n": 135,
+          "mean_persistence": 0.1629660962962963,
+          "failure_rate": 0.14074074074074075,
+          "baseline_failure_rate": 0.1111111111111111,
+          "total_effect": 0.029629629629629645
+        },
+        "('llama-3.1-8b', 'unverifiable', 2)": {
+          "n": 228,
+          "mean_persistence": 0.1127530394736842,
+          "failure_rate": 0.12719298245614036,
+          "baseline_failure_rate": 0.10964912280701754,
+          "total_effect": 0.01754385964912282
+        },
+        "('llama-3.1-8b', 'entity', 3)": {
+          "n": 850,
+          "mean_persistence": 0.051242243529411764,
+          "failure_rate": 0.11529411764705882,
+          "baseline_failure_rate": 0.07294117647058823,
+          "total_effect": 0.04235294117647059
+        },
+        "('llama-3.1-8b', 'invented', 3)": {
+          "n": 333,
+          "mean_persistence": 0.05478508708708709,
+          "failure_rate": 0.5465465465465466,
+          "baseline_failure_rate": 0.09309309309309309,
+          "total_effect": 0.45345345345345345
+        },
+        "('llama-3.1-8b', 'unverifiable', 3)": {
+          "n": 315,
+          "mean_persistence": 0.055368015873015874,
+          "failure_rate": 0.2857142857142857,
+          "baseline_failure_rate": 0.11746031746031746,
+          "total_effect": 0.16825396825396824
+        },
+        "('llama-3.1-8b', 'contradictory', 0)": {
+          "n": 97,
+          "mean_persistence": 0.16580378350515465,
+          "failure_rate": 0.14432989690721648,
+          "baseline_failure_rate": 0.08247422680412371,
+          "total_effect": 0.06185567010309277
+        },
+        "('llama-3.1-8b', 'contradictory', 1)": {
+          "n": 97,
+          "mean_persistence": 0.16729104123711339,
+          "failure_rate": 0.13402061855670103,
+          "baseline_failure_rate": 0.08247422680412371,
+          "total_effect": 0.05154639175257732
+        },
+        "('llama-3.1-8b', 'contradictory', 2)": {
+          "n": 145,
+          "mean_persistence": 0.12311565517241381,
+          "failure_rate": 0.14482758620689656,
+          "baseline_failure_rate": 0.10344827586206896,
+          "total_effect": 0.0413793103448276
+        },
+        "('llama-3.1-8b', 'contradictory', 3)": {
+          "n": 96,
+          "mean_persistence": 0.07648836458333334,
+          "failure_rate": 0.20833333333333334,
+          "baseline_failure_rate": 0.08333333333333333,
+          "total_effect": 0.125
+        },
+        "('llama-3.1-8b', 'unknown', 2)": {
+          "n": 112,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.20535714285714285,
+          "baseline_failure_rate": 0.19642857142857142,
+          "total_effect": 0.008928571428571425
+        },
+        "('llama-3.1-8b', 'unknown', 3)": {
+          "n": 206,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.19902912621359223,
+          "baseline_failure_rate": 0.20388349514563106,
+          "total_effect": -0.004854368932038833
+        },
+        "('llama-3.1-8b', 'unknown', 0)": {
+          "n": 24,
+          "mean_persistence": 0.0,
+          "failure_rate": 0.0,
+          "baseline_failure_rate": 0.0,
+          "total_effect": 0.0
+        }
+      },
+      "note": "No-unmeasured-confounders satisfied: injection is randomized experimental treatment."
+    }
+  },
+  "n_models": 4,
+  "models_above_0.4": 1,
+  "h2_confirmed": false,
+  "h2_threshold": 0.4,
+  "h2_required_models": 3
+}

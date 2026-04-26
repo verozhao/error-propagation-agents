@@ -25,7 +25,7 @@ def prepare_data(trial_records: list) -> dict:
     for r in trial_records:
         if r.get("is_baseline") or r.get("error_step") is None:
             continue
-        meta = r.get("injection_meta", {})
+        meta = r.get("injection_meta") or {}
         error_type = meta.get("error_type", "unknown")
         domain = r.get("task_domain", "unknown")
         model = r.get("model", "unknown")
