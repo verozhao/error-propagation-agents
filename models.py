@@ -9,9 +9,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-USE_CMU_GATEWAY = os.getenv("USE_CMU_GATEWAY", "false").lower() == "true"
-CMU_GATEWAY_URL = os.getenv("CMU_GATEWAY_URL", "https://ai-gateway.andrew.cmu.edu")
-CMU_GATEWAY_API_KEY = os.getenv("CMU_GATEWAY_API_KEY", "")
+USE_GATEWAY = os.getenv("USE_GATEWAY", "false").lower() == "true"
+GATEWAY_URL = os.getenv("GATEWAY_URL", "https://ai-gateway.andrew.cmu.edu")
+GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 
 OPEN_SOURCE_MODELS = {
     "llama-3.1-8b": "meta-llama/Llama-3.1-8B-Instruct",
@@ -129,8 +129,8 @@ def get_cmu_gateway_client():
     if "cmu_gateway" not in _api_clients:
         import openai
         _api_clients["cmu_gateway"] = openai.OpenAI(
-            api_key=CMU_GATEWAY_API_KEY,
-            base_url=CMU_GATEWAY_URL,
+            api_key=GATEWAY_API_KEY,
+            base_url=GATEWAY_URL,
         )
     return _api_clients["cmu_gateway"]
 
@@ -212,7 +212,7 @@ def call_model(model_name: str, prompt: str, max_tokens: int = 1024,
                temperature: float = 0.0, seed: int = None) -> str:
     # Gateway path takes priority when enabled, regardless of which dict
     # the alias is registered in.
-    if USE_CMU_GATEWAY:
+    if USE_GATEWAY:
         # Resolve alias -> gateway ID
         # Try API_MODELS first (preferred), fall back to OPEN_SOURCE_MODELS
         if model_name in API_MODELS:

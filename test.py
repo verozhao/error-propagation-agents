@@ -6,9 +6,9 @@ Probes every model in the LiteLLM dashboard. For each model:
   - Estimates per-trial cost based on dashboard pricing
 
 Run:
-  export USE_CMU_GATEWAY=true
-  export CMU_GATEWAY_API_KEY=<your-key>
-  export CMU_GATEWAY_URL=<your-gateway-url>
+  export USE_GATEWAY=true
+  export GATEWAY_API_KEY=<your-key>
+  export GATEWAY_URL=<your-gateway-url>
   python gateway_smoke_test.py
 
 Total cost if all succeed: ~$0.10
@@ -55,11 +55,11 @@ def cost_per_trial(in_price, out_price, in_tok=10_000, out_tok=2_500):
 
 
 def main():
-    api_key = os.getenv("CMU_GATEWAY_API_KEY")
-    base_url = os.getenv("CMU_GATEWAY_URL")
+    api_key = os.getenv("GATEWAY_API_KEY")
+    base_url = os.getenv("GATEWAY_URL")
     
     if not api_key:
-        print("ERROR: set CMU_GATEWAY_API_KEY")
+        print("ERROR: set GATEWAY_API_KEY")
         return
     
     print(f"Gateway: {base_url}")

@@ -6,7 +6,7 @@ echo ""
 
 echo "=== GATE CHECKS ==="
 cd /Users/test/error-propagation-agents
-python check_pilot_gates.py
+python check_pilot_gates.py results/ragtruth_weighted_error/ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl
 echo ""
 
 echo "=== CAUSAL MEDIATION ==="
