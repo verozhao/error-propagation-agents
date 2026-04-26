@@ -36,26 +36,35 @@ ALL_STEPS = WORKFLOW_STEPS  # include verify for observation steps
 ALL_STEP_LABELS = ["Search", "Filter", "Summarize", "Compose", "Verify"]
 
 # Colorblind-friendly palette (Wong 2011), muted for academic use
-C_FACTUAL  = "#D55E00"  # vermillion
-C_SEMANTIC = "#0072B2"  # blue
-C_OMISSION = "#009E73"  # bluish green
-ETYPE_COLORS = {"factual": C_FACTUAL, "semantic": C_SEMANTIC, "omission": C_OMISSION}
-ETYPE_ORDER = ["factual", "semantic", "omission"]
-ETYPE_LABELS = {"factual": "Factual", "semantic": "Semantic", "omission": "Omission"}
+C_ENTITY        = "#D55E00"  # vermillion
+C_INVENTED      = "#0072B2"  # blue
+C_UNVERIFIABLE  = "#009E73"  # bluish green
+C_CONTRADICTORY = "#CC79A7"  # reddish purple
+ETYPE_COLORS = {
+    "entity": C_ENTITY, "invented": C_INVENTED,
+    "unverifiable": C_UNVERIFIABLE, "contradictory": C_CONTRADICTORY,
+}
+ETYPE_ORDER = ["entity", "invented", "unverifiable", "contradictory"]
+ETYPE_LABELS = {
+    "entity": "Entity", "invented": "Invented",
+    "unverifiable": "Unverifiable", "contradictory": "Contradictory",
+}
 
 # Step colors for within-panel lines
 STEP_CMAP = ["#332288", "#88CCEE", "#44AA99", "#CC6677"]  # Tol muted
 
-# Physical severity doses
+# Physical severity doses (FAVA taxonomy, ragtruth_weighted injection)
 SEV_DOSES = {
-    "factual":  {1: 1, 2: 2, 3: 8},
-    "semantic": {1: 1, 2: 2, 3: 8},
-    "omission": {1: 0.10, 2: 0.25, 3: 0.75},
+    "entity":        {1: 1, 2: 2, 3: 8},
+    "invented":      {1: 1, 2: 2, 3: 8},
+    "unverifiable":  {1: 1, 2: 2, 3: 8},
+    "contradictory": {1: 1, 2: 2, 3: 8},
 }
 SEV_LABELS = {
-    "factual":  "K (claims inserted)",
-    "semantic": "S (substitutions)",
-    "omission": "ρ (fraction removed)",
+    "entity":        "K (entity swaps)",
+    "invented":      "K (invented facts)",
+    "unverifiable":  "K (unverifiable claims)",
+    "contradictory": "K (contradictions)",
 }
 
 plt.rcParams.update({
@@ -107,7 +116,8 @@ def fig1_propagation_curves():
     df["step_idx"] = df["step_name"].map({s: i for i, s in enumerate(STEP_ORDER)})
     df = df.dropna(subset=["step_idx"])
 
-    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.2), sharey=True)
+    n_types = len(ETYPE_ORDER)
+    fig, axes = plt.subplots(1, n_types, figsize=(2.2 * n_types, 2.2), sharey=True)
 
     for ax, etype in zip(axes, ETYPE_ORDER):
         sub = df[df["error_type"] == etype].sort_values("step_idx")
@@ -125,7 +135,6 @@ def fig1_propagation_curves():
         ax.plot(x, y, "o-", color=color, markersize=5, markeredgecolor="white",
                 markeredgewidth=0.6, zorder=3)
 
-        # Annotate values
         for xi, yi in zip(x, y):
             if yi > 0.005:
                 ax.annotate(f"{yi:.2f}", (xi, yi), textcoords="offset points",
@@ -152,7 +161,8 @@ def fig2_severity_dose_response():
         return
     df = pd.read_csv(path)
 
-    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.4), sharey=True)
+    n_types = len(ETYPE_ORDER)
+    fig, axes = plt.subplots(1, n_types, figsize=(2.2 * n_types, 2.4), sharey=True)
 
     for ax, etype in zip(axes, ETYPE_ORDER):
         sub = df[df["error_type"] == etype]
@@ -160,8 +170,7 @@ def fig2_severity_dose_response():
             ax.set_title(ETYPE_LABELS[etype])
             continue
 
-        # Map severity to physical dose
-        dose_map = SEV_DOSES[etype]
+        dose_map = SEV_DOSES.get(etype, {1: 1, 2: 2, 3: 8})
         sub = sub.copy()
         sub["dose"] = sub["severity"].map(dose_map)
 
@@ -175,17 +184,13 @@ def fig2_severity_dose_response():
                     markersize=4, markeredgecolor="white", markeredgewidth=0.5)
 
         ax.set_title(ETYPE_LABELS[etype], fontweight="bold")
-        ax.set_xlabel(SEV_LABELS[etype])
+        ax.set_xlabel(SEV_LABELS.get(etype, "Severity"))
 
-        # Set x-axis ticks to actual dose values
         doses = sorted(dose_map.values())
         ax.set_xticks(doses)
-        if etype == "omission":
-            ax.xaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
 
     axes[0].set_ylabel("Failure rate")
     axes[0].yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
-    # Single legend outside
     handles, labels = axes[0].get_legend_handles_labels()
     if handles:
         fig.legend(handles, labels, loc="upper center", ncol=4,
@@ -203,8 +208,9 @@ def fig3_survival_heatmap():
         return
     df = pd.read_csv(path)
 
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.8),
-                              gridspec_kw={"width_ratios": [1, 1, 1], "wspace": 0.45})
+    n_types = len(ETYPE_ORDER)
+    fig, axes = plt.subplots(1, n_types, figsize=(2.4 * n_types, 2.8),
+                              gridspec_kw={"width_ratios": [1] * n_types, "wspace": 0.45})
     fig.subplots_adjust(right=0.87, bottom=0.22)
 
     for ax, etype in zip(axes, ETYPE_ORDER):
@@ -266,7 +272,8 @@ def fig4_compound_interaction():
         expected=("fr_expected_indep", "mean"),
     ).reset_index()
 
-    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.4), sharey=True)
+    n_types = len(ETYPE_ORDER)
+    fig, axes = plt.subplots(1, n_types, figsize=(2.2 * n_types, 2.4), sharey=True)
 
     for ax, etype in zip(axes, ETYPE_ORDER):
         sub = agg[agg["error_type"] == etype].reset_index(drop=True)
@@ -277,7 +284,6 @@ def fig4_compound_interaction():
         x = np.arange(len(sub))
         color = ETYPE_COLORS[etype]
 
-        # Lollipop: expected as dot, observed as dot, connected by line
         for i, row in sub.iterrows():
             ax.plot([i, i], [row["expected"], row["observed"]],
                     color="0.6", linewidth=1.2, zorder=1)
@@ -382,7 +388,7 @@ def fig6_correlation_importance():
 
     fig, ax = plt.subplots(figsize=(3.5, 2.8))
 
-    colors = [C_FACTUAL if v > 0 else C_SEMANTIC for v in df["correlation"]]
+    colors = [C_ENTITY if v > 0 else C_INVENTED for v in df["correlation"]]
     bars = ax.barh(df["feature"], df["correlation"], color=colors, height=0.6,
                    edgecolor="white", linewidth=0.3)
 
@@ -503,7 +509,8 @@ def figA_degradation_distribution():
     if "failure_rate" not in df.columns:
         return
 
-    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.2), sharey=True)
+    n_types = len(ETYPE_ORDER)
+    fig, axes = plt.subplots(1, n_types, figsize=(2.2 * n_types, 2.2), sharey=True)
 
     for ax, etype in zip(axes, ETYPE_ORDER):
         sub = df[df["error_type"] == etype]

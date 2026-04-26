@@ -18,7 +18,7 @@ def table1_propagation():
         print(f"Skipping Table 1: {path} not found")
         return
     df = pd.read_csv(path)
-    primary = df[df["model"].isin(["gpt-4o-mini", "claude-3-haiku"])].copy()
+    primary = df[df["model"].isin(["llama-3.1-8b", "claude-haiku-3", "claude-sonnet-3-7", "claude-sonnet-4"])].copy()
     if primary.empty:
         print("Skipping Table 1: no primary model data")
         return
@@ -62,7 +62,7 @@ def table2_significance():
         print(f"Skipping Table 2: {path} not found")
         return
     df = pd.read_csv(path)
-    primary = df[df["model"].isin(["gpt-4o-mini", "claude-3-haiku"])].copy()
+    primary = df[df["model"].isin(["llama-3.1-8b", "claude-haiku-3", "claude-sonnet-3-7", "claude-sonnet-4"])].copy()
     if primary.empty:
         print("Skipping Table 2: no primary model data")
         return
@@ -154,7 +154,7 @@ def table4_severity():
         print(f"Skipping Table 4: {path} not found")
         return
     df = pd.read_csv(path)
-    primary = df[df["model"].isin(["gpt-4o-mini", "claude-3-haiku"])].copy()
+    primary = df[df["model"].isin(["llama-3.1-8b", "claude-haiku-3", "claude-sonnet-3-7", "claude-sonnet-4"])].copy()
     if primary.empty:
         print("Skipping Table 4: no primary model data")
         return
