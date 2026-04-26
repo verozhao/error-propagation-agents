@@ -78,5 +78,5 @@
       "reason": "Pre-main-sweep revision after pilot diagnosis. Three changes: (a) Original failure_indicator quality_score <= 4 returned null in 100% of pilot records due to use_llm_judge defaulting to False; replaced with factual.error_propagated OR combined_score < 0.5, both populated correctly. (b) Original persistence metric used injected_content meta-tag (e.g. 'ENTITY: X->Y') as the delta for embedding similarity, producing near-zero persistence regardless of injection. Replaced with actual corrupted step output as delta, which directly measures corruption propagation. (c) Gate 2 baseline FR threshold raised from 0.15 to 0.30; the OR-based failure indicator yields baseline FR=0.274 (driven by combined_score < 0.5 on queries where preserved_component is low due to answer mismatch). All revisions applied before main-sweep data collection. Pilot data re-analyzed under revised metrics; all 5 gates pass. Persistence-failure correlation r=+0.113, p=7.5e-6."
     }
   ],
-  "commit_hash": "d325a5b5eeef60b2e9d7d295a69e7c981629c9483c34896eda833c1b6e5c972d"
+  "commit_hash": "0125cbd8cd6639633d87d4f43b67213ed3d3a516e5005cca3ef2bcea196df426"
 }
