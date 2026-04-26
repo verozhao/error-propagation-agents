@@ -184,145 +184,158 @@ def run_significance(
     except Exception:
         pass  # ground truth unavailable — skip filter gracefully
 
+    # Baselines are error-type-agnostic (no injection), so pull them
+    # per-model and pair with each error type's injected records.
+    injected_types = [t for t in df["error_type"].unique() if t != "ragtruth_weighted"]
+
     out = []
-    for (model, etype), sub in df.groupby(["model", "error_type"]):
-        base = sub[sub["error_step"] == -1].set_index(["task_query", "trial"])["combined_score"]
-        step_rows = []
-        for step in sorted(sub["error_step"].unique()):
-            if step == -1:
+    for model in df["model"].unique():
+        model_df = df[df["model"] == model]
+        base = model_df[model_df["error_step"] == -1].set_index(["task_query", "trial"])["combined_score"]
+        for etype in injected_types:
+            sub = model_df[model_df["error_type"] == etype]
+            if sub.empty:
                 continue
-            inj = sub[sub["error_step"] == step].set_index(["task_query", "trial"])["combined_score"]
-            paired = base.to_frame("base").join(inj.to_frame("inj"), how="inner").dropna()
-            if len(paired) < 3:
-                continue
-            diffs = paired["base"].values - paired["inj"].values
-            try:
-                if np.all(diffs == 0):
-                    stat, p = 0.0, 1.0
+            step_rows = []
+            for step in sorted(sub["error_step"].unique()):
+                if step == -1:
+                    continue
+                inj = sub[sub["error_step"] == step].set_index(["task_query", "trial"])["combined_score"]
+                paired = base.to_frame("base").join(inj.to_frame("inj"), how="inner").dropna()
+                if len(paired) < 3:
+                    continue
+                diffs = paired["base"].values - paired["inj"].values
+                try:
+                    if np.all(diffs == 0):
+                        stat, p = 0.0, 1.0
+                    else:
+                        stat, p = stats.wilcoxon(diffs, zero_method="zsplit")
+                    test = "wilcoxon_paired_by_query_trial"
+                except ValueError:
+                    stat, p, test = float("nan"), float("nan"), "skipped"
+
+                ci_lo, ci_hi = bootstrap_ci(paired["inj"].values)
+
+                n_pairs = len(diffs[diffs != 0])
+                if n_pairs > 0 and stat == stat:
+                    r_rb = 1.0 - (2.0 * stat) / (n_pairs * (n_pairs + 1) / 2)
                 else:
-                    stat, p = stats.wilcoxon(diffs, zero_method="zsplit")
-                test = "wilcoxon_paired_by_query_trial"
-            except ValueError:
-                stat, p, test = float("nan"), float("nan"), "skipped"
+                    r_rb = 0.0
 
-            ci_lo, ci_hi = bootstrap_ci(paired["inj"].values)
+                if len(diffs) > 1:
+                    cohens_d = float(diffs.mean() / diffs.std(ddof=1)) if diffs.std(ddof=1) > 0 else 0.0
+                else:
+                    cohens_d = 0.0
 
-            n_pairs = len(diffs[diffs != 0])
-            if n_pairs > 0 and stat == stat:
-                r_rb = 1.0 - (2.0 * stat) / (n_pairs * (n_pairs + 1) / 2)
-            else:
-                r_rb = 0.0
+                step_name = WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}"
+                step_rows.append({
+                    "model": model,
+                    "error_type": etype,
+                    "injection_step": step_name,
+                    "n_paired": len(paired),
+                    "mean_baseline": float(paired["base"].mean()),
+                    "mean_injected": float(paired["inj"].mean()),
+                    "mean_diff": float(diffs.mean()),
+                    "std_diff": float(diffs.std(ddof=1)) if len(diffs) > 1 else 0.0,
+                    "injected_ci95_lo": ci_lo,
+                    "injected_ci95_hi": ci_hi,
+                    "test": test,
+                    "p_value": float(p) if p == p else None,
+                    "effect_size_r": round(r_rb, 4),
+                    "cohens_d": round(cohens_d, 4),
+                })
 
-            if len(diffs) > 1:
-                cohens_d = float(diffs.mean() / diffs.std(ddof=1)) if diffs.std(ddof=1) > 0 else 0.0
-            else:
-                cohens_d = 0.0
+            # Per-family multiple-comparison correction
+            fam_size = conditions_per_family if conditions_per_family else len(step_rows)
+            if fam_size < 1:
+                fam_size = 1
+            pvals = [r["p_value"] for r in step_rows]
+            valid_idx = [i for i, v in enumerate(pvals) if v is not None]
 
-            step_name = WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}"
-            step_rows.append({
-                "model": model,
-                "error_type": etype,
-                "injection_step": step_name,
-                "n_paired": len(paired),
-                "mean_baseline": float(paired["base"].mean()),
-                "mean_injected": float(paired["inj"].mean()),
-                "mean_diff": float(diffs.mean()),
-                "std_diff": float(diffs.std(ddof=1)) if len(diffs) > 1 else 0.0,
-                "injected_ci95_lo": ci_lo,
-                "injected_ci95_hi": ci_hi,
-                "test": test,
-                "p_value": float(p) if p == p else None,
-                "effect_size_r": round(r_rb, 4),
-                "cohens_d": round(cohens_d, 4),
-            })
+            if correction == "none" or not valid_idx:
+                for r in step_rows:
+                    r["p_value_adjusted"] = r["p_value"]
+                    r["correction_method"] = "none"
+            elif correction == "bonferroni":
+                for r in step_rows:
+                    r["p_value_adjusted"] = (
+                        min(1.0, r["p_value"] * fam_size) if r["p_value"] is not None else None
+                    )
+                    r["correction_method"] = f"bonferroni (m={fam_size})"
+            elif correction == "holm":
+                valid_pvals = np.array([pvals[i] for i in valid_idx])
+                m = len(valid_pvals)
+                order = np.argsort(valid_pvals)
+                adj = np.empty(m)
+                running_max = 0.0
+                for rank, idx in enumerate(order):
+                    adj_p = min(1.0, valid_pvals[idx] * (m - rank))
+                    running_max = max(running_max, adj_p)
+                    adj[idx] = running_max
+                for j, orig_idx in enumerate(valid_idx):
+                    step_rows[orig_idx]["p_value_adjusted"] = float(adj[j])
+                    step_rows[orig_idx]["correction_method"] = f"holm-bonferroni (m={m})"
+                for i, r in enumerate(step_rows):
+                    if i not in valid_idx:
+                        r["p_value_adjusted"] = None
+                        r["correction_method"] = "holm-bonferroni (skipped)"
+            elif correction == "fdr_bh":
+                valid_pvals = np.array([pvals[i] for i in valid_idx])
+                adj = false_discovery_control(valid_pvals, method="bh")
+                for j, orig_idx in enumerate(valid_idx):
+                    step_rows[orig_idx]["p_value_adjusted"] = float(adj[j])
+                    step_rows[orig_idx]["correction_method"] = f"fdr_bh (m={len(valid_pvals)})"
+                for i, r in enumerate(step_rows):
+                    if i not in valid_idx:
+                        r["p_value_adjusted"] = None
+                        r["correction_method"] = "fdr_bh (skipped)"
 
-        # Per-family multiple-comparison correction
-        fam_size = conditions_per_family if conditions_per_family else len(step_rows)
-        if fam_size < 1:
-            fam_size = 1
-        pvals = [r["p_value"] for r in step_rows]
-        valid_idx = [i for i, v in enumerate(pvals) if v is not None]
-
-        if correction == "none" or not valid_idx:
             for r in step_rows:
-                r["p_value_adjusted"] = r["p_value"]
-                r["correction_method"] = "none"
-        elif correction == "bonferroni":
-            for r in step_rows:
-                r["p_value_adjusted"] = (
-                    min(1.0, r["p_value"] * fam_size) if r["p_value"] is not None else None
-                )
-                r["correction_method"] = f"bonferroni (m={fam_size})"
-        elif correction == "holm":
-            # Holm-Bonferroni step-down
-            valid_pvals = np.array([pvals[i] for i in valid_idx])
-            m = len(valid_pvals)
-            order = np.argsort(valid_pvals)
-            adj = np.empty(m)
-            running_max = 0.0
-            for rank, idx in enumerate(order):
-                adj_p = min(1.0, valid_pvals[idx] * (m - rank))
-                running_max = max(running_max, adj_p)
-                adj[idx] = running_max
-            for j, orig_idx in enumerate(valid_idx):
-                step_rows[orig_idx]["p_value_adjusted"] = float(adj[j])
-                step_rows[orig_idx]["correction_method"] = f"holm-bonferroni (m={m})"
-            for i, r in enumerate(step_rows):
-                if i not in valid_idx:
-                    r["p_value_adjusted"] = None
-                    r["correction_method"] = "holm-bonferroni (skipped)"
-        elif correction == "fdr_bh":
-            valid_pvals = np.array([pvals[i] for i in valid_idx])
-            adj = false_discovery_control(valid_pvals, method="bh")
-            for j, orig_idx in enumerate(valid_idx):
-                step_rows[orig_idx]["p_value_adjusted"] = float(adj[j])
-                step_rows[orig_idx]["correction_method"] = f"fdr_bh (m={len(valid_pvals)})"
-            for i, r in enumerate(step_rows):
-                if i not in valid_idx:
-                    r["p_value_adjusted"] = None
-                    r["correction_method"] = "fdr_bh (skipped)"
+                adj = r.get("p_value_adjusted")
+                r["significant_after_correction"] = bool(adj < 0.05) if adj is not None else False
+                r["p_value_bonferroni"] = r["p_value_adjusted"]
 
-        for r in step_rows:
-            adj = r.get("p_value_adjusted")
-            r["significant_after_correction"] = bool(adj < 0.05) if adj is not None else False
-            # legacy key for backward compat
-            r["p_value_bonferroni"] = r["p_value_adjusted"]
-
-        out.extend(step_rows)
+            out.extend(step_rows)
     return pd.DataFrame(out)
 
 
 def failure_rates_with_ci(df: pd.DataFrame, n_boot: int = 2000) -> pd.DataFrame:
+    injected_types = [t for t in df["error_type"].unique() if t != "ragtruth_weighted"]
     rows = []
-    for (model, etype), sub in df.groupby(["model", "error_type"]):
-        baseline = sub[sub["error_step"] == -1]["combined_score"].dropna().values
+    for model in df["model"].unique():
+        model_df = df[df["model"] == model]
+        baseline = model_df[model_df["error_step"] == -1]["combined_score"].dropna().values
         if len(baseline) == 0:
             continue
         baseline_mean = float(baseline.mean())
-        for step in sorted(sub["error_step"].unique()):
-            if step == -1:
+        for etype in injected_types:
+            sub = model_df[model_df["error_type"] == etype]
+            if sub.empty:
                 continue
-            inj = sub[sub["error_step"] == step]["combined_score"].dropna().values
-            if len(inj) == 0:
-                continue
-            mean_score = float(inj.mean())
-            failure_rate = max(0.0, 1 - (mean_score / baseline_mean)) if baseline_mean else 0.0
-            ci_lo, ci_hi = bootstrap_ci(inj, n_boot=n_boot)
-            fr_lo = max(0.0, 1 - (ci_hi / baseline_mean)) if baseline_mean else 0.0
-            fr_hi = max(0.0, 1 - (ci_lo / baseline_mean)) if baseline_mean else 0.0
-            rows.append(
-                {
-                    "model": model,
-                    "error_type": etype,
-                    "step_name": WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}",
-                    "n": len(inj),
-                    "baseline_mean": baseline_mean,
-                    "mean_score": mean_score,
-                    "failure_rate": failure_rate,
-                    "failure_rate_ci_lo": fr_lo,
-                    "failure_rate_ci_hi": fr_hi,
-                }
-            )
+            for step in sorted(sub["error_step"].unique()):
+                if step == -1:
+                    continue
+                inj = sub[sub["error_step"] == step]["combined_score"].dropna().values
+                if len(inj) == 0:
+                    continue
+                mean_score = float(inj.mean())
+                failure_rate = max(0.0, 1 - (mean_score / baseline_mean)) if baseline_mean else 0.0
+                ci_lo, ci_hi = bootstrap_ci(inj, n_boot=n_boot)
+                fr_lo = max(0.0, 1 - (ci_hi / baseline_mean)) if baseline_mean else 0.0
+                fr_hi = max(0.0, 1 - (ci_lo / baseline_mean)) if baseline_mean else 0.0
+                rows.append(
+                    {
+                        "model": model,
+                        "error_type": etype,
+                        "step_name": WORKFLOW_STEPS[step] if step < len(WORKFLOW_STEPS) else f"step_{step}",
+                        "n": len(inj),
+                        "baseline_mean": baseline_mean,
+                        "mean_score": mean_score,
+                        "failure_rate": failure_rate,
+                        "failure_rate_ci_lo": fr_lo,
+                        "failure_rate_ci_hi": fr_hi,
+                    }
+                )
     return pd.DataFrame(rows)
 
 

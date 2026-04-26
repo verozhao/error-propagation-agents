@@ -109,10 +109,13 @@ def _save(fig, name):
 def fig1_propagation_curves():
     """FR by injection step, one subplot per error type, with 95% CI bands."""
     path = "results/stats/failure_rates_with_ci.csv"
-    if not os.path.exists(path):
-        print("Skipping Fig 1: failure_rates_with_ci.csv not found")
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        print("Skipping Fig 1: failure_rates_with_ci.csv not found or empty")
         return
     df = pd.read_csv(path)
+    if df.empty:
+        print("Skipping Fig 1: no data")
+        return
     df["step_idx"] = df["step_name"].map({s: i for i, s in enumerate(STEP_ORDER)})
     df = df.dropna(subset=["step_idx"])
 
