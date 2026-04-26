@@ -21,7 +21,13 @@
 - **Mediation (H2)**: NIE/TE > 0.4 for only 1/4 models → H2 NOT confirmed. This means "measurement study" framing, not "new problem class."
 - **Llama mediation shows negative NIE** (-0.666) — persistence is inversely related to failure, suggesting errors that persist may be less catastrophic than errors that mutate. This is a surprising and publishable finding.
 - **Pre-registration**: committed with hash `0125cbd8...`
-- **Hierarchical model**: fit running (or completed) — check output
+- **Hierarchical model**: COMPLETED. 0 divergences, R-hat = 1.00 for all params. Key results:
+  - `alpha_model`: all 4 models nearly identical (-0.38 to -0.40) — NO cross-model difference in persistence
+  - `beta_severity`: 0.05 (positive, tight CI) — severity predicts persistence. Phase 1B (sev2/sev3) will be productive.
+  - `gamma_domain`: domain 0 (hotpotqa_auto) = -0.87, domain 1 (single_hop) = -0.41, domain 2 (multi_hop_reasoning) = -0.28. **Domain matters significantly.** This makes Phase 1A (multi-domain expansion) even more critical — Haiku/Sonnet are currently biased toward the LOWEST-persistence domain.
+  - `beta_type`: entity/unverifiable (-0.43) < invented/contradictory (-0.35). Error type decomposition has signal.
+  - `mu_step`: sharp drop from step 0 (0.04) to steps 1-4 (-1.48 to -1.73). Persistence decays sharply then flattens.
+  - Raw output saved: `results/stats/hierarchical_fit_log.txt`
 
 ### Key code facts
 - `models.py`: all models route through Anthropic gateway (lines 37-41). OpenAI/Google models are commented out (lines 27-34). To add GPT-4o-mini or Gemini Flash, uncomment and configure.
@@ -75,7 +81,7 @@ python compute_curves_batched.py
 python check_pilot_gates.py results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-4_5trials.jsonl
 ```
 
-**Why critical**: Without multi-domain data for all models, you cannot claim domain generalization. Reviewer will immediately flag "Haiku and Sonnet only tested on HotpotQA."
+**Why critical**: Without multi-domain data for all models, you cannot claim domain generalization. Reviewer will immediately flag "Haiku and Sonnet only tested on HotpotQA." Additionally, the hierarchical model shows gamma_domain varies from -0.87 (hotpotqa_auto) to -0.28 (multi_hop_reasoning) — domain is the largest effect. Haiku/Sonnet data is currently biased toward the lowest-persistence domain.
 
 ### 1B. Severity variation — sev2 and sev3 on Llama (~$5-8)
 
@@ -110,6 +116,29 @@ python run.py --mode run --use-api --models llama-3.1-8b --error-type ragtruth_w
 ## Phase 2: Analysis scripts ($0, all local)
 
 Run these AFTER all Phase 1 data collection is complete. Order matters for some.
+
+### 2-FIRST. Final hierarchical model fit (run ONCE after all data is collected, ~3.5 hours)
+
+```python
+python -c "
+from hierarchical_model import fit_hierarchical, prepare_data, extract_posteriors, rank1_factorization_test
+import json, glob
+records = []
+for f in glob.glob('results/ragtruth_weighted_error/*.jsonl'):
+    if '_legacy' in f or '_failed' in f: continue
+    records.extend(json.loads(l) for l in open(f) if l.strip())
+data = prepare_data(records)
+samples = fit_hierarchical(data, num_samples=2000)
+posteriors = extract_posteriors(samples, data)
+rank1 = rank1_factorization_test(samples, data)
+posteriors['rank1_factorization'] = rank1
+with open('results/stats/hierarchical_posteriors.json', 'w') as f:
+    json.dump(posteriors, f, indent=2, default=str)
+print('Saved to results/stats/hierarchical_posteriors.json')
+" 2>&1 | tee results/stats/hierarchical_fit_log.txt
+```
+
+This takes ~3.5 hours on CPU (2 chains × 2500 iterations each). No API calls. Launch it first, then do the other Phase 2 tasks while it runs.
 
 ### 2A. Multi-encoder persistence validation
 
@@ -247,15 +276,26 @@ Check if this needs updating for current data format. It may reference old error
 
 §5 Main Results (pre-registered)
    5.1 Persistence decay dynamics + decay model comparison
+       — mu_step shows sharp drop then flat: likely exponential or sharp-linear best fit
    5.2 H1 result (decay shape consistency)
    5.3 H2 result (mediation fraction — report honestly that H2 not confirmed)
    5.4 Negative NIE finding (novel result: errors that persist may be LESS harmful)
+       — Frame as: "errors that persist in recognizable form may be easier for
+         downstream steps to detect and filter, while errors that mutate beyond
+         recognition cause unrecoverable failures"
    5.5 Hazard posteriors from hierarchical model
+       — alpha_model: models are near-identical → propagation dynamics are
+         model-INDEPENDENT (this is itself a strong finding)
+       — gamma_domain: domain is the LARGEST effect → propagation depends more
+         on task difficulty than model choice
 
 §6 Exploratory (FDR-corrected, clearly labeled)
    6.1 Error type decomposition (entity vs invented vs contradictory vs unverifiable)
+       — beta_type shows entity/unverifiable persist less than invented/contradictory
    6.2 Domain comparison (multi-hop vs single-hop vs reasoning)
+       — gamma_domain: hotpotqa < single_hop < multi_hop_reasoning
    6.3 Cross-model robustness ranking
+       — Note: ranking is nearly flat (all models ≈ -0.39). Report this honestly.
    6.4 Multi-encoder validation
    6.5 Severity regression
    6.6 Architecture ablation (if Phase 1C done: self_refine vs medium vs short)
@@ -296,7 +336,14 @@ Check if this needs updating for current data format. It may reference old error
 
 ## Critical warnings
 
-1. **`compute_curves_batched.py` has hardcoded paths** — edit JSONL_PATH and OUTPUT_JSON before each use
+0. **FIRST THING TO DO**: Make `compute_curves_batched.py` accept a CLI argument instead of hardcoded paths. Every new JSONL requires manually editing lines 7-14. Replace the top with:
+   ```python
+   import sys
+   JSONL_PATH = sys.argv[1] if len(sys.argv) > 1 else "results/ragtruth_weighted_error/ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl"
+   OUTPUT_JSON = JSONL_PATH.replace('.jsonl', '_consolidated.json')
+   ```
+   Then usage becomes: `python compute_curves_batched.py results/ragtruth_weighted_error/<file>.jsonl`
+1. **`compute_curves_batched.py` has hardcoded paths** — edit JSONL_PATH and OUTPUT_JSON before each use (or apply fix above)
 2. **`generate_paper_figures.py` and `generate_paper_tables.py` use old data format** — must be updated before running
 3. **`causal_mediation.py` line 28 has the same `None` bug** as hierarchical_model.py — already patched in hierarchical_model.py but check causal_mediation.py: `meta = r.get("injection_meta", {})` should be `meta = r.get("injection_meta") or {}`
 4. **Hierarchical model `fit_hierarchical_model` does not exist** — the function is called `fit_hierarchical` (in hierarchical_model.py). commands.md Phase 7 has the wrong name.
