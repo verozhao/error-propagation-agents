@@ -3,7 +3,7 @@
 # No API calls needed. All local compute.
 # Expected total time: ~4-5 hours (hierarchical fit dominates)
 set -e
-cd /Users/test/error-propagation-agents
+cd "$(dirname "$0")"
 
 echo "=========================================="
 echo "PHASE 2 + 3 PIPELINE — $(date)"
