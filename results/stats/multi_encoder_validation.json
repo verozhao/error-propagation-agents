@@ -8,15 +8,15 @@
   "pairwise_correlations": {
     "bge-large-en-v1.5 vs e5-large-v2": {
       "spearman_rho": 0.5545,
-      "p_value": 1.2139674083445263e-41
+      "p_value": 1.2139674083446094e-41
     },
     "bge-large-en-v1.5 vs all-mpnet-base-v2": {
       "spearman_rho": 0.4496,
-      "p_value": 2.985574694389498e-26
+      "p_value": 2.9855746943894577e-26
     },
     "e5-large-v2 vs all-mpnet-base-v2": {
       "spearman_rho": 0.5749,
-      "p_value": 2.4849387751837258e-45
+      "p_value": 2.484938775183703e-45
     }
   },
   "min_rho": 0.4496,

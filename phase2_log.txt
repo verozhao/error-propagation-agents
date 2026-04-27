@@ -1,0 +1,278 @@
+==========================================
+PHASE 2 + 3 PIPELINE — Mon Apr 27 11:01:43 EDT 2026
+==========================================
+
+>>> Step 1: Compute persistence curves for new files
+  Skipping ragtruth_weighted_sev1_claude-haiku-3_15trials.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_claude-sonnet-3-7_5trials.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_claude-sonnet-4_5trials.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_llama-3.1-8b_15trials_intv_threshold.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_llama-3.1-8b_15trials_self_refine_A.jsonl — already has curves
+  Skipping ragtruth_weighted_sev1_llama-3.1-8b_15trials_self_refine_B.jsonl — incomplete run
+  Skipping ragtruth_weighted_sev1_llama-3.1-8b_15trials_short.jsonl — already has curves
+  Skipping ragtruth_weighted_sev2_llama-3.1-8b_15trials.jsonl — already has curves
+  Skipping ragtruth_weighted_sev3_llama-3.1-8b_15trials.jsonl — already has curves
+
+>>> Step 2: Gate checks
+  Gate check: ragtruth_weighted_sev1_claude-haiku-3_15trials.jsonl
+Inspecting: results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-haiku-3_15trials.jsonl
+
+Per-query filter: 94/120 queries retained (26 dropped with baseline FR > 0.5)
+Total: 9000, errors: 83, ok after filter: 6967
+  Baselines: 1398, Injected: 5569
+
+======================================================================
+PILOT GATE CHECK
+======================================================================
+  ✓ PASS  Run completion (error rate < 5%)
+          0.9% errors
+  ✓ PASS  Baseline FR < 0.30 (post-filter)
+          baseline_fr=0.014
+  ✓ PASS  Signal exists (≥1 cell FR > baseline + 0.10, p<0.05)
+          8 cells with FR>baseline+0.10, p<0.05; e.g. (('invented', 1), np.float64(0.30795256429718154), np.float64(0.0))
+  ✓ PASS  Persistence curves present for ≥75% injected
+          96.3%
+  ✓ PASS  All 4 FAVA types sampled
+          all 4 present
+
+  5/5 gates passed
+  → Proceed to main sweep
+  Gate check: ragtruth_weighted_sev1_claude-sonnet-3-7_5trials.jsonl
+Inspecting: results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-3-7_5trials.jsonl
+
+Per-query filter: 12/30 queries retained (18 dropped with baseline FR > 0.5)
+Total: 750, errors: 0, ok after filter: 300
+  Baselines: 60, Injected: 240
+
+======================================================================
+PILOT GATE CHECK
+======================================================================
+  ✓ PASS  Run completion (error rate < 5%)
+          0.0% errors
+  ✓ PASS  Baseline FR < 0.30 (post-filter)
+          baseline_fr=0.067
+  ✓ PASS  Signal exists (≥1 cell FR > baseline + 0.10, p<0.05)
+          11 cells with FR>baseline+0.10, p<0.05; e.g. (('entity', 2), np.float64(0.24583333333333335), np.float64(0.006848739179628138))
+  ✓ PASS  Persistence curves present for ≥75% injected
+          91.2%
+  ✓ PASS  All 4 FAVA types sampled
+          all 4 present
+
+  5/5 gates passed
+  → Proceed to main sweep
+  Gate check: ragtruth_weighted_sev1_claude-sonnet-4_5trials.jsonl
+Inspecting: results/ragtruth_weighted_error/ragtruth_weighted_sev1_claude-sonnet-4_5trials.jsonl
+
+Per-query filter: 11/30 queries retained (19 dropped with baseline FR > 0.5)
+Total: 750, errors: 0, ok after filter: 275
+  Baselines: 55, Injected: 220
+
+======================================================================
+PILOT GATE CHECK
+======================================================================
+  ✓ PASS  Run completion (error rate < 5%)
+          0.0% errors
+  ✓ PASS  Baseline FR < 0.30 (post-filter)
+          baseline_fr=0.000
+  ✓ PASS  Signal exists (≥1 cell FR > baseline + 0.10, p<0.05)
+          4 cells with FR>baseline+0.10, p<0.05; e.g. (('entity', 2), np.float64(0.11764705882352941), np.float64(0.009885232742719463))
+  ✓ PASS  Persistence curves present for ≥75% injected
+          89.1%
+  ✓ PASS  All 4 FAVA types sampled
+          all 4 present
+
+  5/5 gates passed
+  → Proceed to main sweep
+  Gate check: ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl
+Inspecting: results/ragtruth_weighted_error/ragtruth_weighted_sev1_llama-3.1-8b_15trials.jsonl
+
+Per-query filter: 108/120 queries retained (12 dropped with baseline FR > 0.5)
+Total: 9000, errors: 0, ok after filter: 8100
+  Baselines: 1620, Injected: 6480
+
+======================================================================
+PILOT GATE CHECK
+======================================================================
+  ✓ PASS  Run completion (error rate < 5%)
+          0.0% errors
+  ✓ PASS  Baseline FR < 0.30 (post-filter)
+          baseline_fr=0.019
+  ✓ PASS  Signal exists (≥1 cell FR > baseline + 0.10, p<0.05)
+          8 cells with FR>baseline+0.10, p<0.05; e.g. (('invented', 1), np.float64(0.1328316330803893), np.float64(0.0))
+  ✓ PASS  Persistence curves present for ≥75% injected
+          95.7%
+  ✓ PASS  All 4 FAVA types sampled
+          all 4 present
+
+  5/5 gates passed
+  → Proceed to main sweep
+
+>>> Step 3: Statistical tests
+Loaded 39643 trial records across 4 models, 5 error types.
+Wrote 64 significance rows (correction=holm).
+Wrote 64 failure-rate rows with 95% CIs.
+
+>>> Step 4: Causal mediation
+Loaded 24598 trial + 6600 baseline records for mediation
+Saved mediation results
+
+>>> Step 5: Decay analysis
+Loading persistence curves...
+Loaded 29986 records with persistence curves
+
+claude-haiku-3:
+  Steps from injection: [1, 2, 3, 4]
+  Mean persistence:     ['0.0183', '0.0169', '0.0116', '0.0095']
+  N per step:           [6843, 5258, 3557, 1774]
+  Best decay model:     flat
+  ΔAICc:                {'exponential': 1.464838591313537, 'linear': 21.083647869132157, 'flat': 0.0}
+
+claude-sonnet-3-7:
+  Steps from injection: [1, 2, 3, 4]
+  Mean persistence:     ['0.0227', '0.0140', '0.0104', '0.0127']
+  N per step:           [557, 426, 294, 150]
+  Best decay model:     flat
+  ΔAICc:                {'exponential': 6.37112428654239, 'linear': 18.696689923639603, 'flat': 0.0}
+
+claude-sonnet-4:
+  Steps from injection: [1, 2, 3, 4]
+  Mean persistence:     ['0.0232', '0.0120', '0.0129', '0.0161']
+  N per step:           [558, 427, 294, 150]
+  Best decay model:     flat
+  ΔAICc:                {'exponential': 10.405384735671227, 'linear': 19.94629222849867, 'flat': 0.0}
+
+llama-3.1-8b:
+  Steps from injection: [1, 2, 3, 4]
+  Mean persistence:     ['0.0319', '0.0260', '0.0207', '0.0193']
+  N per step:           [22028, 16631, 10708, 5336]
+  Best decay model:     exponential
+  ΔAICc:                {'exponential': 0.0, 'linear': 25.055869809683603, 'flat': 2.25022227980935}
+
+Aggregate (all models):
+  Best: exponential, ΔAICc: {'exponential': 0.0, 'linear': 25.41083940512665, 'flat': 3.0083873663714513}
+
+Saved to results/stats/decay_analysis.json
+
+>>> Step 6: Multi-encoder validation
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading injected records from Llama sev1...
+Using 500 records
+Valid items for encoding: 500
+Final items with baselines: 500
+
+Encoding with BAAI/bge-large-en-v1.5...
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 9797.08it/s]
+[1mBertModel LOAD REPORT[0m from: BAAI/bge-large-en-v1.5
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  Mean persistence: 0.0182
+
+Encoding with intfloat/e5-large-v2...
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 10679.55it/s]
+[1mBertModel LOAD REPORT[0m from: intfloat/e5-large-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  Mean persistence: 0.0096
+
+Encoding with sentence-transformers/all-mpnet-base-v2...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 20418.48it/s]
+[1mMPNetModel LOAD REPORT[0m from: sentence-transformers/all-mpnet-base-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  Mean persistence: 0.0271
+
+--- Pairwise Spearman correlations ---
+  bge-large-en-v1.5 vs e5-large-v2: ρ = 0.5545 (p = 1.21e-41)
+  bge-large-en-v1.5 vs all-mpnet-base-v2: ρ = 0.4496 (p = 2.99e-26)
+  e5-large-v2 vs all-mpnet-base-v2: ρ = 0.5749 (p = 2.48e-45)
+
+Min ρ = 0.4496 — BELOW 0.85 threshold
+Saved to results/stats/multi_encoder_validation.json
+
+>>> Step 7: Theorem identifiability
+============================================================
+Theorem 1: Identifiability Verification
+============================================================
+
+--- Design matrix rank test ---
+Parameters: 15
+Design cells: 320
+Matrix rank: 15
+Full rank: True
+
+--- Monte Carlo verification (n=15 per cell, 500 sims) ---
+True alphas:     [0.8, 0.6, 0.5, 0.3]
+Mean estimates:  ['0.8008', '0.6001', '0.5022', '0.3120']
+Bias:            ['+0.0008', '+0.0001', '+0.0022', '+0.0120']
+RMSE:            ['0.0130', '0.0159', '0.0276', '0.0544']
+95% CI coverage: [1.0, 1.0, 1.0, 1.0]
+Max |bias|: 0.0120
+Max RMSE:   0.0544
+
+--- Convergence test ---
+  n=  10: max_rmse=0.0697, max_|bias|=0.0142, covered=True
+  n=  15: max_rmse=0.0537, max_|bias|=0.0155, covered=True
+  n=  30: max_rmse=0.0399, max_|bias|=0.0145, covered=True
+  n=  60: max_rmse=0.0300, max_|bias|=0.0117, covered=True
+  n= 120: max_rmse=0.0217, max_|bias|=0.0109, covered=True
+  n= 240: max_rmse=0.0169, max_|bias|=0.0099, covered=True
+RMSE decreasing with n: True
+
+--- Summary ---
+PASS: Identifiability conditions satisfied.
+
+>>> Step 8: Hierarchical model refit (this takes ~3.5 hours)
+Traceback (most recent call last):
+  File "<string>", line 11, in <module>
+  File "/Users/sherryzhao/error-propagation-agents/hierarchical_model.py", line 115, in fit_hierarchical
+    import numpyro
+  File "/Users/sherryzhao/error-propagation-agents/.venv/lib/python3.11/site-packages/numpyro/__init__.py", line 13, in <module>
+    from numpyro import compat, diagnostics, distributions, handlers, infer, ops, optim
+  File "/Users/sherryzhao/error-propagation-agents/.venv/lib/python3.11/site-packages/numpyro/infer/__init__.py", line 6, in <module>
+    from numpyro.infer.elbo import (
+  File "/Users/sherryzhao/error-propagation-agents/.venv/lib/python3.11/site-packages/numpyro/infer/elbo.py", line 35, in <module>
+    from numpyro.ops.provenance import eval_provenance
+  File "/Users/sherryzhao/error-propagation-agents/.venv/lib/python3.11/site-packages/numpyro/ops/provenance.py", line 7, in <module>
+    from jax.extend.core.primitives import call_p, closed_call_p, jit_p, xla_pmap_p
+ImportError: cannot import name 'xla_pmap_p' from 'jax.extend.core.primitives' (/Users/sherryzhao/error-propagation-agents/.venv/lib/python3.11/site-packages/jax/extend/core/primitives.py)
+Loaded 41507 records for hierarchical fit
+
+>>> Step 9: Generate figures and tables
+Generating paper figures...
+  Wrote figures/paper/fig1_propagation_curves.pdf
+Skipping Fig 2: failure_rates_by_severity.csv not found
+Skipping Fig 3: no survival matrix CSV found
+Skipping Fig 4: compound_superadditivity.csv not found
+Skipping Fig 5: no survival matrix CSV found
+Skipping Fig 6: no correlation CSV found
+
+Generating appendix figures...
+
+Generating causal DAG figure...
+  Wrote figures/paper/fig_causal_dag.pdf
+
+All figures saved to figures/paper/
+Wrote paper/tables/table1_propagation.tex
+Wrote paper/tables/table2_significance.tex
+Skipping Table 3: results/stats/compound_superadditivity.csv not found
+Skipping Table 4: results/stats/failure_rates_by_severity.csv not found
+Skipping Table 5: results/stats/langchain_comparison.csv not found
+Skipping Table 6: results/stats/verify_detection_rate.csv not found
+Skipping Table 7: results/stats/metric_sensitivity.csv not found
+
+==========================================
+PHASE 2 + 3 PIPELINE COMPLETE — Mon Apr 27 11:06:15 EDT 2026
+==========================================
