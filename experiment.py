@@ -309,6 +309,10 @@ def run_full_experiment(
     # Build stable JSONL filename for resume
     model_tag = "_".join(sorted(models))
     parts = [error_type, f"sev{severity}", model_tag, f"{num_trials}trials"]
+    if pipeline != "medium":
+        parts.append(pipeline)
+    if intervention not in (None, "none"):
+        parts.append(f"intv_{intervention}")
     if injection_model:
         parts.append(f"llm_{injection_model.replace('-', '')}")
     if compound_pairs:
