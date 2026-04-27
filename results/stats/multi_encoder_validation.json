@@ -1,0 +1,24 @@
+{
+  "n_items": 500,
+  "encoders": [
+    "BAAI/bge-large-en-v1.5",
+    "intfloat/e5-large-v2",
+    "sentence-transformers/all-mpnet-base-v2"
+  ],
+  "pairwise_correlations": {
+    "bge-large-en-v1.5 vs e5-large-v2": {
+      "spearman_rho": 0.5545,
+      "p_value": 1.2139674083445263e-41
+    },
+    "bge-large-en-v1.5 vs all-mpnet-base-v2": {
+      "spearman_rho": 0.4496,
+      "p_value": 2.985574694389498e-26
+    },
+    "e5-large-v2 vs all-mpnet-base-v2": {
+      "spearman_rho": 0.5749,
+      "p_value": 2.4849387751837258e-45
+    }
+  },
+  "min_rho": 0.4496,
+  "pass_threshold_085": "False"
+}

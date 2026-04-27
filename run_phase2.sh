@@ -1,18 +1,22 @@
 #!/bin/bash
-# Overnight analysis pipeline — Phase 2 + Phase 3
+# Phase 2 + Phase 3 analysis pipeline
 # No API calls needed. All local compute.
-# Expected total time: ~5-6 hours (hierarchical fit dominates)
+# Expected total time: ~4-5 hours (hierarchical fit dominates)
 set -e
 cd /Users/test/error-propagation-agents
 
 echo "=========================================="
-echo "OVERNIGHT PIPELINE — $(date)"
+echo "PHASE 2 + 3 PIPELINE — $(date)"
 echo "=========================================="
 
 # Step 1: Compute persistence curves for any files missing them (~5-10 min each)
 echo ""
 echo ">>> Step 1: Compute persistence curves for new files"
 for f in results/ragtruth_weighted_error/*.jsonl; do
+    # Skip incomplete runs
+    case "$(basename $f)" in
+        *self_refine_B*) echo "  Skipping $(basename $f) — incomplete run"; continue ;;
+    esac
     has_curve=$(python3 -c "
 import json
 with open('$f') as fh:
@@ -54,14 +58,21 @@ echo ""
 echo ">>> Step 4: Causal mediation"
 python -c "
 from causal_mediation import compute_mediation_per_model
+from record_utils import is_baseline
 import json, glob
-records = []
+trials, baselines = [], []
 for f in glob.glob('results/ragtruth_weighted_error/ragtruth_weighted_sev1_*.jsonl'):
-    if '_legacy' in f or '_failed' in f: continue
+    if '_legacy' in f or '_failed' in f or 'self_refine_B' in f: continue
     with open(f) as fh:
-        records.extend(json.loads(l) for l in fh if l.strip())
-print(f'Loaded {len(records)} records for mediation')
-result = compute_mediation_per_model(records)
+        for l in fh:
+            if not l.strip(): continue
+            r = json.loads(l)
+            if is_baseline(r):
+                baselines.append(r)
+            else:
+                trials.append(r)
+print(f'Loaded {len(trials)} trial + {len(baselines)} baseline records for mediation')
+result = compute_mediation_per_model(trials, baselines)
 with open('results/stats/mediation_main.json', 'w') as f:
     json.dump(result, f, indent=2, default=str)
 print('Saved mediation results')
@@ -112,5 +123,5 @@ python generate_paper_tables.py
 
 echo ""
 echo "=========================================="
-echo "OVERNIGHT PIPELINE COMPLETE — $(date)"
+echo "PHASE 2 + 3 PIPELINE COMPLETE — $(date)"
 echo "=========================================="

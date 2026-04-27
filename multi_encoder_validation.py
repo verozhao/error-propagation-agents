@@ -132,7 +132,7 @@ def main():
     }
     out_path = "results/stats/multi_encoder_validation.json"
     with open(out_path, "w") as f:
-        json.dump(out, f, indent=2)
+        json.dump(out, f, indent=2, default=str)
     print(f"Saved to {out_path}")
 
 
