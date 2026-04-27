@@ -13,6 +13,8 @@ USE_GATEWAY = os.getenv("USE_GATEWAY", "false").lower() == "true"
 GATEWAY_URL = "https://ai-gateway.andrew.cmu.edu"
 GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 
+GATEWAY_API_KEY_2 = os.getenv("GATEWAY_API_KEY_2", "")
+
 OPEN_SOURCE_MODELS = {
     "llama-3.1-8b": "meta-llama/Llama-3.1-8B-Instruct",
     "llama-3.1-70b": "meta-llama/Llama-3.1-70B-Instruct",
@@ -34,7 +36,7 @@ OPEN_SOURCE_MODELS = {
 #     "gemini-flash": {"provider": "google", "model": "gemini-1.5-flash"},
 # }
 API_MODELS = {
-    "llama-3.1-8b":     {"provider": "anthropic", "model": "meta.llama3-1-8b-instruct-v1:0"},
+    "llama-3.1-8b":     {"provider": "together", "model": "ff26veronica_6075/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo-b0f6dedd"},
     "claude-haiku-3":   {"provider": "anthropic", "model": "claude-3-haiku-20240307"},
     "claude-sonnet-3-7":{"provider": "anthropic", "model": "claude-3-7-sonnet-20250219-v1:0"},
     "claude-sonnet-4":  {"provider": "anthropic", "model": "claude-sonnet-4-20250514-v1:0"},
@@ -45,7 +47,7 @@ API_MODELS = {
 try:
     from config import PINNED_MODEL_VERSIONS
     for _alias, _pinned in PINNED_MODEL_VERSIONS.items():
-        if _alias in API_MODELS:
+        if _alias in API_MODELS and API_MODELS[_alias]["provider"] in ("anthropic", "openai", "google"):
             API_MODELS[_alias]["model"] = _pinned
         if _alias in OPEN_SOURCE_MODELS:
             OPEN_SOURCE_MODELS[_alias] = _pinned
@@ -135,6 +137,16 @@ def get_cmu_gateway_client():
     return _api_clients["cmu_gateway"]
 
 
+def get_together_client():
+    if "together" not in _api_clients:
+        import openai
+        _api_clients["together"] = openai.OpenAI(
+            api_key=GATEWAY_API_KEY_2,
+            base_url="https://api.together.xyz/v1",
+        )
+    return _api_clients["together"]
+
+
 def get_openai_client():
     if "openai" not in _api_clients:
         import openai
@@ -153,6 +165,21 @@ def get_google_model(model_name: str):
     import google.generativeai as genai
     genai.configure(api_key=GOOGLE_API_KEY)
     return genai.GenerativeModel(model_name)
+
+
+@_API_RETRY
+def call_together(model: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.0, seed: int = None) -> str:
+    client = get_together_client()
+    kwargs = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+    if seed is not None:
+        kwargs["seed"] = seed
+    response = client.chat.completions.create(**kwargs)
+    return response.choices[0].message.content
 
 
 @_API_RETRY
@@ -210,11 +237,15 @@ def call_cmu_gateway(model: str, prompt: str, max_tokens: int = 1024, temperatur
 
 def call_model(model_name: str, prompt: str, max_tokens: int = 1024,
                temperature: float = 0.0, seed: int = None) -> str:
+    # Non-gateway providers (e.g. Groq) bypass the gateway even when enabled
+    if model_name in API_MODELS and API_MODELS[model_name]["provider"] not in ("anthropic", "openai", "google"):
+        cfg = API_MODELS[model_name]
+        if cfg["provider"] == "together":
+            return call_together(cfg["model"], prompt, max_tokens, temperature, seed)
+
     # Gateway path takes priority when enabled, regardless of which dict
     # the alias is registered in.
     if USE_GATEWAY:
-        # Resolve alias -> gateway ID
-        # Try API_MODELS first (preferred), fall back to OPEN_SOURCE_MODELS
         if model_name in API_MODELS:
             model_id = API_MODELS[model_name]["model"]
         elif model_name in OPEN_SOURCE_MODELS:
@@ -235,7 +266,9 @@ def call_model(model_name: str, prompt: str, max_tokens: int = 1024,
         cfg = API_MODELS[model_name]
         model_id = cfg["model"]
         provider = cfg["provider"]
-        if provider == "openai":
+        if provider == "together":
+            return call_together(model_id, prompt, max_tokens, temperature, seed)
+        elif provider == "openai":
             return call_openai(model_id, prompt, max_tokens, temperature, seed)
         elif provider == "anthropic":
             return call_anthropic(model_id, prompt, max_tokens, temperature, seed)
